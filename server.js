@@ -89,8 +89,33 @@ app.post('/api/checkout', requireAuth, async (req, res) => {
 app.get('/api/orders', requireAuth, async (req, res) => {
     try {
         const filter = req.query.filter || 'all';
-        const orders = await db.getOrders(filter);
+        const search = req.query.search || '';
+        const dateFrom = req.query.dateFrom || '';
+        const dateTo = req.query.dateTo || '';
+        const orders = await db.getOrders(filter, search, dateFrom, dateTo);
         res.json(orders);
+    } catch (err) {
+        console.error('Orders error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/orders/:id/details', requireAuth, async (req, res) => {
+    try {
+        const orderResult = await db.pool.query(
+            "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status FROM orders WHERE id = $1",
+            [req.params.id]
+        );
+        if (orderResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+        const itemsResult = await db.pool.query(
+            "SELECT service_name, quantity, price FROM order_items WHERE order_id = $1",
+            [req.params.id]
+        );
+        const order = orderResult.rows[0];
+        order.items = itemsResult.rows;
+        res.json(order);
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -116,7 +141,7 @@ app.put('/api/orders/:id/unpay', requireAuth, async (req, res) => {
 
 app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
     const { status } = req.body;
-    const validStatuses = ['Received', 'Washing', 'Ready', 'Picked Up'];
+    const validStatuses = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
     if (!validStatuses.includes(status)) {
         return res.status(400).json({ error: 'Invalid status' });
     }

@@ -108,23 +108,49 @@ async function saveOrder(customer, total, cartItems, paymentStatus) {
     return orderId;
 }
 
-async function getOrders(filter) {
-    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status FROM orders";
+async function getOrders(filter, search, dateFrom, dateTo) {
+    const conditions = [];
+    const params = [];
+
     if (filter === 'paid') {
-        query += " WHERE payment_status = 'Paid'";
+        conditions.push("payment_status = 'Paid'");
     } else if (filter === 'unpaid') {
-        query += " WHERE payment_status = 'Pending'";
+        conditions.push("payment_status = 'Pending'");
     } else if (filter === 'received') {
-        query += " WHERE status = 'Received'";
+        conditions.push("status = 'Received'");
     } else if (filter === 'washing') {
-        query += " WHERE status = 'Washing'";
+        conditions.push("status = 'Washing'");
+    } else if (filter === 'drying') {
+        conditions.push("status = 'Drying'");
     } else if (filter === 'ready') {
-        query += " WHERE status = 'Ready'";
+        conditions.push("status = 'Ready'");
     } else if (filter === 'pickedup') {
-        query += " WHERE status = 'Picked Up'";
+        conditions.push("status = 'Picked Up'");
     }
-    query += " ORDER BY id DESC LIMIT 200";
-    const result = await pool.query(query);
+
+    if (search) {
+        params.push('%' + search + '%');
+        params.push(search);
+        conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`);
+    }
+
+    if (dateFrom) {
+        params.push(dateFrom);
+        conditions.push(`date::timestamptz >= $${params.length}::timestamptz`);
+    }
+
+    if (dateTo) {
+        params.push(dateTo + ' 23:59:59');
+        conditions.push(`date::timestamptz <= $${params.length}::timestamptz`);
+    }
+
+    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status FROM orders";
+    if (conditions.length > 0) {
+        query += " WHERE " + conditions.join(" AND ");
+    }
+    query += " ORDER BY id DESC LIMIT 500";
+
+    const result = await pool.query(query, params);
     return result.rows;
 }
 

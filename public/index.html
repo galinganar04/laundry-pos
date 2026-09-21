@@ -202,7 +202,9 @@
             </tr>
         `).join('');
 
-        const statusLabel = lastOrder.paymentStatus === 'Paid' ? 'PAID' : 'UNPAID - Pay on Pickup';
+        // Force payment status to be handled correctly
+        const isPaid = String(lastOrder.paymentStatus).toLowerCase() === 'paid';
+        const statusLabel = isPaid ? 'PAID ✅' : 'UNPAID ⚠️ - Pay on Pickup';
 
         const receiptHtml = `
             <!DOCTYPE html>
@@ -216,7 +218,9 @@
                 .total-row { font-weight: bold; font-size: 14px; }
                 .footer { text-align: center; font-size: 11px; margin-top: 20px; }
                 .info { font-size: 12px; margin: 4px 0; }
-                .status { text-align: center; font-weight: bold; padding: 8px; border: 2px solid #000; margin: 10px 0; }
+                .status { text-align: center; font-weight: bold; padding: 8px; border: 2px solid #000; margin: 10px 0; font-size: 13px; }
+                .status.paid { background: #d1fae5; color: #065f46; border-color: #10b981; }
+                .status.unpaid { background: #fee2e2; color: #991b1b; border-color: #dc2626; }
                 .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 5px; }
                 @media print { .print-btn { display: none; } body { padding: 0; } }
             </style></head><body>
@@ -239,7 +243,7 @@
                 <table><tr class="total-row">
                     <td>TOTAL</td><td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td>
                 </tr></table>
-                <div class="status">${statusLabel}</div>
+                <div class="status ${isPaid ? 'paid' : 'unpaid'}">${statusLabel}</div>
                 <div class="divider"></div>
                 <p class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.</p>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>

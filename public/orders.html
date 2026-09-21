@@ -10,7 +10,12 @@
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
         .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
         .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .filter-btn { margin-right: 8px; }
+        .filter-btn { margin-right: 6px; margin-bottom: 6px; }
+        .status-badge { font-size: 11px; padding: 5px 10px; }
+        .status-Received { background-color: #f59e0b; color: white; }
+        .status-Washing { background-color: #3b82f6; color: white; }
+        .status-Ready { background-color: #10b981; color: white; }
+        .status-PickedUp { background-color: #6b7280; color: white; }
     </style>
 </head>
 <body>
@@ -18,23 +23,45 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-    <h4 class="text-center mb-4">Laundry POS</h4>
-    <a href="/">🧺 POS</a>
-    <a href="/dashboard.html">📊 Dashboard</a>
-    <a href="/orders.html" class="active">📋 Orders</a>
-    <a href="/customers.html">👥 Customers</a>
-    <a href="/services.html">🧴 Services</a>
-    <a href="#" onclick="logout()">🚪 Logout</a>
-</div>
+            <h4 class="text-center mb-4">Laundry POS</h4>
+            <a href="/">🧺 POS</a>
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/orders.html" class="active">📋 Orders</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/services.html">🧴 Services</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </div>
 
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Orders</h3>
 
+            <!-- Search Panel -->
+            <div class="panel mb-4">
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search customer name or order #" oninput="debouncedLoad()">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" id="dateFrom" class="form-control" onchange="loadOrders()">
+                    </div>
+                    <div class="col-md-3">
+                        <input type="date" id="dateTo" class="form-control" onchange="loadOrders()">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Buttons -->
             <div class="panel">
                 <div class="mb-3">
-                    <button class="btn btn-sm btn-primary filter-btn" onclick="loadOrders('all')">All</button>
-                    <button class="btn btn-sm btn-warning filter-btn" onclick="loadOrders('unpaid')">⏳ Unpaid</button>
-                    <button class="btn btn-sm btn-success filter-btn" onclick="loadOrders('paid')">✅ Paid</button>
+                    <button class="btn btn-sm btn-primary filter-btn" onclick="setFilter('all')">All</button>
+                    <button class="btn btn-sm btn-warning filter-btn" onclick="setFilter('unpaid')">💰 Unpaid</button>
+                    <button class="btn btn-sm btn-outline-warning filter-btn" onclick="setFilter('received')">📥 Received</button>
+                    <button class="btn btn-sm btn-outline-primary filter-btn" onclick="setFilter('washing')">🌀 Washing</button>
+                    <button class="btn btn-sm btn-outline-success filter-btn" onclick="setFilter('ready')">✅ Ready</button>
+                    <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="setFilter('pickedup')">📦 Picked Up</button>
                 </div>
 
                 <div class="table-responsive">
@@ -45,12 +72,13 @@
                                 <th>Date</th>
                                 <th>Customer</th>
                                 <th class="text-end">Total</th>
+                                <th>Payment</th>
                                 <th>Status</th>
                                 <th class="text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTable">
-                            <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
+                            <tr><td colspan="7" class="text-center text-muted">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -63,8 +91,57 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    function loadOrders(filter) {
-        fetch('/api/orders?filter=' + filter, { headers: { 'x-auth-token': authToken } })
+    const statusList = ['Received', 'Washing', 'Ready', 'Picked Up'];
+    let currentFilter = 'all';
+    let searchTimeout;
+
+    function statusBadgeClass(status) {
+        if (status === 'Received') return 'status-Received';
+        if (status === 'Washing') return 'status-Washing';
+        if (status === 'Ready') return 'status-Ready';
+        if (status === 'Picked Up') return 'status-PickedUp';
+        return 'bg-secondary';
+    }
+
+    function nextStatusButton(order) {
+        const currentStatus = order.status || 'Received';
+        const currentIdx = statusList.indexOf(currentStatus);
+        if (currentIdx === statusList.length - 1) {
+            return `<span class="text-muted small">Complete</span>`;
+        }
+        const nextStatus = statusList[currentIdx + 1];
+        return `<button class="btn btn-sm btn-primary" onclick="changeStatus(${order.id}, '${nextStatus}')">→ ${nextStatus}</button>`;
+    }
+
+    function debouncedLoad() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => loadOrders(), 300);
+    }
+
+    function setFilter(f) {
+        currentFilter = f;
+        loadOrders();
+    }
+
+    function clearFilters() {
+        document.getElementById('searchBox').value = '';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        currentFilter = 'all';
+        loadOrders();
+    }
+
+    function loadOrders() {
+        const search = document.getElementById('searchBox').value.trim();
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        
+        let url = '/api/orders?filter=' + currentFilter;
+        if (search) url += '&search=' + encodeURIComponent(search);
+        if (dateFrom) url += '&dateFrom=' + dateFrom;
+        if (dateTo) url += '&dateTo=' + dateTo;
+
+        fetch(url, { headers: { 'x-auth-token': authToken } })
             .then(res => {
                 if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
                 return res.json();
@@ -73,7 +150,7 @@
                 if (!orders) return;
                 const table = document.getElementById('ordersTable');
                 if (orders.length === 0) {
-                    table.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No orders found.</td></tr>';
+                    table.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No orders found.</td></tr>';
                     return;
                 }
                 table.innerHTML = orders.map(o => {
@@ -81,19 +158,23 @@
                         month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' 
                     });
                     const isPaid = o.payment_status === 'Paid';
-                    const badge = isPaid ? 'bg-success' : 'bg-warning text-dark';
-                    const actionBtn = isPaid
+                    const payBadge = isPaid ? 'bg-success' : 'bg-warning text-dark';
+                    const payBtn = isPaid
                         ? `<button class="btn btn-sm btn-outline-warning" onclick="markUnpaid(${o.id})">Mark Unpaid</button>`
                         : `<button class="btn btn-sm btn-success" onclick="markPaid(${o.id})">Mark Paid</button>`;
+                    const status = o.status || 'Received';
                     return `
                         <tr>
                             <td>#${o.id}</td>
                             <td><small>${date}</small></td>
                             <td>${o.customer}</td>
                             <td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td>
-                            <td><span class="badge ${badge}">${o.payment_status}</span></td>
+                            <td><span class="badge ${payBadge}">${o.payment_status}</span></td>
+                            <td><span class="badge status-badge ${statusBadgeClass(status)}">${status}</span></td>
                             <td class="text-end">
-                                ${actionBtn}
+                                <button class="btn btn-sm btn-outline-info" onclick="reprintReceipt(${o.id})">🖨️</button>
+                                ${nextStatusButton(o)}
+                                ${payBtn}
                                 <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteOrder(${o.id})">🗑</button>
                             </td>
                         </tr>
@@ -102,32 +183,104 @@
             });
     }
 
-    function markPaid(id) {
-        fetch('/api/orders/' + id + '/pay', {
+    function changeStatus(id, newStatus) {
+        fetch('/api/orders/' + id + '/status', {
             method: 'PUT',
-            headers: { 'x-auth-token': authToken }
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ status: newStatus })
         })
-        .then(() => loadOrders('all'))
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) return alert('Error: ' + data.error);
+            loadOrders();
+        })
         .catch(err => alert('Error: ' + err.message));
     }
 
+    function markPaid(id) {
+        fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } })
+            .then(() => loadOrders());
+    }
+
     function markUnpaid(id) {
-        fetch('/api/orders/' + id + '/unpay', {
-            method: 'PUT',
-            headers: { 'x-auth-token': authToken }
-        })
-        .then(() => loadOrders('all'))
-        .catch(err => alert('Error: ' + err.message));
+        fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } })
+            .then(() => loadOrders());
     }
 
     function deleteOrder(id) {
         if (!confirm('Delete order #' + id + '? This cannot be undone.')) return;
-        fetch('/api/orders/' + id, {
-            method: 'DELETE',
-            headers: { 'x-auth-token': authToken }
-        })
-        .then(() => loadOrders('all'))
-        .catch(err => alert('Error: ' + err.message));
+        fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
+            .then(() => loadOrders());
+    }
+
+    function reprintReceipt(orderId) {
+        // Fetch the full order details and items
+        fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return alert('Error: ' + data.error);
+                renderReceipt(data);
+            })
+            .catch(err => alert('Error: ' + err.message));
+    }
+
+    function renderReceipt(order) {
+        const itemsHtml = order.items.map(item => `
+            <tr>
+                <td style="padding:6px 0;">${item.service_name}</td>
+                <td style="text-align:center;">x${item.quantity}</td>
+                <td style="text-align:right;">₱${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const statusLabel = order.payment_status === 'Paid' ? 'PAID' : 'UNPAID - Pay on Pickup';
+        const formattedDate = new Date(order.date).toLocaleString();
+
+        const receiptHtml = `
+            <!DOCTYPE html>
+            <html><head><title>Receipt #${order.id}</title>
+            <style>
+                body { font-family: 'Courier New', monospace; max-width: 320px; margin: 0 auto; padding: 20px; }
+                h1 { text-align: center; font-size: 18px; margin: 5px 0; }
+                h2 { text-align: center; font-size: 13px; font-weight: normal; margin: 5px 0 20px 0; }
+                .divider { border-top: 1px dashed #000; margin: 12px 0; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                .total-row { font-weight: bold; font-size: 14px; }
+                .footer { text-align: center; font-size: 11px; margin-top: 20px; }
+                .info { font-size: 12px; margin: 4px 0; }
+                .status { text-align: center; font-weight: bold; padding: 8px; border: 2px solid #000; margin: 10px 0; }
+                .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 5px; }
+                @media print { .print-btn { display: none; } body { padding: 0; } }
+            </style></head><body>
+                <h1>LAUNDRY POS</h1>
+                <h2>SheetlaPH Laundry Services</h2>
+                <div class="divider"></div>
+                <p class="info"><strong>Order #:</strong> ${order.id}</p>
+                <p class="info"><strong>Date:</strong> ${formattedDate}</p>
+                <p class="info"><strong>Customer:</strong> ${order.customer}</p>
+                <div class="divider"></div>
+                <table>
+                    <thead><tr style="border-bottom: 1px solid #000;">
+                        <th style="text-align:left;">Item</th>
+                        <th style="text-align:center;">Qty</th>
+                        <th style="text-align:right;">Amount</th>
+                    </tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <div class="divider"></div>
+                <table><tr class="total-row">
+                    <td>TOTAL</td><td style="text-align:right;">₱${parseFloat(order.total).toFixed(2)}</td>
+                </tr></table>
+                <div class="status">${statusLabel}</div>
+                <div class="divider"></div>
+                <p class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.</p>
+                <button class="print-btn" onclick="window.print()">🖨️ Print</button>
+            </body></html>
+        `;
+
+        const w = window.open('', '_blank', 'width=400,height=600');
+        w.document.write(receiptHtml);
+        w.document.close();
     }
 
     function logout() {
@@ -137,7 +290,7 @@
         window.location.href = '/login.html';
     }
 
-    loadOrders('all');
+    loadOrders();
 </script>
 </body>
 </html>
