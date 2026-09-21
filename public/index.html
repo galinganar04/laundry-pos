@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAWI'S LOVADA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
+        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
+        .service-card { cursor: pointer; transition: 0.2s; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .service-card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
+        .cart-panel { background-color: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 100%; }
+        .btn-checkout { background-color: #4f46e5; color: white; width: 100%; padding: 12px; font-weight: bold; border: none; border-radius: 5px; }
+        .btn-checkout:hover { background-color: #4338ca; }
+        .btn-print { background-color: #10b981; color: white; width: 100%; padding: 12px; font-weight: bold; border: none; border-radius: 5px; margin-top: 10px; display: none; }
+        .btn-print:hover { background-color: #059669; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <h4 class="text-center mb-4">Laundry POS</h4>
+            <a href="/" class="active">🧺 POS</a>
+            <a href="/services.html">🧴 Services</a>
+        </div>
+
+        <div class="col-md-7 p-4">
+            <h3 class="mb-4">Point of Sale</h3>
+            <div class="input-group mb-4">
+                <input type="text" class="form-control" placeholder="Search services...">
+            </div>
+            <h6 class="text-muted mb-3">Choose the customer's laundry service</h6>
+            <div class="row" id="servicesContainer"></div>
+        </div>
+
+        <div class="col-md-3 p-4">
+            <div class="cart-panel">
+                <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
+                <hr>
+                <div id="cartItemsList" class="mb-4">
+                    <p class="text-muted text-center small">Cart is empty.</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">CUSTOMER</label>
+                    <input type="text" id="customerName" class="form-control" value="Walk-In Customer">
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total</span>
+                    <strong id="cartTotal">₱0.00</strong>
+                </div>
+                <button class="btn-checkout mt-3" id="checkoutBtn" onclick="checkout()">Checkout</button>
+                <button class="btn-print" id="printBtn" onclick="printLastReceipt()">🖨️ Print Receipt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    let total = 0;
+    let lastOrder = null; // Save last completed order for printing
+
+    fetch('/api/services')
+        .then(response => response.json())
+        .then(services => {
+            const container = document.getElementById('servicesContainer');
+            services.forEach(service => {
+                container.innerHTML += `
+                    <div class="col-md-4 mb-3">
+                        <div class="card service-card p-3 text-center" onclick="addToCart('${service.name}', ${service.price}, '${service.unit}')">
+                            <div class="card-body">
+                                <h6 class="card-title fw-bold">${service.name}</h6>
+                                <p class="text-primary fw-bold mb-1">₱${service.price.toFixed(2)} / ${service.unit}</p>
+                                <small class="text-muted">Available</small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+
+    function addToCart(name, price, unit) {
+        const existingItem = cart.find(item => item.name === name);
+        if (existingItem) {
+            existingItem.qty += 1;
+        } else {
+            cart.push({ name: name, price: price, unit: unit, qty: 1 });
+        }
+        updateCartUI();
+    }
+
+    function updateCartUI() {
+        const list = document.getElementById('cartItemsList');
+        const countSpan = document.getElementById('cartCount');
+        const totalSpan = document.getElementById('cartTotal');
+        
+        list.innerHTML = '';
+        total = 0;
+        let itemCount = 0;
+
+        if (cart.length === 0) {
+            list.innerHTML = '<p class="text-muted text-center small">Cart is empty.</p>';
+        } else {
+            cart.forEach(item => {
+                const itemTotal = item.price * item.qty;
+                total += itemTotal;
+                itemCount += item.qty;
+                list.innerHTML += `
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span>${item.name} (x${item.qty})</span>
+                        <span>₱${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+        }
+        countSpan.innerText = itemCount + ' items';
+        totalSpan.innerText = '₱' + total.toFixed(2);
+    }
+
+    function checkout() {
+        if (cart.length === 0) return alert("Cart is empty.");
+        
+        const customer = document.getElementById('customerName').value;
+        const btn = document.getElementById('checkoutBtn');
+        btn.innerText = 'Processing...';
+        btn.disabled = true;
+
+        // Save a copy of cart & total for the receipt
+        const receiptData = {
+            customer: customer,
+            total: total,
+            items: JSON.parse(JSON.stringify(cart)),
+            date: new Date().toLocaleString()
+        };
+
+        fetch('/api/checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customer: customer, total: total, cartItems: cart })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            
+            // Save order ID for the receipt
+            receiptData.orderId = data.orderId;
+            lastOrder = receiptData;
+
+            // Clear cart
+            cart = [];
+            updateCartUI();
+            btn.innerText = 'Checkout';
+            btn.disabled = false;
+
+            // Show the Print Receipt button
+            document.getElementById('printBtn').style.display = 'block';
+        })
+        .catch(err => {
+            alert("Error saving order.");
+            btn.innerText = 'Checkout';
+            btn.disabled = false;
+        });
+    }
+
+    function printLastReceipt() {
+        if (!lastOrder) return alert("No recent order to print.");
+
+        const itemsHtml = lastOrder.items.map(item => `
+            <tr>
+                <td style="padding:6px 0;">${item.name}</td>
+                <td style="text-align:center;">x${item.qty}</td>
+                <td style="text-align:right;">₱${(item.price * item.qty).toFixed(2)}</td>
+            </tr>
+        `).join('');
+
+        const receiptHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Receipt #${lastOrder.orderId}</title>
+                <style>
+                    body { font-family: 'Courier New', monospace; max-width: 320px; margin: 0 auto; padding: 20px; color: #000; }
+                    h1 { text-align: center; font-size: 18px; margin: 5px 0; }
+                    h2 { text-align: center; font-size: 13px; font-weight: normal; margin: 5px 0 20px 0; }
+                    .divider { border-top: 1px dashed #000; margin: 12px 0; }
+                    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                    .total-row { font-weight: bold; font-size: 14px; }
+                    .footer { text-align: center; font-size: 11px; margin-top: 20px; }
+                    .info { font-size: 12px; margin: 4px 0; }
+                    .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 5px; }
+                    @media print {
+                        .print-btn { display: none; }
+                        body { padding: 0; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>HAWI'S LAVADA POS</h1>
+                <h2>Laundry Services</h2>
+
+                <div class="divider"></div>
+
+                <p class="info"><strong>Order #:</strong> ${lastOrder.orderId}</p>
+                <p class="info"><strong>Date:</strong> ${lastOrder.date}</p>
+                <p class="info"><strong>Customer:</strong> ${lastOrder.customer}</p>
+
+                <div class="divider"></div>
+
+                <table>
+                    <thead>
+                        <tr style="border-bottom: 1px solid #000;">
+                            <th style="text-align:left;">Item</th>
+                            <th style="text-align:center;">Qty</th>
+                            <th style="text-align:right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemsHtml}
+                    </tbody>
+                </table>
+
+                <div class="divider"></div>
+
+                <table>
+                    <tr class="total-row">
+                        <td>TOTAL</td>
+                        <td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td>
+                    </tr>
+                </table>
+
+                <div class="divider"></div>
+
+                <p class="footer">
+                    Thank you for your business!<br>
+                    Please keep this receipt.<br>
+                    Claim within 30 days.
+                </p>
+
+                <button class="print-btn" onclick="window.print()">🖨️ Print</button>
+            </body>
+            </html>
+        `;
+
+        // Open receipt in new window
+        const receiptWindow = window.open('', '_blank', 'width=400,height=600');
+        receiptWindow.document.write(receiptHtml);
+        receiptWindow.document.close();
+    }
+</script>
+</body>
+</html>
