@@ -107,9 +107,9 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
             "SELECT id, date, customer, total, payment_status FROM orders ORDER BY id DESC LIMIT 10"
         );
         const weekly = await db.pool.query(
-            "SELECT DATE(date) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue " +
-            "FROM orders WHERE date >= NOW() - INTERVAL '7 days' " +
-            "GROUP BY DATE(date) ORDER BY day ASC"
+        "SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue " +
+        "FROM orders WHERE date::timestamptz >= NOW() - INTERVAL '7 days' " +
+        "GROUP BY DATE(date::timestamptz) ORDER BY day ASC"
         );
         res.json({
             today: { orders: parseInt(todayOrders.rows[0].count), revenue: parseFloat(todayOrders.rows[0].revenue) },
