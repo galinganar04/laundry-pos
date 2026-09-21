@@ -16,18 +16,17 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- Sidebar -->
         <div class="col-md-2 sidebar d-none d-md-block">
             <h4 class="text-center mb-4">Laundry POS</h4>
             <a href="/">🧺 POS</a>
+            <a href="/dashboard.html">📊 Dashboard</a>
             <a href="/services.html" class="active">🧴 Services</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
-        <!-- Main Content -->
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Manage Services</h3>
 
-            <!-- Add Service Form -->
             <div class="panel mb-4">
                 <h5>Add New Service</h5>
                 <div class="row g-2 mt-2">
@@ -44,21 +43,14 @@
                         <button class="btn btn-primary w-100" onclick="addService()">Add Service</button>
                     </div>
                 </div>
-                <small class="text-muted d-block mt-2">Examples: "Rush Fee" / 100 / "order", "Bleach" / 20 / "load"</small>
             </div>
 
-            <!-- Services List -->
             <div class="panel">
                 <h5>Current Services</h5>
                 <table class="table table-striped mt-3">
                     <thead>
                         <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Unit</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>ID</th><th>Name</th><th>Price</th><th>Unit</th><th>Status</th><th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="servicesTable">
@@ -71,10 +63,17 @@
 </div>
 
 <script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+
     function loadServices() {
-        fetch('/api/services')
-            .then(res => res.json())
+        fetch('/api/services', { headers: { 'x-auth-token': authToken } })
+            .then(res => {
+                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
+                return res.json();
+            })
             .then(services => {
+                if (!services) return;
                 const table = document.getElementById('servicesTable');
                 if (services.length === 0) {
                     table.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No services yet.</td></tr>';
@@ -87,9 +86,7 @@
                         <td>₱${parseFloat(s.price).toFixed(2)}</td>
                         <td>${s.unit}</td>
                         <td><span class="badge bg-success">${s.status}</span></td>
-                        <td>
-                            <button class="btn btn-sm btn-danger" onclick="deleteService(${s.id}, '${s.name}')">Delete</button>
-                        </td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteService(${s.id}, '${s.name}')">Delete</button></td>
                     </tr>
                 `).join('');
             });
@@ -99,14 +96,11 @@
         const name = document.getElementById('newName').value.trim();
         const price = document.getElementById('newPrice').value;
         const unit = document.getElementById('newUnit').value.trim();
-
-        if (!name || !price || !unit) {
-            return alert("Please fill in all three fields.");
-        }
+        if (!name || !price || !unit) return alert("Please fill in all three fields.");
 
         fetch('/api/services', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
             body: JSON.stringify({ name, price, unit })
         })
         .then(res => res.json())
@@ -121,9 +115,16 @@
 
     function deleteService(id, name) {
         if (!confirm(`Delete "${name}"?`)) return;
-        fetch('/api/services/' + id, { method: 'DELETE' })
+        fetch('/api/services/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
             .then(() => loadServices());
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
     }
 
     loadServices();

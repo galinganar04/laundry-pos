@@ -28,12 +28,12 @@
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html" class="active">📊 Dashboard</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Sales Dashboard</h3>
 
-            <!-- Stats Row -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
                     <div class="stat-card green">
@@ -61,46 +61,28 @@
                 </div>
             </div>
 
-            <!-- Weekly Chart -->
             <div class="panel mb-4">
                 <h5>Last 7 Days</h5>
                 <div id="weeklyChart" style="height: 200px; display: flex; align-items: flex-end; gap: 20px; padding: 20px 0;"></div>
             </div>
 
             <div class="row g-3">
-                <!-- Top Services -->
                 <div class="col-md-5">
                     <div class="panel">
                         <h5>Top Services</h5>
                         <table class="table table-sm mt-3">
-                            <thead>
-                                <tr>
-                                    <th>Service</th>
-                                    <th class="text-end">Qty Sold</th>
-                                    <th class="text-end">Revenue</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>Service</th><th class="text-end">Qty Sold</th><th class="text-end">Revenue</th></tr></thead>
                             <tbody id="topServicesTable">
                                 <tr><td colspan="3" class="text-muted text-center">No data yet.</td></tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
-
-                <!-- Recent Orders -->
                 <div class="col-md-7">
                     <div class="panel">
                         <h5>Recent Orders</h5>
                         <table class="table table-sm mt-3">
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Date</th>
-                                    <th>Customer</th>
-                                    <th class="text-end">Total</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Status</th></tr></thead>
                             <tbody id="recentOrdersTable">
                                 <tr><td colspan="5" class="text-muted text-center">No orders yet.</td></tr>
                             </tbody>
@@ -113,16 +95,21 @@
 </div>
 
 <script>
-    fetch('/api/dashboard')
-        .then(res => res.json())
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+
+    fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
+        .then(res => {
+            if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
+            return res.json();
+        })
         .then(data => {
-            // Stat cards
+            if (!data) return;
             document.getElementById('todayRevenue').innerText = '₱' + data.today.revenue.toFixed(2);
             document.getElementById('todayOrders').innerText = data.today.orders;
             document.getElementById('allTimeRevenue').innerText = '₱' + data.allTime.revenue.toFixed(2);
             document.getElementById('pendingOrders').innerText = data.pending;
 
-            // Weekly chart
             const chart = document.getElementById('weeklyChart');
             if (data.weekly.length === 0) {
                 chart.innerHTML = '<p class="text-muted">No sales data yet.</p>';
@@ -142,7 +129,6 @@
                 }).join('');
             }
 
-            // Top services
             const servicesTable = document.getElementById('topServicesTable');
             if (data.topServices.length === 0) {
                 servicesTable.innerHTML = '<tr><td colspan="3" class="text-muted text-center">No sales yet.</td></tr>';
@@ -156,7 +142,6 @@
                 `).join('');
             }
 
-            // Recent orders
             const ordersTable = document.getElementById('recentOrdersTable');
             if (data.recentOrders.length === 0) {
                 ordersTable.innerHTML = '<tr><td colspan="5" class="text-muted text-center">No orders yet.</td></tr>';
@@ -175,10 +160,14 @@
                     `;
                 }).join('');
             }
-        })
-        .catch(err => {
-            alert('Error loading dashboard: ' + err.message);
         });
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+    }
 </script>
 </body>
 </html>

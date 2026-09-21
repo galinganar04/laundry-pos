@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HAWI'S LOVADA</title>
+    <title>Laundry POS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
@@ -27,7 +27,8 @@
             <h4 class="text-center mb-4">Laundry POS</h4>
             <a href="/" class="active">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/services.html">🧴 Services</a>    
+            <a href="/services.html">🧴 Services</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
         <div class="col-md-7 p-4">
@@ -63,13 +64,20 @@
 </div>
 
 <script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+
     let cart = [];
     let total = 0;
-    let lastOrder = null; // Save last completed order for printing
+    let lastOrder = null;
 
-    fetch('/api/services')
-        .then(response => response.json())
+    fetch('/api/services', { headers: { 'x-auth-token': authToken } })
+        .then(response => {
+            if (response.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
+            return response.json();
+        })
         .then(services => {
+            if (!services) return;
             const container = document.getElementById('servicesContainer');
             services.forEach(service => {
                 container.innerHTML += `
@@ -77,7 +85,7 @@
                         <div class="card service-card p-3 text-center" onclick="addToCart('${service.name}', ${service.price}, '${service.unit}')">
                             <div class="card-body">
                                 <h6 class="card-title fw-bold">${service.name}</h6>
-                                <p class="text-primary fw-bold mb-1">₱${service.price.toFixed(2)} / ${service.unit}</p>
+                                <p class="text-primary fw-bold mb-1">₱${parseFloat(service.price).toFixed(2)} / ${service.unit}</p>
                                 <small class="text-muted">Available</small>
                             </div>
                         </div>
@@ -88,11 +96,8 @@
 
     function addToCart(name, price, unit) {
         const existingItem = cart.find(item => item.name === name);
-        if (existingItem) {
-            existingItem.qty += 1;
-        } else {
-            cart.push({ name: name, price: price, unit: unit, qty: 1 });
-        }
+        if (existingItem) { existingItem.qty += 1; }
+        else { cart.push({ name: name, price: parseFloat(price), unit: unit, qty: 1 }); }
         updateCartUI();
     }
 
@@ -100,7 +105,6 @@
         const list = document.getElementById('cartItemsList');
         const countSpan = document.getElementById('cartCount');
         const totalSpan = document.getElementById('cartTotal');
-        
         list.innerHTML = '';
         total = 0;
         let itemCount = 0;
@@ -126,13 +130,11 @@
 
     function checkout() {
         if (cart.length === 0) return alert("Cart is empty.");
-        
         const customer = document.getElementById('customerName').value;
         const btn = document.getElementById('checkoutBtn');
         btn.innerText = 'Processing...';
         btn.disabled = true;
 
-        // Save a copy of cart & total for the receipt
         const receiptData = {
             customer: customer,
             total: total,
@@ -142,24 +144,18 @@
 
         fetch('/api/checkout', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
             body: JSON.stringify({ customer: customer, total: total, cartItems: cart })
         })
         .then(res => res.json())
         .then(data => {
             alert(data.message);
-            
-            // Save order ID for the receipt
             receiptData.orderId = data.orderId;
             lastOrder = receiptData;
-
-            // Clear cart
             cart = [];
             updateCartUI();
             btn.innerText = 'Checkout';
             btn.disabled = false;
-
-            // Show the Print Receipt button
             document.getElementById('printBtn').style.display = 'block';
         })
         .catch(err => {
@@ -171,7 +167,6 @@
 
     function printLastReceipt() {
         if (!lastOrder) return alert("No recent order to print.");
-
         const itemsHtml = lastOrder.items.map(item => `
             <tr>
                 <td style="padding:6px 0;">${item.name}</td>
@@ -182,76 +177,56 @@
 
         const receiptHtml = `
             <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Receipt #${lastOrder.orderId}</title>
-                <style>
-                    body { font-family: 'Courier New', monospace; max-width: 320px; margin: 0 auto; padding: 20px; color: #000; }
-                    h1 { text-align: center; font-size: 18px; margin: 5px 0; }
-                    h2 { text-align: center; font-size: 13px; font-weight: normal; margin: 5px 0 20px 0; }
-                    .divider { border-top: 1px dashed #000; margin: 12px 0; }
-                    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-                    .total-row { font-weight: bold; font-size: 14px; }
-                    .footer { text-align: center; font-size: 11px; margin-top: 20px; }
-                    .info { font-size: 12px; margin: 4px 0; }
-                    .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 5px; }
-                    @media print {
-                        .print-btn { display: none; }
-                        body { padding: 0; }
-                    }
-                </style>
-            </head>
-            <body>
-                <h1>HAWI'S LAVADA POS</h1>
-                <h2>Laundry Services</h2>
-
+            <html><head><title>Receipt #${lastOrder.orderId}</title>
+            <style>
+                body { font-family: 'Courier New', monospace; max-width: 320px; margin: 0 auto; padding: 20px; }
+                h1 { text-align: center; font-size: 18px; margin: 5px 0; }
+                h2 { text-align: center; font-size: 13px; font-weight: normal; margin: 5px 0 20px 0; }
+                .divider { border-top: 1px dashed #000; margin: 12px 0; }
+                table { width: 100%; border-collapse: collapse; font-size: 12px; }
+                .total-row { font-weight: bold; font-size: 14px; }
+                .footer { text-align: center; font-size: 11px; margin-top: 20px; }
+                .info { font-size: 12px; margin: 4px 0; }
+                .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 5px; }
+                @media print { .print-btn { display: none; } body { padding: 0; } }
+            </style></head><body>
+                <h1>LAUNDRY POS</h1>
+                <h2>SheetlaPH Laundry Services</h2>
                 <div class="divider"></div>
-
                 <p class="info"><strong>Order #:</strong> ${lastOrder.orderId}</p>
                 <p class="info"><strong>Date:</strong> ${lastOrder.date}</p>
                 <p class="info"><strong>Customer:</strong> ${lastOrder.customer}</p>
-
                 <div class="divider"></div>
-
                 <table>
-                    <thead>
-                        <tr style="border-bottom: 1px solid #000;">
-                            <th style="text-align:left;">Item</th>
-                            <th style="text-align:center;">Qty</th>
-                            <th style="text-align:right;">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemsHtml}
-                    </tbody>
+                    <thead><tr style="border-bottom: 1px solid #000;">
+                        <th style="text-align:left;">Item</th>
+                        <th style="text-align:center;">Qty</th>
+                        <th style="text-align:right;">Amount</th>
+                    </tr></thead>
+                    <tbody>${itemsHtml}</tbody>
                 </table>
-
                 <div class="divider"></div>
-
-                <table>
-                    <tr class="total-row">
-                        <td>TOTAL</td>
-                        <td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td>
-                    </tr>
-                </table>
-
+                <table><tr class="total-row">
+                    <td>TOTAL</td><td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td>
+                </tr></table>
                 <div class="divider"></div>
-
-                <p class="footer">
-                    Thank you for your business!<br>
-                    Please keep this receipt.<br>
-                    Claim within 30 days.
-                </p>
-
+                <p class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.</p>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>
-            </body>
-            </html>
+            </body></html>
         `;
 
-        // Open receipt in new window
-        const receiptWindow = window.open('', '_blank', 'width=400,height=600');
-        receiptWindow.document.write(receiptHtml);
-        receiptWindow.document.close();
+        const w = window.open('', '_blank', 'width=400,height=600');
+        w.document.write(receiptHtml);
+        w.document.close();
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) {
+            fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        }
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
     }
 </script>
 </body>
