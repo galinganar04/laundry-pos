@@ -29,15 +29,30 @@ async function initDatabase() {
         `);
 
         await pool.query(`
-        CREATE TABLE IF NOT EXISTS customers (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        phone TEXT,
-        address TEXT,
-        notes TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW()
-     );
-`);
+            CREATE TABLE IF NOT EXISTS order_items (
+                id SERIAL PRIMARY KEY,
+                order_id INTEGER REFERENCES orders(id),
+                service_name TEXT,
+                quantity INTEGER,
+                price NUMERIC
+            );
+        `);
+
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS customers (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL UNIQUE,
+                phone TEXT,
+                address TEXT,
+                notes TEXT,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            );
+        `);
+
+        // Add 'status' column to orders table if it doesn't exist
+        await pool.query(`
+            ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Received';
+        `);
 
         const result = await pool.query('SELECT COUNT(*) FROM services');
         if (parseInt(result.rows[0].count) === 0) {
@@ -94,11 +109,19 @@ async function saveOrder(customer, total, cartItems, paymentStatus) {
 }
 
 async function getOrders(filter) {
-    let query = "SELECT id, date, customer, total, payment_status FROM orders";
+    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status FROM orders";
     if (filter === 'paid') {
         query += " WHERE payment_status = 'Paid'";
     } else if (filter === 'unpaid') {
         query += " WHERE payment_status = 'Pending'";
+    } else if (filter === 'received') {
+        query += " WHERE status = 'Received'";
+    } else if (filter === 'washing') {
+        query += " WHERE status = 'Washing'";
+    } else if (filter === 'ready') {
+        query += " WHERE status = 'Ready'";
+    } else if (filter === 'pickedup') {
+        query += " WHERE status = 'Picked Up'";
     }
     query += " ORDER BY id DESC LIMIT 200";
     const result = await pool.query(query);
@@ -116,6 +139,10 @@ async function markAsUnpaid(id) {
 async function deleteOrder(id) {
     await pool.query("DELETE FROM order_items WHERE order_id = $1", [id]);
     await pool.query("DELETE FROM orders WHERE id = $1", [id]);
+}
+
+async function updateOrderStatus(id, status) {
+    await pool.query("UPDATE orders SET status = $1 WHERE id = $2", [status, id]);
 }
 
 async function getCustomers(search) {
@@ -172,6 +199,7 @@ module.exports = {
     markAsPaid,
     markAsUnpaid,
     deleteOrder,
+    updateOrderStatus,
     getCustomers,
     getCustomer,
     addCustomer,
