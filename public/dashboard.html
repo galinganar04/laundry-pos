@@ -65,7 +65,7 @@
 
             <div class="panel mb-4">
                 <h5>Last 7 Days</h5>
-                <div id="weeklyChart" style="height: 200px; display: flex; align-items: flex-end; gap: 20px; padding: 20px 0;"></div>
+                <div id="weeklyChart" style="height: 220px; display: flex; align-items: flex-end; justify-content: center; gap: 20px; padding: 20px 0;"></div>
             </div>
 
             <div class="row g-3">
@@ -113,23 +113,24 @@
             document.getElementById('pendingOrders').innerText = data.pending;
 
             const chart = document.getElementById('weeklyChart');
-            if (data.weekly.length === 0) {
-                chart.innerHTML = '<p class="text-muted">No sales data yet.</p>';
-            } else {
-                const maxRevenue = Math.max(...data.weekly.map(d => parseFloat(d.revenue)), 1);
-                chart.innerHTML = data.weekly.map(day => {
-                    const height = (parseFloat(day.revenue) / maxRevenue) * 160;
-                    const date = new Date(day.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    return `
-                        <div style="flex: 1; text-align: center;">
-                            <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">₱${parseFloat(day.revenue).toFixed(0)}</div>
-                            <div class="chart-bar" style="height: ${height}px; width: 100%; min-height: 4px;"></div>
-                            <div style="font-size: 11px; margin-top: 6px;">${date}</div>
-                            <div style="font-size: 10px; color: #6b7280;">${day.order_count} orders</div>
-                        </div>
-                    `;
-                }).join('');
-            }
+if (data.weekly.length === 0) {
+    chart.innerHTML = '<p class="text-muted">No sales data yet.</p>';
+} else {
+    const maxRevenue = Math.max(...data.weekly.map(d => parseFloat(d.revenue)), 1);
+    // Build bars with max-width to prevent single bar from stretching
+    chart.innerHTML = data.weekly.map(day => {
+        const height = (parseFloat(day.revenue) / maxRevenue) * 140;
+        const date = new Date(day.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return `
+            <div style="width: 80px; text-align: center; margin-right: 12px;">
+                <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">₱${parseFloat(day.revenue).toFixed(0)}</div>
+                <div class="chart-bar" style="height: ${Math.max(height, 4)}px; width: 40px; margin: 0 auto;"></div>
+                <div style="font-size: 11px; margin-top: 6px;">${date}</div>
+                <div style="font-size: 10px; color: #6b7280;">${day.order_count} orders</div>
+            </div>
+        `;
+    }).join('');
+}
 
             const servicesTable = document.getElementById('topServicesTable');
             if (data.topServices.length === 0) {
