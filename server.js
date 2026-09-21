@@ -50,7 +50,63 @@ app.post('/api/checkout', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// API: Dashboard statistics
+app.get('/api/dashboard', async (req, res) => {
+    try {
+        // Today's totals
+        const today = new Date().toISOString().split('T')[0];
+        const todayOrders = await db.pool.query(
+            "SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE date LIKE $1",
+            [today + '%']
+        );
 
+        // All-time totals
+        const allTime = await db.pool.query(
+            "SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders"
+        );
+
+        // Pending orders
+        const pending = await db.pool.query(
+            "SELECT COUNT(*) AS count FROM orders WHERE payment_status = 'Pending'"
+        );
+
+        // Top 5 services (by quantity sold)
+        const topServices = await db.pool.query(
+            "SELECT service_name, SUM(quantity) AS total_qty, SUM(quantity * price) AS total_revenue " +
+            "FROM order_items GROUP BY service_name ORDER BY total_qty DESC LIMIT 5"
+        );
+
+        // Recent 10 orders
+        const recentOrders = await db.pool.query(
+            "SELECT id, date, customer, total, payment_status FROM orders ORDER BY id DESC LIMIT 10"
+        );
+
+        // Last 7 days sales
+        const weekly = await db.pool.query(
+            "SELECT DATE(date) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue " +
+            "FROM orders WHERE date >= NOW() - INTERVAL '7 days' " +
+            "GROUP BY DATE(date) ORDER BY day ASC"
+        );
+
+        res.json({
+            today: {
+                orders: parseInt(todayOrders.rows[0].count),
+                revenue: parseFloat(todayOrders.rows[0].revenue)
+            },
+            allTime: {
+                orders: parseInt(allTime.rows[0].count),
+                revenue: parseFloat(allTime.rows[0].revenue)
+            },
+            pending: parseInt(pending.rows[0].count),
+            topServices: topServices.rows,
+            recentOrders: recentOrders.rows,
+            weekly: weekly.rows
+        });
+    } catch (err) {
+        console.error('Dashboard error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
