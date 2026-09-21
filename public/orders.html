@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Orders - Laundry POS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
+        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
+        .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .filter-btn { margin-right: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+    <h4 class="text-center mb-4">Laundry POS</h4>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html" class="active">📋 Orders</a>
+    <a href="/customers.html">👥 Customers</a>
+    <a href="/services.html">🧴 Services</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4">Orders</h3>
+
+            <div class="panel">
+                <div class="mb-3">
+                    <button class="btn btn-sm btn-primary filter-btn" onclick="loadOrders('all')">All</button>
+                    <button class="btn btn-sm btn-warning filter-btn" onclick="loadOrders('unpaid')">⏳ Unpaid</button>
+                    <button class="btn btn-sm btn-success filter-btn" onclick="loadOrders('paid')">✅ Paid</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th class="text-end">Total</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                            <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+
+    function loadOrders(filter) {
+        fetch('/api/orders?filter=' + filter, { headers: { 'x-auth-token': authToken } })
+            .then(res => {
+                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
+                return res.json();
+            })
+            .then(orders => {
+                if (!orders) return;
+                const table = document.getElementById('ordersTable');
+                if (orders.length === 0) {
+                    table.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No orders found.</td></tr>';
+                    return;
+                }
+                table.innerHTML = orders.map(o => {
+                    const date = new Date(o.date).toLocaleString('en-US', { 
+                        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' 
+                    });
+                    const isPaid = o.payment_status === 'Paid';
+                    const badge = isPaid ? 'bg-success' : 'bg-warning text-dark';
+                    const actionBtn = isPaid
+                        ? `<button class="btn btn-sm btn-outline-warning" onclick="markUnpaid(${o.id})">Mark Unpaid</button>`
+                        : `<button class="btn btn-sm btn-success" onclick="markPaid(${o.id})">Mark Paid</button>`;
+                    return `
+                        <tr>
+                            <td>#${o.id}</td>
+                            <td><small>${date}</small></td>
+                            <td>${o.customer}</td>
+                            <td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td>
+                            <td><span class="badge ${badge}">${o.payment_status}</span></td>
+                            <td class="text-end">
+                                ${actionBtn}
+                                <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteOrder(${o.id})">🗑</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            });
+    }
+
+    function markPaid(id) {
+        fetch('/api/orders/' + id + '/pay', {
+            method: 'PUT',
+            headers: { 'x-auth-token': authToken }
+        })
+        .then(() => loadOrders('all'))
+        .catch(err => alert('Error: ' + err.message));
+    }
+
+    function markUnpaid(id) {
+        fetch('/api/orders/' + id + '/unpay', {
+            method: 'PUT',
+            headers: { 'x-auth-token': authToken }
+        })
+        .then(() => loadOrders('all'))
+        .catch(err => alert('Error: ' + err.message));
+    }
+
+    function deleteOrder(id) {
+        if (!confirm('Delete order #' + id + '? This cannot be undone.')) return;
+        fetch('/api/orders/' + id, {
+            method: 'DELETE',
+            headers: { 'x-auth-token': authToken }
+        })
+        .then(() => loadOrders('all'))
+        .catch(err => alert('Error: ' + err.message));
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+    }
+
+    loadOrders('all');
+</script>
+</body>
+</html>

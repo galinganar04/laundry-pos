@@ -7,8 +7,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ====== AUTH CONFIG ======
-const ADMIN_PASSWORD = 'shop1234';   // ⚠️ Your password
-const sessions = new Map();          // stores active login tokens
+const ADMIN_PASSWORD = 'shop1234';
+const sessions = new Map();
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -42,7 +42,7 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
-// ====== SERVICES (PROTECTED) ======
+// ====== SERVICES ======
 app.get('/api/services', requireAuth, async (req, res) => {
     try {
         const services = await db.getServices();
@@ -74,18 +74,56 @@ app.delete('/api/services/:id', requireAuth, async (req, res) => {
     }
 });
 
-// ====== CHECKOUT (PROTECTED) ======
+// ====== CHECKOUT ======
 app.post('/api/checkout', requireAuth, async (req, res) => {
-    const { customer, total, cartItems } = req.body;
+    const { customer, total, cartItems, paymentStatus } = req.body;
     try {
-        const orderId = await db.saveOrder(customer, total, cartItems);
+        const orderId = await db.saveOrder(customer, total, cartItems, paymentStatus);
         res.json({ message: "Order saved successfully!", orderId: orderId });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// ====== DASHBOARD (PROTECTED) ======
+// ====== ORDERS MANAGEMENT ======
+app.get('/api/orders', requireAuth, async (req, res) => {
+    try {
+        const filter = req.query.filter || 'all';
+        const orders = await db.getOrders(filter);
+        res.json(orders);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/orders/:id/pay', requireAuth, async (req, res) => {
+    try {
+        await db.markAsPaid(req.params.id);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/orders/:id/unpay', requireAuth, async (req, res) => {
+    try {
+        await db.markAsUnpaid(req.params.id);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/orders/:id', requireAuth, async (req, res) => {
+    try {
+        await db.deleteOrder(req.params.id);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ====== DASHBOARD ======
 app.get('/api/dashboard', requireAuth, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
@@ -107,9 +145,9 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
             "SELECT id, date, customer, total, payment_status FROM orders ORDER BY id DESC LIMIT 10"
         );
         const weekly = await db.pool.query(
-        "SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue " +
-        "FROM orders WHERE date::timestamptz >= NOW() - INTERVAL '7 days' " +
-        "GROUP BY DATE(date::timestamptz) ORDER BY day ASC"
+            "SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue " +
+            "FROM orders WHERE date::timestamptz >= NOW() - INTERVAL '7 days' " +
+            "GROUP BY DATE(date::timestamptz) ORDER BY day ASC"
         );
         res.json({
             today: { orders: parseInt(todayOrders.rows[0].count), revenue: parseFloat(todayOrders.rows[0].revenue) },
@@ -120,10 +158,71 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
             weekly: weekly.rows
         });
     } catch (err) {
+        console.error('Dashboard error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+// ====== CUSTOMERS ======
+app.get('/api/customers', requireAuth, async (req, res) => {
+    try {
+        const search = req.query.search || '';
+        const customers = await db.getCustomers(search);
+        res.json(customers);
+    } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
+app.get('/api/customers/:id', requireAuth, async (req, res) => {
+    try {
+        const customer = await db.getCustomer(req.params.id);
+        if (!customer) return res.status(404).json({ error: 'Not found' });
+        res.json(customer);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/customers', requireAuth, async (req, res) => {
+    const { name, phone, address, notes } = req.body;
+    if (!name) return res.status(400).json({ error: 'Name is required' });
+    try {
+        const id = await db.addCustomer(name, phone, address, notes);
+        res.json({ success: true, id: id });
+    } catch (err) {
+        if (err.code === '23505') return res.status(400).json({ error: 'Customer name already exists' });
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.put('/api/customers/:id', requireAuth, async (req, res) => {
+    const { name, phone, address, notes } = req.body;
+    if (!name) return res.status(400).json({ error: 'Name is required' });
+    try {
+        await db.updateCustomer(req.params.id, name, phone, address, notes);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete('/api/customers/:id', requireAuth, async (req, res) => {
+    try {
+        await db.deleteCustomer(req.params.id);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/api/customers/:name/orders', requireAuth, async (req, res) => {
+    try {
+        const orders = await db.getCustomerOrders(req.params.name);
+        res.json(orders);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });

@@ -27,6 +27,8 @@
             <h4 class="text-center mb-4">Laundry POS</h4>
             <a href="/" class="active">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
@@ -49,7 +51,17 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label small text-muted">CUSTOMER</label>
-                    <input type="text" id="customerName" class="form-control" value="Walk-In Customer">
+                    <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
+                    <datalist id="customerList"></datalist>
+                    <small class="text-muted" style="font-size: 11px;">Type to see saved customers</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small text-muted">PAYMENT</label>
+                    <select id="paymentStatus" class="form-select">
+                        <option value="Paid">💵 Pay Now</option>
+                        <option value="Pending">⏳ Pay Later</option>
+                    </select>
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between mb-2">
@@ -66,6 +78,14 @@
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
+
+    // Load customers for autocomplete
+    fetch('/api/customers', { headers: { 'x-auth-token': authToken } })
+        .then(res => res.json())
+        .then(customers => {
+            const datalist = document.getElementById('customerList');
+            datalist.innerHTML = customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+        });
 
     let cart = [];
     let total = 0;
@@ -131,6 +151,7 @@
     function checkout() {
         if (cart.length === 0) return alert("Cart is empty.");
         const customer = document.getElementById('customerName').value;
+        const paymentStatus = document.getElementById('paymentStatus').value;
         const btn = document.getElementById('checkoutBtn');
         btn.innerText = 'Processing...';
         btn.disabled = true;
@@ -139,13 +160,19 @@
             customer: customer,
             total: total,
             items: JSON.parse(JSON.stringify(cart)),
-            date: new Date().toLocaleString()
+            date: new Date().toLocaleString(),
+            paymentStatus: paymentStatus
         };
 
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ customer: customer, total: total, cartItems: cart })
+            body: JSON.stringify({ 
+                customer: customer, 
+                total: total, 
+                cartItems: cart,
+                paymentStatus: paymentStatus
+            })
         })
         .then(res => res.json())
         .then(data => {
@@ -175,6 +202,8 @@
             </tr>
         `).join('');
 
+        const statusLabel = lastOrder.paymentStatus === 'Paid' ? 'PAID' : 'UNPAID - Pay on Pickup';
+
         const receiptHtml = `
             <!DOCTYPE html>
             <html><head><title>Receipt #${lastOrder.orderId}</title>
@@ -187,6 +216,7 @@
                 .total-row { font-weight: bold; font-size: 14px; }
                 .footer { text-align: center; font-size: 11px; margin-top: 20px; }
                 .info { font-size: 12px; margin: 4px 0; }
+                .status { text-align: center; font-weight: bold; padding: 8px; border: 2px solid #000; margin: 10px 0; }
                 .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 5px; }
                 @media print { .print-btn { display: none; } body { padding: 0; } }
             </style></head><body>
@@ -209,6 +239,7 @@
                 <table><tr class="total-row">
                     <td>TOTAL</td><td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td>
                 </tr></table>
+                <div class="status">${statusLabel}</div>
                 <div class="divider"></div>
                 <p class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.</p>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>
@@ -222,9 +253,7 @@
 
     function logout() {
         const token = localStorage.getItem('authToken');
-        if (token) {
-            fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
-        }
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
         localStorage.removeItem('authToken');
         window.location.href = '/login.html';
     }
