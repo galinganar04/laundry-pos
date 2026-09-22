@@ -21,6 +21,18 @@
         .btn-print-80 { background-color: #0891b2; }
         .btn-print-80:hover { background-color: #0e7490; }
         .print-buttons { display: none; }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .cart-panel, [data-theme="dark"] .panel, [data-theme="dark"] .stat-card, [data-theme="dark"] .service-card, [data-theme="dark"] .card, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
+        [data-theme="dark"] hr { border-color: #334155 !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] h3, [data-theme="dark"] h5, [data-theme="dark"] h6 { color: #e2e8f0 !important; }
     </style>
 </head>
 <body>
@@ -35,6 +47,7 @@
             <a href="/orders.html">📋 Orders</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
@@ -60,7 +73,6 @@
                     <datalist id="customerList"></datalist>
                     <small class="text-muted" style="font-size: 11px;">Type to see saved customers</small>
                 </div>
-
                 <div class="mb-3">
                     <label class="form-label small text-muted">PAYMENT</label>
                     <select id="paymentStatus" class="form-select">
@@ -196,74 +208,38 @@
 
     function printReceipt(size) {
         if (!lastOrder) return alert("No recent order to print.");
-
         const isPaid = String(lastOrder.paymentStatus).toLowerCase() === 'paid';
         const statusLabel = isPaid ? '** PAID **' : '** UNPAID **';
         const payNote = isPaid ? '' : 'Pay on Pickup';
-
-        // 58mm = 32 chars width (narrow)
-        // 80mm = 48 chars width (wider)
-        const width = size === '58' ? 32 : 48;
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const logoSrc = window.location.origin + '/logo.png';
 
-        // Build items with char-limited columns
         const itemsHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) 
                 ? item.name.substring(0, size === '58' ? 15 : 27) + '.' 
                 : item.name;
-            return `
-                <tr>
-                    <td style="padding:2px 0;">${nameTrunc}</td>
-                    <td style="text-align:center;">${item.qty}</td>
-                    <td style="text-align:right;">₱${(item.price * item.qty).toFixed(2)}</td>
-                </tr>
-            `;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td><td style="text-align:right;">₱${(item.price * item.qty).toFixed(2)}</td></tr>`;
         }).join('');
 
         const receiptHtml = `
-            <!DOCTYPE html>
-            <html><head><title>Receipt #${lastOrder.orderId}</title>
+            <!DOCTYPE html><html><head><title>Receipt #${lastOrder.orderId}</title>
             <style>
-                @page {
-                    size: ${pageWidth} auto;
-                    margin: 0;
-                }
-                * { box-sizing: border-box; }
-                body {
-                    font-family: 'Courier New', Courier, monospace;
-                    font-size: ${fontSize}px;
-                    width: ${pageWidth};
-                    max-width: ${pageWidth};
-                    margin: 0 auto;
-                    padding: 5px;
-                    color: #000;
-                    background: #fff;
-                    font-weight: 600;
-                    line-height: 1.3;
-                }
+                @page { size: ${pageWidth} auto; margin: 0; }
+                body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; }
                 .center { text-align: center; }
                 .bold { font-weight: 900; }
                 .big { font-size: ${size === '58' ? 14 : 16}px; }
                 .divider { border-top: 1px dashed #000; margin: 4px 0; }
                 .logo { text-align: center; margin-bottom: 3px; }
                 .logo img { max-width: ${size === '58' ? '60px' : '80px'}; height: auto; filter: grayscale(100%); }
-                table { width: 100%; border-collapse: collapse; font-size: ${fontSize}px; }
+                table { width: 100%; border-collapse: collapse; }
                 .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
-                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; font-size: ${size === '58' ? 11 : 13}px; }
+                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; }
                 .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
                 .info { font-size: ${fontSize}px; margin: 2px 0; }
-                .print-btn {
-                    display: block; margin: 15px auto; padding: 10px 20px;
-                    font-size: 14px; cursor: pointer; background: #1e40af;
-                    color: white; border: none; border-radius: 5px;
-                    font-family: Arial, sans-serif;
-                }
-                @media print {
-                    .print-btn { display: none; }
-                    body { padding: 2mm; }
-                }
+                .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1e40af; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
+                @media print { .print-btn { display: none; } body { padding: 2mm; } }
             </style></head><body>
                 <div class="logo"><img src="${logoSrc}" alt="Hawi's Lovada"></div>
                 <div class="center big bold">HAWI'S LOVADA</div>
@@ -274,33 +250,17 @@
                 <div class="info">Date: ${lastOrder.date}</div>
                 <div class="info">Customer: ${lastOrder.customer}</div>
                 <div class="divider"></div>
-                <table>
-                    <thead><tr style="border-bottom: 1px solid #000;">
-                        <th style="text-align:left;">Item</th>
-                        <th style="text-align:center;">Qty</th>
-                        <th style="text-align:right;">Amount</th>
-                    </tr></thead>
-                    <tbody>${itemsHtml}</tbody>
-                </table>
+                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsHtml}</tbody></table>
                 <div class="divider"></div>
-                <table><tr class="total-row">
-                    <td>TOTAL</td>
-                    <td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td>
-                </tr></table>
+                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td></tr></table>
                 <div class="status">${statusLabel}</div>
-                ${payNote ? `<div class="center" style="font-size: ${fontSize - 1}px;">${payNote}</div>` : ''}
+                ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
-                <div class="footer">
-                    Thank you for your business!<br>
-                    Please keep this receipt.<br>
-                    Claim within 30 days.<br><br>
-                    FB: Hawi's Lovada
-                </div>
+                <div class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.<br><br>FB: Hawi's Lovada</div>
                 <br><br><br>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>
             </body></html>
         `;
-
         const w = window.open('', '_blank', 'width=400,height=600');
         w.document.write(receiptHtml);
         w.document.close();
@@ -313,5 +273,6 @@
         window.location.href = '/login.html';
     }
 </script>
+<script src="/theme.js"></script>
 </body>
 </html>

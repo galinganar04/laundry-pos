@@ -11,6 +11,24 @@
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
         .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
         .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .table { color: #e2e8f0 !important; }
+        [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .table td { border-color: #334155 !important; }
+        [data-theme="dark"] .table-hover > tbody > tr:hover > * { background-color: rgba(59,130,246,0.15) !important; }
+        [data-theme="dark"] .form-control { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .modal-header { border-color: #334155 !important; }
+        [data-theme="dark"] .alert-info { background-color: #1e3a8a !important; color: #bfdbfe !important; border-color: #1e40af !important; }
+        [data-theme="dark"] h3, [data-theme="dark"] h5 { color: #e2e8f0 !important; }
     </style>
 </head>
 <body>
@@ -25,12 +43,12 @@
             <a href="/orders.html">📋 Orders</a>
             <a href="/customers.html" class="active">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Customer Registry</h3>
-
             <div class="panel mb-4">
                 <h5>Add New Customer</h5>
                 <div class="row g-2 mt-2">
@@ -41,11 +59,9 @@
                     <div class="col-md-2"><button class="btn btn-primary w-100" onclick="addCustomer()">Add</button></div>
                 </div>
             </div>
-
             <div class="panel mb-4">
                 <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search customers by name or phone..." oninput="searchCustomers()">
             </div>
-
             <div class="panel">
                 <h5>Customers</h5>
                 <div class="table-responsive mt-3">
@@ -153,14 +169,7 @@
                     totalSpent += parseFloat(o.total);
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const badge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
-                    return `
-                        <tr>
-                            <td>#${o.id}</td>
-                            <td><small>${date}</small></td>
-                            <td class="text-end">₱${parseFloat(o.total).toFixed(2)}</td>
-                            <td><span class="badge ${badge}">${o.payment_status}</span></td>
-                        </tr>
-                    `;
+                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td class="text-end">₱${parseFloat(o.total).toFixed(2)}</td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
                 }).join('');
 
                 document.getElementById('historyContent').innerHTML = `
@@ -182,5 +191,6 @@
 
     loadCustomers();
 </script>
+<script src="/theme.js"></script>
 </body>
 </html>

@@ -18,17 +18,32 @@
         .status-Drying { background-color: #8b5cf6; color: white; }
         .status-Ready { background-color: #10b981; color: white; }
         .status-PickedUp { background-color: #6b7280; color: white; }
-        .batch-bar {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: none; z-index: 1000;
-            align-items: center; gap: 10px; flex-wrap: wrap;
-        }
+        .batch-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: none; z-index: 1000; align-items: center; gap: 10px; flex-wrap: wrap; }
         .batch-bar.show { display: flex; }
         .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
         .batch-bar .btn { font-size: 13px; }
         .row-selected { background-color: #dbeafe !important; }
         .order-checkbox { cursor: pointer; transform: scale(1.3); }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .table { color: #e2e8f0 !important; }
+        [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .table td { border-color: #334155 !important; }
+        [data-theme="dark"] .table-hover > tbody > tr:hover > * { background-color: rgba(59,130,246,0.15) !important; }
+        [data-theme="dark"] .form-control { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] .row-selected { background-color: #1e3a8a !important; }
+        [data-theme="dark"] .batch-bar { background: #020617 !important; }
+        [data-theme="dark"] h3 { color: #e2e8f0 !important; }
+        [data-theme="dark"] a.dropdown-item { color: #e2e8f0 !important; }
+        [data-theme="dark"] a.dropdown-item:hover { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .dropdown-menu { background-color: #1e293b !important; border-color: #334155 !important; }
     </style>
 </head>
 <body>
@@ -43,12 +58,12 @@
             <a href="/orders.html" class="active">📋 Orders</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Orders</h3>
-
             <div class="panel mb-4">
                 <div class="row g-2">
                     <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search customer name or order #" oninput="debouncedLoad()"></div>
@@ -57,7 +72,6 @@
                     <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
                 </div>
             </div>
-
             <div class="panel">
                 <div class="mb-3">
                     <button class="btn btn-sm btn-primary filter-btn" onclick="setFilter('all')">All</button>
@@ -68,16 +82,12 @@
                     <button class="btn btn-sm btn-outline-success filter-btn" onclick="setFilter('ready')">✅ Ready</button>
                     <button class="btn btn-sm btn-outline-dark filter-btn" onclick="setFilter('pickedup')">📦 Picked Up</button>
                 </div>
-
                 <div class="table-responsive">
                     <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
-                                <th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th>
-                                <th>Payment</th><th>Status</th><th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr>
+                            <th><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
+                            <th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Payment</th><th>Status</th><th class="text-end">Actions</th>
+                        </tr></thead>
                         <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted">Loading...</td></tr></tbody>
                     </table>
                 </div>
@@ -86,10 +96,8 @@
     </div>
 </div>
 
-<!-- Batch Action Bar -->
 <div class="batch-bar" id="batchBar">
     <span class="count"><span id="selectedCount">0</span> selected</span>
-
     <div class="dropdown">
         <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">Change Status</button>
         <ul class="dropdown-menu">
@@ -100,7 +108,6 @@
             <li><a class="dropdown-item" href="#" onclick="batchStatus('Picked Up'); return false;">📦 Picked Up</a></li>
         </ul>
     </div>
-
     <button class="btn btn-sm btn-success" onclick="batchPay()">💰 Mark Paid</button>
     <button class="btn btn-sm btn-warning" onclick="batchUnpay()">⏳ Mark Unpaid</button>
     <button class="btn btn-sm btn-danger" onclick="batchDelete()">🗑 Delete</button>
@@ -115,7 +122,6 @@
     const statusList = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
     let currentFilter = 'all';
     let searchTimeout;
-    let allOrderIds = [];
 
     function statusBadgeClass(status) {
         if (status === 'Received') return 'status-Received';
@@ -147,22 +153,18 @@
     function getSelectedIds() {
         return Array.from(document.querySelectorAll('.order-checkbox-row:checked')).map(cb => parseInt(cb.value));
     }
-
     function updateBatchBar() {
         const ids = getSelectedIds();
         document.getElementById('selectedCount').innerText = ids.length;
         document.getElementById('batchBar').classList.toggle('show', ids.length > 0);
     }
-
     function toggleSelectAll(source) {
-        const checkboxes = document.querySelectorAll('.order-checkbox-row');
-        checkboxes.forEach(cb => {
+        document.querySelectorAll('.order-checkbox-row').forEach(cb => {
             cb.checked = source.checked;
             cb.closest('tr').classList.toggle('row-selected', source.checked);
         });
         updateBatchBar();
     }
-
     function toggleRowCheckbox(cb) {
         cb.closest('tr').classList.toggle('row-selected', cb.checked);
         const all = document.querySelectorAll('.order-checkbox-row');
@@ -170,7 +172,6 @@
         document.getElementById('selectAll').checked = (all.length > 0 && all.length === checked.length);
         updateBatchBar();
     }
-
     function clearSelection() {
         document.querySelectorAll('.order-checkbox-row').forEach(cb => {
             cb.checked = false;
@@ -199,11 +200,9 @@
                 const table = document.getElementById('ordersTable');
                 if (orders.length === 0) {
                     table.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No orders found.</td></tr>';
-                    allOrderIds = [];
                     updateBatchBar();
                     return;
                 }
-                allOrderIds = orders.map(o => o.id);
                 table.innerHTML = orders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
@@ -241,93 +240,47 @@
             });
     }
 
-    // ====== Single actions ======
     function changeStatus(id, newStatus) {
-        fetch('/api/orders/' + id + '/status', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ status: newStatus })
-        })
-        .then(res => res.json())
-        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); })
-        .catch(err => alert('Error: ' + err.message));
+        fetch('/api/orders/' + id + '/status', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ status: newStatus }) })
+            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
-
-    function markPaid(id) {
-        fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
-    }
-
-    function markUnpaid(id) {
-        fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
-    }
-
+    function markPaid(id) { fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
+    function markUnpaid(id) { fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function deleteOrder(id) {
         if (!confirm('Delete order #' + id + '? This cannot be undone.')) return;
         fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
     }
 
-    // ====== Batch actions ======
     function batchStatus(status) {
         const ids = getSelectedIds();
         if (ids.length === 0) return;
         if (!confirm(`Change status of ${ids.length} order(s) to "${status}"?`)) return;
-        fetch('/api/orders/batch/status', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ ids, status })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) return alert('Error: ' + data.error);
-            loadOrders();
-        });
+        fetch('/api/orders/batch/status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids, status }) })
+            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
-
     function batchPay() {
         const ids = getSelectedIds();
-        if (ids.length === 0) return;
-        if (!confirm(`Mark ${ids.length} order(s) as PAID?`)) return;
-        fetch('/api/orders/batch/pay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ ids })
-        })
-        .then(res => res.json())
-        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+        if (ids.length === 0 || !confirm(`Mark ${ids.length} order(s) as PAID?`)) return;
+        fetch('/api/orders/batch/pay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
+            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
-
     function batchUnpay() {
         const ids = getSelectedIds();
-        if (ids.length === 0) return;
-        if (!confirm(`Mark ${ids.length} order(s) as UNPAID?`)) return;
-        fetch('/api/orders/batch/unpay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ ids })
-        })
-        .then(res => res.json())
-        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+        if (ids.length === 0 || !confirm(`Mark ${ids.length} order(s) as UNPAID?`)) return;
+        fetch('/api/orders/batch/unpay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
+            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
-
     function batchDelete() {
         const ids = getSelectedIds();
         if (ids.length === 0) return;
         if (!confirm(`⚠️ DELETE ${ids.length} order(s) permanently? This cannot be undone!`)) return;
-        if (!confirm(`Are you REALLY sure? Type OK to confirm.`)) return;
-        fetch('/api/orders/batch/delete', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ ids })
-        })
-        .then(res => res.json())
-        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+        fetch('/api/orders/batch/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
+            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
 
     function reprintReceipt(orderId, size) {
         fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); })
-            .catch(err => alert('Error: ' + err.message));
+            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
     }
 
     function renderReceipt(order, size) {
@@ -340,22 +293,14 @@
 
         const itemsHtml = order.items.map(item => {
             const nameTrunc = item.service_name.length > (size === '58' ? 16 : 28)
-                ? item.service_name.substring(0, size === '58' ? 15 : 27) + '.'
-                : item.service_name;
-            return `
-                <tr>
-                    <td style="padding:2px 0;">${nameTrunc}</td>
-                    <td style="text-align:center;">${item.quantity}</td>
-                    <td style="text-align:right;">₱${(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
-                </tr>
-            `;
+                ? item.service_name.substring(0, size === '58' ? 15 : 27) + '.' : item.service_name;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.quantity}</td><td style="text-align:right;">₱${(parseFloat(item.price) * item.quantity).toFixed(2)}</td></tr>`;
         }).join('');
 
         const formattedDate = new Date(order.date).toLocaleString();
 
         const receiptHtml = `
-            <!DOCTYPE html>
-            <html><head><title>Receipt #${order.id}</title>
+            <!DOCTYPE html><html><head><title>Receipt #${order.id}</title>
             <style>
                 @page { size: ${pageWidth} auto; margin: 0; }
                 body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; }
@@ -382,9 +327,7 @@
                 <div class="info">Date: ${formattedDate}</div>
                 <div class="info">Customer: ${order.customer}</div>
                 <div class="divider"></div>
-                <table><thead><tr style="border-bottom: 1px solid #000;">
-                    <th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th>
-                </tr></thead><tbody>${itemsHtml}</tbody></table>
+                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsHtml}</tbody></table>
                 <div class="divider"></div>
                 <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₱${parseFloat(order.total).toFixed(2)}</td></tr></table>
                 <div class="status">${statusLabel}</div>
@@ -409,5 +352,6 @@
 
     loadOrders();
 </script>
+<script src="/theme.js"></script>
 </body>
 </html>

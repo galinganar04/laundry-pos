@@ -11,6 +11,21 @@
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
         .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
         .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .table { color: #e2e8f0 !important; }
+        [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .table td { border-color: #334155 !important; }
+        [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * { background-color: rgba(255,255,255,0.03) !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] h3, [data-theme="dark"] h5 { color: #e2e8f0 !important; }
     </style>
 </head>
 <body>
@@ -25,12 +40,12 @@
             <a href="/orders.html">📋 Orders</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/services.html" class="active">🧴 Services</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Manage Services</h3>
-
             <div class="panel mb-4">
                 <h5>Add New Service</h5>
                 <div class="row g-2 mt-2">
@@ -40,7 +55,6 @@
                     <div class="col-md-2"><button class="btn btn-primary w-100" onclick="addService()">Add Service</button></div>
                 </div>
             </div>
-
             <div class="panel">
                 <h5>Current Services</h5>
                 <table class="table table-striped mt-3">
@@ -105,8 +119,7 @@
     function deleteService(id, name) {
         if (!confirm(`Delete "${name}"?`)) return;
         fetch('/api/services/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(() => loadServices());
+            .then(res => res.json()).then(() => loadServices());
     }
 
     function logout() {
@@ -118,5 +131,6 @@
 
     loadServices();
 </script>
+<script src="/theme.js"></script>
 </body>
 </html>

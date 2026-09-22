@@ -18,6 +18,20 @@
         .stat-card.blue { border-left-color: #3b82f6; }
         .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         .chart-bar { background: #1e40af; border-radius: 4px 4px 0 0; }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .stat-card .value { color: #e2e8f0 !important; }
+        [data-theme="dark"] .stat-card .label { color: #94a3b8 !important; }
+        [data-theme="dark"] .table { color: #e2e8f0 !important; }
+        [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .table td { border-color: #334155 !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] h3, [data-theme="dark"] h5 { color: #e2e8f0 !important; }
     </style>
 </head>
 <body>
@@ -32,24 +46,22 @@
             <a href="/orders.html">📋 Orders</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Sales Dashboard</h3>
-
             <div class="row g-3 mb-4">
                 <div class="col-md-3"><div class="stat-card green"><div class="label">Today's Revenue</div><div class="value" id="todayRevenue">₱0.00</div></div></div>
                 <div class="col-md-3"><div class="stat-card blue"><div class="label">Today's Orders</div><div class="value" id="todayOrders">0</div></div></div>
                 <div class="col-md-3"><div class="stat-card"><div class="label">All-Time Revenue</div><div class="value" id="allTimeRevenue">₱0.00</div></div></div>
                 <div class="col-md-3"><div class="stat-card orange"><div class="label">Pending Orders</div><div class="value" id="pendingOrders">0</div></div></div>
             </div>
-
             <div class="panel mb-4">
                 <h5>Last 7 Days</h5>
                 <div id="weeklyChart" style="height: 220px; display: flex; align-items: flex-end; justify-content: center; gap: 20px; padding: 20px 0;"></div>
             </div>
-
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="panel">
@@ -114,11 +126,7 @@
                 servicesTable.innerHTML = '<tr><td colspan="3" class="text-muted text-center">No sales yet.</td></tr>';
             } else {
                 servicesTable.innerHTML = data.topServices.map(s => `
-                    <tr>
-                        <td><strong>${s.service_name}</strong></td>
-                        <td class="text-end">${s.total_qty}</td>
-                        <td class="text-end">₱${parseFloat(s.total_revenue).toFixed(2)}</td>
-                    </tr>
+                    <tr><td><strong>${s.service_name}</strong></td><td class="text-end">${s.total_qty}</td><td class="text-end">₱${parseFloat(s.total_revenue).toFixed(2)}</td></tr>
                 `).join('');
             }
 
@@ -130,13 +138,7 @@
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const statusBadge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
                     return `
-                        <tr>
-                            <td>#${o.id}</td>
-                            <td><small>${date}</small></td>
-                            <td>${o.customer}</td>
-                            <td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td>
-                            <td><span class="badge ${statusBadge}">${o.payment_status}</span></td>
-                        </tr>
+                        <tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${statusBadge}">${o.payment_status}</span></td></tr>
                     `;
                 }).join('');
             }
@@ -149,5 +151,6 @@
         window.location.href = '/login.html';
     }
 </script>
+<script src="/theme.js"></script>
 </body>
 </html>
