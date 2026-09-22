@@ -27,12 +27,13 @@
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
         [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .cart-panel, [data-theme="dark"] .panel, [data-theme="dark"] .stat-card, [data-theme="dark"] .service-card, [data-theme="dark"] .card, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .cart-panel, [data-theme="dark"] .panel, [data-theme="dark"] .service-card, [data-theme="dark"] .card, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
         [data-theme="dark"] hr { border-color: #334155 !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
         [data-theme="dark"] h3, [data-theme="dark"] h5, [data-theme="dark"] h6 { color: #e2e8f0 !important; }
+        [data-theme="dark"] .modal-header { border-color: #334155 !important; }
     </style>
 </head>
 <body>
@@ -47,8 +48,10 @@
             <a href="/orders.html">📋 Orders</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="/products.html">📦 Products</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="/settings.html">⚙️ Settings</a>
         </div>
 
         <div class="col-md-7 p-4">
@@ -85,7 +88,7 @@
                     <span>Total</span>
                     <strong id="cartTotal">₱0.00</strong>
                 </div>
-                <button class="btn-checkout mt-3" id="checkoutBtn" onclick="checkout()">Checkout</button>
+                <button class="btn-checkout mt-3" id="checkoutBtn" onclick="openCashierModal()">Checkout</button>
                 <div class="print-buttons" id="printButtons">
                     <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
                     <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
@@ -95,9 +98,38 @@
     </div>
 </div>
 
+<!-- Cashier PIN Modal -->
+<div class="modal fade" id="cashierModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🔐 Enter Cashier PIN</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">Who is processing this sale?</p>
+                <input type="password" id="cashierPinInput" class="form-control text-center" 
+                       style="font-size: 24px; letter-spacing: 8px;" maxlength="8" autocomplete="off" 
+                       placeholder="••••" onkeypress="if(event.key==='Enter') verifyPin()">
+                <div id="cashierPinError" class="text-danger small mt-2" style="display: none;">Invalid PIN. Try again.</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="verifyPin()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
+
+    let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: '₱' };
+    fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
+        .then(res => res.json())
+        .then(data => { if (data) shopSettings = data; });
 
     fetch('/api/customers', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
@@ -109,6 +141,7 @@
     let cart = [];
     let total = 0;
     let lastOrder = null;
+    let currentCashier = null;
 
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
         .then(response => {
@@ -167,8 +200,42 @@
         totalSpan.innerText = '₱' + total.toFixed(2);
     }
 
-    function checkout() {
+    function openCashierModal() {
         if (cart.length === 0) return alert("Cart is empty.");
+        document.getElementById('cashierPinInput').value = '';
+        document.getElementById('cashierPinError').style.display = 'none';
+        const modal = new bootstrap.Modal(document.getElementById('cashierModal'));
+        modal.show();
+        setTimeout(() => document.getElementById('cashierPinInput').focus(), 300);
+    }
+
+    function verifyPin() {
+        const pin = document.getElementById('cashierPinInput').value.trim();
+        if (!pin) return;
+
+        fetch('/api/cashiers/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pin })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                currentCashier = data.cashier;
+                bootstrap.Modal.getInstance(document.getElementById('cashierModal')).hide();
+                checkout();
+            } else {
+                document.getElementById('cashierPinError').style.display = 'block';
+                document.getElementById('cashierPinInput').value = '';
+            }
+        })
+        .catch(() => {
+            document.getElementById('cashierPinError').innerText = 'Connection error.';
+            document.getElementById('cashierPinError').style.display = 'block';
+        });
+    }
+
+    function checkout() {
         const customer = document.getElementById('customerName').value;
         const paymentStatus = document.getElementById('paymentStatus').value;
         const btn = document.getElementById('checkoutBtn');
@@ -186,17 +253,24 @@
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ customer, total, cartItems: cart, paymentStatus })
+            body: JSON.stringify({ 
+                customer, 
+                total, 
+                cartItems: cart, 
+                paymentStatus, 
+                cashierName: currentCashier ? currentCashier.name : 'Admin' 
+            })
         })
         .then(res => res.json())
         .then(data => {
-            alert(data.message);
+            alert(data.message + ' (Cashier: ' + (currentCashier ? currentCashier.name : 'Admin') + ')');
             receiptData.orderId = data.orderId;
             lastOrder = receiptData;
             cart = [];
             updateCartUI();
             btn.innerText = 'Checkout';
             btn.disabled = false;
+            currentCashier = null;
             document.getElementById('printButtons').style.display = 'block';
         })
         .catch(() => {
@@ -214,12 +288,13 @@
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const logoSrc = window.location.origin + '/logo.png';
+        const cur = shopSettings.currency || '₱';
 
         const itemsHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) 
                 ? item.name.substring(0, size === '58' ? 15 : 27) + '.' 
                 : item.name;
-            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td><td style="text-align:right;">₱${(item.price * item.qty).toFixed(2)}</td></tr>`;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td><td style="text-align:right;">${cur}${(item.price * item.qty).toFixed(2)}</td></tr>`;
         }).join('');
 
         const receiptHtml = `
@@ -241,10 +316,12 @@
                 .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1e40af; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
                 @media print { .print-btn { display: none; } body { padding: 2mm; } }
             </style></head><body>
-                <div class="logo"><img src="${logoSrc}" alt="Hawi's Lovada"></div>
-                <div class="center big bold">HAWI'S LOVADA</div>
-                <div class="center">Laundry Shop</div>
-                <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
+                <div class="logo"><img src="${logoSrc}" alt="${shopSettings.shop_name}"></div>
+                <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
+                <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
+                ${shopSettings.address ? `<div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.address}</div>` : ''}
+                ${shopSettings.phone ? `<div class="center" style="font-size: ${fontSize - 1}px;">Tel: ${shopSettings.phone}</div>` : ''}
+                ${shopSettings.tin ? `<div class="center" style="font-size: ${fontSize - 1}px;">TIN: ${shopSettings.tin}</div>` : ''}
                 <div class="divider"></div>
                 <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
                 <div class="info">Date: ${lastOrder.date}</div>
@@ -252,11 +329,11 @@
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsHtml}</tbody></table>
                 <div class="divider"></div>
-                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₱${lastOrder.total.toFixed(2)}</td></tr></table>
+                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${lastOrder.total.toFixed(2)}</td></tr></table>
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
-                <div class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.<br><br>FB: Hawi's Lovada</div>
+                <div class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.<br>${shopSettings.facebook ? 'FB: ' + shopSettings.facebook : ''}</div>
                 <br><br><br>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>
             </body></html>

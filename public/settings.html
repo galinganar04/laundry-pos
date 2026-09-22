@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hawi's Lovada - Settings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar h4 { color: #60a5fa; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
+        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
+        .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .section-title { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #6b7280; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
+        .sub-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sub-card { border-color: #334155 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
+        [data-theme="dark"] .section-title { color: #94a3b8 !important; border-bottom-color: #334155 !important; }
+        [data-theme="dark"] .form-label { color: #cbd5e1 !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] h3, [data-theme="dark"] h5, [data-theme="dark"] h6 { color: #e2e8f0 !important; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <h4 class="text-center mb-4">Hawi's Lovada</h4>
+            <a href="/">🧺 POS</a>
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/reports.html">📈 Reports</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/services.html">🧴 Services</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="/settings.html" class="active">⚙️ Settings</a>
+        </div>
+
+        <div class="col-md-10 p-4">
+            <h3 class="mb-1">Shop Profile</h3>
+            <p class="text-muted small mb-4">These details print on every receipt and invoice, and set the currency and tax that applies to new sales.</p>
+
+            <!-- Business Identity -->
+            <div class="panel">
+                <div class="section-title">BUSINESS IDENTITY</div>
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label small">Registered name</label>
+                        <input type="text" id="shop_name" class="form-control" placeholder="Shop name">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">TIN</label>
+                        <input type="text" id="tin" class="form-control" placeholder="000-123-456-0000">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label small">Tagline</label>
+                        <input type="text" id="tagline" class="form-control" placeholder="Clean. Fresh. Wash with Love.">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Details -->
+            <div class="panel">
+                <div class="section-title">CONTACT DETAILS</div>
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label small">Address</label>
+                        <textarea id="address" class="form-control" rows="2" placeholder="Street, City"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Phone</label>
+                        <input type="text" id="phone" class="form-control" placeholder="0917-000-0000">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Email</label>
+                        <input type="email" id="email" class="form-control" placeholder="shop@example.com">
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label small">Facebook Page</label>
+                        <input type="text" id="facebook" class="form-control" placeholder="fb.com/yourpage">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receipts & Pricing -->
+            <div class="panel">
+                <div class="section-title">RECEIPTS & PRICING</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">Currency</label>
+                        <select id="currency" class="form-select">
+                            <option value="₱">Philippine Peso (₱)</option>
+                            <option value="$">US Dollar ($)</option>
+                            <option value="€">Euro (€)</option>
+                            <option value="¥">Japanese Yen (¥)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Tax type</label>
+                        <select id="tax_type" class="form-select">
+                            <option value="Non-VAT">Non-VAT</option>
+                            <option value="VAT 12%">VAT 12%</option>
+                            <option value="VAT 0%">VAT 0%</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="text-end mt-4">
+                    <button class="btn btn-primary" onclick="saveSettings()">💾 Save changes</button>
+                </div>
+            </div>
+
+            <!-- People & Access (Combined) -->
+            <div class="panel">
+                <div class="d-flex align-items-start mb-3">
+                    <div class="me-3" style="font-size: 24px;">👥</div>
+                    <div>
+                        <h5 class="mb-0">People & Access</h5>
+                        <p class="text-muted small mb-0">Register the staff who operate the counter, and set the PIN that guards every switch between them.</p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Add a Cashier -->
+                    <div class="col-md-6">
+                        <div class="sub-card h-100">
+                            <div class="section-title">ADD A CASHIER</div>
+                            <div class="input-group mb-2">
+                                <input type="text" id="newCashierName" class="form-control" placeholder="Cashier name">
+                            </div>
+                            <div class="input-group mb-2">
+                                <input type="text" id="newCashierPin" class="form-control" placeholder="PIN (4+ digits)" maxlength="8">
+                                <button class="btn btn-primary" onclick="addCashier()">+ Add Cashier</button>
+                            </div>
+                            <small class="text-muted">Each sale and payment is filed under whoever was operating the terminal at the time.</small>
+                        </div>
+                    </div>
+
+                    <!-- Registered Cashiers -->
+                    <div class="col-md-6">
+                        <div class="sub-card h-100">
+                            <div class="section-title">
+                                REGISTERED CASHIERS 
+                                <span id="cashierCount" class="badge bg-secondary ms-2">0</span>
+                            </div>
+                            <div id="cashiersList">
+                                <p class="text-muted small">No cashiers yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+
+    const fields = ['shop_name', 'tagline', 'tin', 'address', 'phone', 'email', 'facebook', 'currency', 'tax_type'];
+
+    function loadSettings() {
+        fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
+            .then(res => {
+                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
+                return res.json();
+            })
+            .then(data => {
+                if (!data) return;
+                fields.forEach(f => {
+                    const el = document.getElementById(f);
+                    if (el && data[f] !== undefined) el.value = data[f];
+                });
+            });
+    }
+
+    function saveSettings() {
+        const data = {};
+        fields.forEach(f => {
+            const el = document.getElementById(f);
+            if (el) data[f] = el.value;
+        });
+        fetch('/api/settings', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (res.error) return alert('Error: ' + res.error);
+            alert('✅ Settings saved!');
+            document.querySelector('.sidebar h4').innerText = data.shop_name;
+        })
+        .catch(err => alert('Error: ' + err.message));
+    }
+
+    // ====== CASHIERS ======
+    function loadCashiers() {
+        fetch('/api/cashiers', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(cashiers => {
+                const list = document.getElementById('cashiersList');
+                document.getElementById('cashierCount').innerText = cashiers.length;
+                if (cashiers.length === 0) {
+                    list.innerHTML = '<p class="text-muted small">No cashiers yet.</p>';
+                    return;
+                }
+                list.innerHTML = cashiers.map(c => `
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #e5e7eb;">
+                        <div>
+                            <strong>${c.name}</strong>
+                            <span class="badge ${c.active ? 'bg-success' : 'bg-secondary'} ms-2">${c.active ? 'Active' : 'Inactive'}</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="changePin(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🔑 PIN</button>
+                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteCashier(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🗑</button>
+                        </div>
+                    </div>
+                `).join('');
+            });
+    }
+
+    function addCashier() {
+        const name = document.getElementById('newCashierName').value.trim();
+        const pin = document.getElementById('newCashierPin').value.trim();
+        if (!name || !pin) return alert('Please enter both name and PIN.');
+        if (pin.length < 4) return alert('PIN must be at least 4 digits.');
+
+        fetch('/api/cashiers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ name, pin })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) return alert('Error: ' + data.error);
+            document.getElementById('newCashierName').value = '';
+            document.getElementById('newCashierPin').value = '';
+            loadCashiers();
+        });
+    }
+
+    function changePin(id, name) {
+        const newPin = prompt(`Enter new PIN for ${name} (4+ digits):`);
+        if (!newPin) return;
+        if (newPin.length < 4) return alert('PIN must be at least 4 digits.');
+        fetch('/api/cashiers/' + id + '/pin', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ pin: newPin })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.error) return alert('Error: ' + data.error); alert('✅ PIN updated.'); });
+    }
+
+    function deleteCashier(id, name) {
+        if (!confirm(`Delete cashier "${name}"?`)) return;
+        fetch('/api/cashiers/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
+            .then(() => loadCashiers());
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+    }
+
+    loadSettings();
+    loadCashiers();
+</script>
+<script src="/theme.js"></script>
+</body>
+</html>
