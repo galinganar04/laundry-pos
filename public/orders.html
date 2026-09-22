@@ -18,6 +18,17 @@
         .status-Drying { background-color: #8b5cf6; color: white; }
         .status-Ready { background-color: #10b981; color: white; }
         .status-PickedUp { background-color: #6b7280; color: white; }
+        .batch-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: none; z-index: 1000;
+            align-items: center; gap: 10px; flex-wrap: wrap;
+        }
+        .batch-bar.show { display: flex; }
+        .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
+        .batch-bar .btn { font-size: 13px; }
+        .row-selected { background-color: #dbeafe !important; }
+        .order-checkbox { cursor: pointer; transform: scale(1.3); }
     </style>
 </head>
 <body>
@@ -62,11 +73,12 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
                                 <th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th>
                                 <th>Payment</th><th>Status</th><th class="text-end">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="ordersTable"><tr><td colspan="7" class="text-center text-muted">Loading...</td></tr></tbody>
+                        <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -74,6 +86,28 @@
     </div>
 </div>
 
+<!-- Batch Action Bar -->
+<div class="batch-bar" id="batchBar">
+    <span class="count"><span id="selectedCount">0</span> selected</span>
+
+    <div class="dropdown">
+        <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">Change Status</button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick="batchStatus('Received'); return false;">📥 Received</a></li>
+            <li><a class="dropdown-item" href="#" onclick="batchStatus('Washing'); return false;">🌀 Washing</a></li>
+            <li><a class="dropdown-item" href="#" onclick="batchStatus('Drying'); return false;">💨 Drying</a></li>
+            <li><a class="dropdown-item" href="#" onclick="batchStatus('Ready'); return false;">✅ Ready</a></li>
+            <li><a class="dropdown-item" href="#" onclick="batchStatus('Picked Up'); return false;">📦 Picked Up</a></li>
+        </ul>
+    </div>
+
+    <button class="btn btn-sm btn-success" onclick="batchPay()">💰 Mark Paid</button>
+    <button class="btn btn-sm btn-warning" onclick="batchUnpay()">⏳ Mark Unpaid</button>
+    <button class="btn btn-sm btn-danger" onclick="batchDelete()">🗑 Delete</button>
+    <button class="btn btn-sm btn-outline-light" onclick="clearSelection()">✕ Clear</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
@@ -81,6 +115,7 @@
     const statusList = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
     let currentFilter = 'all';
     let searchTimeout;
+    let allOrderIds = [];
 
     function statusBadgeClass(status) {
         if (status === 'Received') return 'status-Received';
@@ -109,6 +144,42 @@
         loadOrders();
     }
 
+    function getSelectedIds() {
+        return Array.from(document.querySelectorAll('.order-checkbox-row:checked')).map(cb => parseInt(cb.value));
+    }
+
+    function updateBatchBar() {
+        const ids = getSelectedIds();
+        document.getElementById('selectedCount').innerText = ids.length;
+        document.getElementById('batchBar').classList.toggle('show', ids.length > 0);
+    }
+
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll('.order-checkbox-row');
+        checkboxes.forEach(cb => {
+            cb.checked = source.checked;
+            cb.closest('tr').classList.toggle('row-selected', source.checked);
+        });
+        updateBatchBar();
+    }
+
+    function toggleRowCheckbox(cb) {
+        cb.closest('tr').classList.toggle('row-selected', cb.checked);
+        const all = document.querySelectorAll('.order-checkbox-row');
+        const checked = document.querySelectorAll('.order-checkbox-row:checked');
+        document.getElementById('selectAll').checked = (all.length > 0 && all.length === checked.length);
+        updateBatchBar();
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.order-checkbox-row').forEach(cb => {
+            cb.checked = false;
+            cb.closest('tr').classList.remove('row-selected');
+        });
+        document.getElementById('selectAll').checked = false;
+        updateBatchBar();
+    }
+
     function loadOrders() {
         const search = document.getElementById('searchBox').value.trim();
         const dateFrom = document.getElementById('dateFrom').value;
@@ -127,9 +198,12 @@
                 if (!orders) return;
                 const table = document.getElementById('ordersTable');
                 if (orders.length === 0) {
-                    table.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No orders found.</td></tr>';
+                    table.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No orders found.</td></tr>';
+                    allOrderIds = [];
+                    updateBatchBar();
                     return;
                 }
+                allOrderIds = orders.map(o => o.id);
                 table.innerHTML = orders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
@@ -140,6 +214,7 @@
                     const status = o.status || 'Received';
                     return `
                         <tr>
+                            <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
                             <td>#${o.id}</td>
                             <td><small>${date}</small></td>
                             <td>${o.customer}</td>
@@ -161,9 +236,12 @@
                         </tr>
                     `;
                 }).join('');
+                document.getElementById('selectAll').checked = false;
+                updateBatchBar();
             });
     }
 
+    // ====== Single actions ======
     function changeStatus(id, newStatus) {
         fetch('/api/orders/' + id + '/status', {
             method: 'PUT',
@@ -188,6 +266,63 @@
         fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
     }
 
+    // ====== Batch actions ======
+    function batchStatus(status) {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+        if (!confirm(`Change status of ${ids.length} order(s) to "${status}"?`)) return;
+        fetch('/api/orders/batch/status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ ids, status })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) return alert('Error: ' + data.error);
+            loadOrders();
+        });
+    }
+
+    function batchPay() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+        if (!confirm(`Mark ${ids.length} order(s) as PAID?`)) return;
+        fetch('/api/orders/batch/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ ids })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+    }
+
+    function batchUnpay() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+        if (!confirm(`Mark ${ids.length} order(s) as UNPAID?`)) return;
+        fetch('/api/orders/batch/unpay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ ids })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+    }
+
+    function batchDelete() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+        if (!confirm(`⚠️ DELETE ${ids.length} order(s) permanently? This cannot be undone!`)) return;
+        if (!confirm(`Are you REALLY sure? Type OK to confirm.`)) return;
+        fetch('/api/orders/batch/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ ids })
+        })
+        .then(res => res.json())
+        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+    }
+
     function reprintReceipt(orderId, size) {
         fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -199,8 +334,6 @@
         const isPaid = order.payment_status === 'Paid';
         const statusLabel = isPaid ? '** PAID **' : '** UNPAID **';
         const payNote = isPaid ? '' : 'Pay on Pickup';
-
-        const width = size === '58' ? 32 : 48;
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const logoSrc = window.location.origin + '/logo.png';
@@ -225,28 +358,16 @@
             <html><head><title>Receipt #${order.id}</title>
             <style>
                 @page { size: ${pageWidth} auto; margin: 0; }
-                * { box-sizing: border-box; }
-                body {
-                    font-family: 'Courier New', Courier, monospace;
-                    font-size: ${fontSize}px;
-                    width: ${pageWidth};
-                    max-width: ${pageWidth};
-                    margin: 0 auto;
-                    padding: 5px;
-                    color: #000;
-                    background: #fff;
-                    font-weight: 600;
-                    line-height: 1.3;
-                }
+                body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; }
                 .center { text-align: center; }
                 .bold { font-weight: 900; }
                 .big { font-size: ${size === '58' ? 14 : 16}px; }
                 .divider { border-top: 1px dashed #000; margin: 4px 0; }
                 .logo { text-align: center; margin-bottom: 3px; }
                 .logo img { max-width: ${size === '58' ? '60px' : '80px'}; height: auto; filter: grayscale(100%); }
-                table { width: 100%; border-collapse: collapse; font-size: ${fontSize}px; }
+                table { width: 100%; border-collapse: collapse; }
                 .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
-                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; font-size: ${size === '58' ? 11 : 13}px; }
+                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; }
                 .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
                 .info { font-size: ${fontSize}px; margin: 2px 0; }
                 .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1e40af; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
@@ -261,33 +382,19 @@
                 <div class="info">Date: ${formattedDate}</div>
                 <div class="info">Customer: ${order.customer}</div>
                 <div class="divider"></div>
-                <table>
-                    <thead><tr style="border-bottom: 1px solid #000;">
-                        <th style="text-align:left;">Item</th>
-                        <th style="text-align:center;">Qty</th>
-                        <th style="text-align:right;">Amount</th>
-                    </tr></thead>
-                    <tbody>${itemsHtml}</tbody>
-                </table>
+                <table><thead><tr style="border-bottom: 1px solid #000;">
+                    <th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th>
+                </tr></thead><tbody>${itemsHtml}</tbody></table>
                 <div class="divider"></div>
-                <table><tr class="total-row">
-                    <td>TOTAL</td>
-                    <td style="text-align:right;">₱${parseFloat(order.total).toFixed(2)}</td>
-                </tr></table>
+                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₱${parseFloat(order.total).toFixed(2)}</td></tr></table>
                 <div class="status">${statusLabel}</div>
-                ${payNote ? `<div class="center" style="font-size: ${fontSize - 1}px;">${payNote}</div>` : ''}
+                ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
-                <div class="footer">
-                    Thank you for your business!<br>
-                    Please keep this receipt.<br>
-                    Claim within 30 days.<br><br>
-                    FB: Hawi's Lovada
-                </div>
+                <div class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.<br><br>FB: Hawi's Lovada</div>
                 <br><br><br>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>
             </body></html>
         `;
-
         const w = window.open('', '_blank', 'width=400,height=600');
         w.document.write(receiptHtml);
         w.document.close();
@@ -302,8 +409,5 @@
 
     loadOrders();
 </script>
-
-<!-- Bootstrap JS for dropdown menus -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

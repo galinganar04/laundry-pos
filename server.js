@@ -282,6 +282,60 @@ app.get('/api/reports', requireAuth, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+// ====== BATCH OPERATIONS ======
+app.post('/api/orders/batch/status', requireAuth, async (req, res) => {
+    const { ids, status } = req.body;
+    const validStatuses = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
+    if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
+    try {
+        for (const id of ids) {
+            await db.updateOrderStatus(id, status);
+        }
+        res.json({ success: true, count: ids.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/orders/batch/pay', requireAuth, async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
+    try {
+        for (const id of ids) {
+            await db.markAsPaid(id);
+        }
+        res.json({ success: true, count: ids.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/orders/batch/unpay', requireAuth, async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
+    try {
+        for (const id of ids) {
+            await db.markAsUnpaid(id);
+        }
+        res.json({ success: true, count: ids.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.post('/api/orders/batch/delete', requireAuth, async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
+    try {
+        for (const id of ids) {
+            await db.deleteOrder(id);
+        }
+        res.json({ success: true, count: ids.length });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
