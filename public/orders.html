@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Orders - Laundry POS</title>
+    <title>Hawi's Lovada - Orders</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar h4 { color: #60a5fa; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
         .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
         .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -14,6 +15,7 @@
         .status-badge { font-size: 11px; padding: 5px 10px; }
         .status-Received { background-color: #f59e0b; color: white; }
         .status-Washing { background-color: #3b82f6; color: white; }
+        .status-Drying { background-color: #8b5cf6; color: white; }
         .status-Ready { background-color: #10b981; color: white; }
         .status-PickedUp { background-color: #6b7280; color: white; }
     </style>
@@ -23,7 +25,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Laundry POS</h4>
+            <h4 class="text-center mb-4">Hawi's Lovada</h4>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
             <a href="/orders.html" class="active">📋 Orders</a>
@@ -35,51 +37,35 @@
         <div class="col-md-10 p-4">
             <h3 class="mb-4">Orders</h3>
 
-            <!-- Search Panel -->
             <div class="panel mb-4">
                 <div class="row g-2">
-                    <div class="col-md-4">
-                        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search customer name or order #" oninput="debouncedLoad()">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="date" id="dateFrom" class="form-control" onchange="loadOrders()">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="date" id="dateTo" class="form-control" onchange="loadOrders()">
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button>
-                    </div>
+                    <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search customer name or order #" oninput="debouncedLoad()"></div>
+                    <div class="col-md-3"><input type="date" id="dateFrom" class="form-control" onchange="loadOrders()"></div>
+                    <div class="col-md-3"><input type="date" id="dateTo" class="form-control" onchange="loadOrders()"></div>
+                    <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
                 </div>
             </div>
 
-            <!-- Filter Buttons -->
             <div class="panel">
                 <div class="mb-3">
                     <button class="btn btn-sm btn-primary filter-btn" onclick="setFilter('all')">All</button>
                     <button class="btn btn-sm btn-warning filter-btn" onclick="setFilter('unpaid')">💰 Unpaid</button>
                     <button class="btn btn-sm btn-outline-warning filter-btn" onclick="setFilter('received')">📥 Received</button>
                     <button class="btn btn-sm btn-outline-primary filter-btn" onclick="setFilter('washing')">🌀 Washing</button>
+                    <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="setFilter('drying')">💨 Drying</button>
                     <button class="btn btn-sm btn-outline-success filter-btn" onclick="setFilter('ready')">✅ Ready</button>
-                    <button class="btn btn-sm btn-outline-secondary filter-btn" onclick="setFilter('pickedup')">📦 Picked Up</button>
+                    <button class="btn btn-sm btn-outline-dark filter-btn" onclick="setFilter('pickedup')">📦 Picked Up</button>
                 </div>
 
                 <div class="table-responsive">
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th>#</th>
-                                <th>Date</th>
-                                <th>Customer</th>
-                                <th class="text-end">Total</th>
-                                <th>Payment</th>
-                                <th>Status</th>
-                                <th class="text-end">Actions</th>
+                                <th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th>
+                                <th>Payment</th><th>Status</th><th class="text-end">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="ordersTable">
-                            <tr><td colspan="7" class="text-center text-muted">Loading...</td></tr>
-                        </tbody>
+                        <tbody id="ordersTable"><tr><td colspan="7" class="text-center text-muted">Loading...</td></tr></tbody>
                     </table>
                 </div>
             </div>
@@ -91,13 +77,14 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    const statusList = ['Received', 'Washing', 'Ready', 'Picked Up'];
+    const statusList = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
     let currentFilter = 'all';
     let searchTimeout;
 
     function statusBadgeClass(status) {
         if (status === 'Received') return 'status-Received';
         if (status === 'Washing') return 'status-Washing';
+        if (status === 'Drying') return 'status-Drying';
         if (status === 'Ready') return 'status-Ready';
         if (status === 'Picked Up') return 'status-PickedUp';
         return 'bg-secondary';
@@ -106,23 +93,13 @@
     function nextStatusButton(order) {
         const currentStatus = order.status || 'Received';
         const currentIdx = statusList.indexOf(currentStatus);
-        if (currentIdx === statusList.length - 1) {
-            return `<span class="text-muted small">Complete</span>`;
-        }
+        if (currentIdx === statusList.length - 1) return `<span class="text-muted small">Complete</span>`;
         const nextStatus = statusList[currentIdx + 1];
         return `<button class="btn btn-sm btn-primary" onclick="changeStatus(${order.id}, '${nextStatus}')">→ ${nextStatus}</button>`;
     }
 
-    function debouncedLoad() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => loadOrders(), 300);
-    }
-
-    function setFilter(f) {
-        currentFilter = f;
-        loadOrders();
-    }
-
+    function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
+    function setFilter(f) { currentFilter = f; loadOrders(); }
     function clearFilters() {
         document.getElementById('searchBox').value = '';
         document.getElementById('dateFrom').value = '';
@@ -135,7 +112,6 @@
         const search = document.getElementById('searchBox').value.trim();
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
-        
         let url = '/api/orders?filter=' + currentFilter;
         if (search) url += '&search=' + encodeURIComponent(search);
         if (dateFrom) url += '&dateFrom=' + dateFrom;
@@ -154,9 +130,7 @@
                     return;
                 }
                 table.innerHTML = orders.map(o => {
-                    const date = new Date(o.date).toLocaleString('en-US', { 
-                        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' 
-                    });
+                    const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
                     const payBadge = isPaid ? 'bg-success' : 'bg-warning text-dark';
                     const payBtn = isPaid
@@ -190,37 +164,27 @@
             body: JSON.stringify({ status: newStatus })
         })
         .then(res => res.json())
-        .then(data => {
-            if (data.error) return alert('Error: ' + data.error);
-            loadOrders();
-        })
+        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); })
         .catch(err => alert('Error: ' + err.message));
     }
 
     function markPaid(id) {
-        fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } })
-            .then(() => loadOrders());
+        fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
     }
 
     function markUnpaid(id) {
-        fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } })
-            .then(() => loadOrders());
+        fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
     }
 
     function deleteOrder(id) {
         if (!confirm('Delete order #' + id + '? This cannot be undone.')) return;
-        fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
-            .then(() => loadOrders());
+        fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
     }
 
     function reprintReceipt(orderId) {
-        // Fetch the full order details and items
         fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
-            .then(data => {
-                if (data.error) return alert('Error: ' + data.error);
-                renderReceipt(data);
-            })
+            .then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data); })
             .catch(err => alert('Error: ' + err.message));
     }
 
@@ -233,7 +197,8 @@
             </tr>
         `).join('');
 
-        const statusLabel = order.payment_status === 'Paid' ? 'PAID' : 'UNPAID - Pay on Pickup';
+        const isPaid = order.payment_status === 'Paid';
+        const statusLabel = isPaid ? 'PAID ✅' : 'UNPAID ⚠️ - Pay on Pickup';
         const formattedDate = new Date(order.date).toLocaleString();
 
         const receiptHtml = `
@@ -241,19 +206,24 @@
             <html><head><title>Receipt #${order.id}</title>
             <style>
                 body { font-family: 'Courier New', monospace; max-width: 320px; margin: 0 auto; padding: 20px; }
-                h1 { text-align: center; font-size: 18px; margin: 5px 0; }
-                h2 { text-align: center; font-size: 13px; font-weight: normal; margin: 5px 0 20px 0; }
+                .logo { text-align: center; margin-bottom: 8px; }
+                .logo img { max-width: 100px; height: auto; }
+                h1 { text-align: center; font-size: 18px; margin: 5px 0; color: #1e40af; }
+                h2 { text-align: center; font-size: 12px; font-weight: normal; margin: 5px 0 20px 0; color: #dc2626; font-style: italic; }
                 .divider { border-top: 1px dashed #000; margin: 12px 0; }
                 table { width: 100%; border-collapse: collapse; font-size: 12px; }
                 .total-row { font-weight: bold; font-size: 14px; }
                 .footer { text-align: center; font-size: 11px; margin-top: 20px; }
                 .info { font-size: 12px; margin: 4px 0; }
-                .status { text-align: center; font-weight: bold; padding: 8px; border: 2px solid #000; margin: 10px 0; }
-                .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #4f46e5; color: white; border: none; border-radius: 5px; }
+                .status { text-align: center; font-weight: bold; padding: 8px; border: 2px solid #000; margin: 10px 0; font-size: 13px; }
+                .status.paid { background: #d1fae5; color: #065f46; border-color: #10b981; }
+                .status.unpaid { background: #fee2e2; color: #991b1b; border-color: #dc2626; }
+                .print-btn { display: block; margin: 20px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1e40af; color: white; border: none; border-radius: 5px; }
                 @media print { .print-btn { display: none; } body { padding: 0; } }
             </style></head><body>
-                <h1>LAUNDRY POS</h1>
-                <h2>SheetlaPH Laundry Services</h2>
+                <div class="logo"><img src="/logo.png" alt="Hawi's Lovada"></div>
+                <h1>Hawi's Lovada</h1>
+                <h2>Laundry Shop — Clean. Fresh. Wash with Love.</h2>
                 <div class="divider"></div>
                 <p class="info"><strong>Order #:</strong> ${order.id}</p>
                 <p class="info"><strong>Date:</strong> ${formattedDate}</p>
@@ -271,7 +241,7 @@
                 <table><tr class="total-row">
                     <td>TOTAL</td><td style="text-align:right;">₱${parseFloat(order.total).toFixed(2)}</td>
                 </tr></table>
-                <div class="status">${statusLabel}</div>
+                <div class="status ${isPaid ? 'paid' : 'unpaid'}">${statusLabel}</div>
                 <div class="divider"></div>
                 <p class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.</p>
                 <button class="print-btn" onclick="window.print()">🖨️ Print</button>

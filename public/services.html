@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Services - Laundry POS</title>
+    <title>Hawi's Lovada - Services</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar h4 { color: #60a5fa; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
         .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
         .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
@@ -17,7 +18,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Laundry POS</h4>
+            <h4 class="text-center mb-4">Hawi's Lovada</h4>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
             <a href="/orders.html">📋 Orders</a>
@@ -32,32 +33,18 @@
             <div class="panel mb-4">
                 <h5>Add New Service</h5>
                 <div class="row g-2 mt-2">
-                    <div class="col-md-4">
-                        <input type="text" id="newName" class="form-control" placeholder="Service Name (e.g., Rush Fee)">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="number" id="newPrice" class="form-control" placeholder="Price (₱)" step="0.01">
-                    </div>
-                    <div class="col-md-3">
-                        <input type="text" id="newUnit" class="form-control" placeholder="Unit (kg, item, load)">
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-primary w-100" onclick="addService()">Add Service</button>
-                    </div>
+                    <div class="col-md-4"><input type="text" id="newName" class="form-control" placeholder="Service Name"></div>
+                    <div class="col-md-3"><input type="number" id="newPrice" class="form-control" placeholder="Price (₱)" step="0.01"></div>
+                    <div class="col-md-3"><input type="text" id="newUnit" class="form-control" placeholder="Unit (kg, item, load)"></div>
+                    <div class="col-md-2"><button class="btn btn-primary w-100" onclick="addService()">Add Service</button></div>
                 </div>
             </div>
 
             <div class="panel">
                 <h5>Current Services</h5>
                 <table class="table table-striped mt-3">
-                    <thead>
-                        <tr>
-                            <th>ID</th><th>Name</th><th>Price</th><th>Unit</th><th>Status</th><th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="servicesTable">
-                        <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
-                    </tbody>
+                    <thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Unit</th><th>Status</th><th>Action</th></tr></thead>
+                    <tbody id="servicesTable"><tr><td colspan="6" class="text-center text-muted">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -88,7 +75,7 @@
                         <td>₱${parseFloat(s.price).toFixed(2)}</td>
                         <td>${s.unit}</td>
                         <td><span class="badge bg-success">${s.status}</span></td>
-                        <td><button class="btn btn-sm btn-danger" onclick="deleteService(${s.id}, '${s.name}')">Delete</button></td>
+                        <td><button class="btn btn-sm btn-danger" onclick="deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}')">Delete</button></td>
                     </tr>
                 `).join('');
             });
@@ -99,7 +86,6 @@
         const price = document.getElementById('newPrice').value;
         const unit = document.getElementById('newUnit').value.trim();
         if (!name || !price || !unit) return alert("Please fill in all three fields.");
-
         fetch('/api/services', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
