@@ -49,10 +49,7 @@ async function initDatabase() {
             );
         `);
 
-        // Add 'status' column to orders table if it doesn't exist
-        await pool.query(`
-            ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Received';
-        `);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Received';`);
 
         const result = await pool.query('SELECT COUNT(*) FROM services');
         if (parseInt(result.rows[0].count) === 0) {
@@ -61,7 +58,6 @@ async function initDatabase() {
                 ('Wash & Dry', 180.00, 'kg'),
                 ('Dry Only', 50.00, 'kg')
             `);
-            console.log('Sample services added.');
         }
 
         console.log('Database initialized.');
@@ -97,14 +93,12 @@ async function saveOrder(customer, total, cartItems, paymentStatus) {
         [date, customer, total, status]
     );
     const orderId = orderResult.rows[0].id;
-
     for (const item of cartItems) {
         await pool.query(
             "INSERT INTO order_items (order_id, service_name, quantity, price) VALUES ($1, $2, $3, $4)",
             [orderId, item.name, item.qty, item.price]
         );
     }
-
     return orderId;
 }
 
@@ -112,44 +106,31 @@ async function getOrders(filter, search, dateFrom, dateTo) {
     const conditions = [];
     const params = [];
 
-    if (filter === 'paid') {
-        conditions.push("payment_status = 'Paid'");
-    } else if (filter === 'unpaid') {
-        conditions.push("payment_status = 'Pending'");
-    } else if (filter === 'received') {
-        conditions.push("status = 'Received'");
-    } else if (filter === 'washing') {
-        conditions.push("status = 'Washing'");
-    } else if (filter === 'drying') {
-        conditions.push("status = 'Drying'");
-    } else if (filter === 'ready') {
-        conditions.push("status = 'Ready'");
-    } else if (filter === 'pickedup') {
-        conditions.push("status = 'Picked Up'");
-    }
+    if (filter === 'paid') conditions.push("payment_status = 'Paid'");
+    else if (filter === 'unpaid') conditions.push("payment_status = 'Pending'");
+    else if (filter === 'received') conditions.push("status = 'Received'");
+    else if (filter === 'washing') conditions.push("status = 'Washing'");
+    else if (filter === 'drying') conditions.push("status = 'Drying'");
+    else if (filter === 'ready') conditions.push("status = 'Ready'");
+    else if (filter === 'pickedup') conditions.push("status = 'Picked Up'");
 
     if (search) {
         params.push('%' + search + '%');
         params.push(search);
         conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`);
     }
-
     if (dateFrom) {
         params.push(dateFrom);
         conditions.push(`date::timestamptz >= $${params.length}::timestamptz`);
     }
-
     if (dateTo) {
         params.push(dateTo + ' 23:59:59');
         conditions.push(`date::timestamptz <= $${params.length}::timestamptz`);
     }
 
     let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status FROM orders";
-    if (conditions.length > 0) {
-        query += " WHERE " + conditions.join(" AND ");
-    }
+    if (conditions.length > 0) query += " WHERE " + conditions.join(" AND ");
     query += " ORDER BY id DESC LIMIT 500";
-
     const result = await pool.query(query, params);
     return result.rows;
 }
@@ -215,6 +196,75 @@ async function getCustomerOrders(name) {
     return result.rows;
 }
 
+// ====== REPORTING FUNCTIONS ======
+
+async function getReportSummary(dateFrom, dateTo) {
+    const params = [dateFrom, dateTo + ' 23:59:59'];
+    const summary = await pool.query(
+        `SELECT 
+            COUNT(*) AS order_count, 
+            COALESCE(SUM(total), 0) AS total_revenue,
+            COALESCE(AVG(total), 0) AS avg_order_value,
+            COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN total ELSE 0 END), 0) AS unpaid_revenue
+        FROM orders 
+        WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`,
+        params
+    );
+    return summary.rows[0];
+}
+
+async function getReportDaily(dateFrom, dateTo) {
+    const params = [dateFrom, dateTo + ' 23:59:59'];
+    const daily = await pool.query(
+        `SELECT 
+            DATE(date::timestamptz) AS day, 
+            COUNT(*) AS order_count, 
+            COALESCE(SUM(total), 0) AS revenue,
+            COALESCE(AVG(total), 0) AS avg_order
+        FROM orders 
+        WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        GROUP BY DATE(date::timestamptz) 
+        ORDER BY day ASC`,
+        params
+    );
+    return daily.rows;
+}
+
+async function getReportTopServices(dateFrom, dateTo) {
+    const params = [dateFrom, dateTo + ' 23:59:59'];
+    const top = await pool.query(
+        `SELECT 
+            oi.service_name, 
+            SUM(oi.quantity) AS total_qty, 
+            SUM(oi.quantity * oi.price) AS total_revenue
+        FROM order_items oi
+        JOIN orders o ON o.id = oi.order_id
+        WHERE o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
+        GROUP BY oi.service_name 
+        ORDER BY total_revenue DESC 
+        LIMIT 10`,
+        params
+    );
+    return top.rows;
+}
+
+async function getReportTopCustomers(dateFrom, dateTo) {
+    const params = [dateFrom, dateTo + ' 23:59:59'];
+    const top = await pool.query(
+        `SELECT 
+            customer, 
+            COUNT(*) AS order_count, 
+            COALESCE(SUM(total), 0) AS total_spent
+        FROM orders 
+        WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        GROUP BY customer 
+        ORDER BY total_spent DESC 
+        LIMIT 10`,
+        params
+    );
+    return top.rows;
+}
+
 module.exports = {
     pool,
     getServices,
@@ -231,5 +281,9 @@ module.exports = {
     addCustomer,
     updateCustomer,
     deleteCustomer,
-    getCustomerOrders
+    getCustomerOrders,
+    getReportSummary,
+    getReportDaily,
+    getReportTopServices,
+    getReportTopCustomers
 };

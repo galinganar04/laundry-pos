@@ -263,7 +263,25 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
-
+// ====== REPORTS ======
+app.get('/api/reports', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom, dateTo } = req.query;
+        if (!dateFrom || !dateTo) {
+            return res.status(400).json({ error: 'dateFrom and dateTo are required' });
+        }
+        const [summary, daily, topServices, topCustomers] = await Promise.all([
+            db.getReportSummary(dateFrom, dateTo),
+            db.getReportDaily(dateFrom, dateTo),
+            db.getReportTopServices(dateFrom, dateTo),
+            db.getReportTopCustomers(dateFrom, dateTo)
+        ]);
+        res.json({ summary, daily, topServices, topCustomers });
+    } catch (err) {
+        console.error('Reports error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
