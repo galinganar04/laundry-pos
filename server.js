@@ -42,9 +42,14 @@ app.get('/api/services', requireAuth, async (req, res) => {
     try { res.json(await db.getServices()); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/services', requireAuth, async (req, res) => {
-    const { name, price, unit } = req.body;
-    if (!name || !price || !unit) return res.status(400).json({ error: "Missing fields" });
-    try { const id = await db.addService(name, parseFloat(price), unit); res.json({ message: "Service added", id }); }
+    if (!req.body.name) return res.status(400).json({ error: "Service name is required" });
+    try { const id = await db.addService(req.body); res.json({ message: "Service added", id }); }
+    catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/services/:id', requireAuth, async (req, res) => {
+    if (!req.body.name) return res.status(400).json({ error: "Service name is required" });
+    try { await db.updateService(req.params.id, req.body); res.json({ success: true }); }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/services/:id', requireAuth, async (req, res) => {

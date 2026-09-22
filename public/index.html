@@ -8,32 +8,44 @@
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
-        .service-card { cursor: pointer; transition: 0.2s; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .service-card:hover { transform: translateY(-5px); box-shadow: 0 6px 12px rgba(0,0,0,0.1); }
-        .cart-panel { background-color: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); height: 100%; }
-        .btn-checkout { background-color: #1e40af; color: white; width: 100%; padding: 12px; font-weight: bold; border: none; border-radius: 5px; }
-        .btn-checkout:hover { background-color: #1e3a8a; }
-        .btn-print { background-color: #10b981; color: white; width: 100%; padding: 10px; font-weight: bold; border: none; border-radius: 5px; margin-top: 8px; }
-        .btn-print:hover { background-color: #059669; }
-        .btn-print-80 { background-color: #0891b2; }
-        .btn-print-80:hover { background-color: #0e7490; }
+        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .service-card {
+            cursor: pointer; transition: 0.2s; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            border-radius: 10px; background: white;
+        }
+        .service-card:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); border-color: #cbd5e1; }
+        .service-card .service-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; letter-spacing: 0.3px; }
+        .cart-panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: 100%; }
+        .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; }
+        .btn-checkout { background: #1e40af; color: white; width: 100%; padding: 12px; font-weight: 600; border: none; border-radius: 8px; font-size: 14px; }
+        .btn-checkout:hover { background: #1e3a8a; color: white; }
+        .btn-print { background: #10b981; color: white; width: 100%; padding: 10px; font-weight: 600; border: none; border-radius: 8px; margin-top: 8px; font-size: 13px; }
+        .btn-print:hover { background: #059669; color: white; }
+        .btn-print-80 { background: #0891b2; }
+        .btn-print-80:hover { background: #0e7490; }
         .print-buttons { display: none; }
+        .form-label { font-size: 12px; color: #475569; font-weight: 500; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .cart-panel, [data-theme="dark"] .panel, [data-theme="dark"] .service-card, [data-theme="dark"] .card, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .cart-panel, [data-theme="dark"] .service-card, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .service-card { border-color: #334155 !important; }
+        [data-theme="dark"] .service-card .service-name { color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title { color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
         [data-theme="dark"] hr { border-color: #334155 !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] h3, [data-theme="dark"] h5, [data-theme="dark"] h6 { color: #e2e8f0 !important; }
-        [data-theme="dark"] .modal-header { border-color: #334155 !important; }
+        [data-theme="dark"] h5 { color: #e2e8f0 !important; }
+        [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { border-color: #334155 !important; }
     </style>
 </head>
 <body>
@@ -44,22 +56,23 @@
             <h4 class="text-center mb-4">Hawi's Lovada</h4>
             <a href="/" class="active">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/reports.html">📈 Reports</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/settings.html">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
-            <a href="/settings.html">⚙️ Settings</a>
         </div>
 
         <div class="col-md-7 p-4">
-            <h3 class="mb-4">Point of Sale</h3>
+            <h3 class="page-title">Point of Sale</h3>
             <div class="input-group mb-4">
-                <input type="text" class="form-control" placeholder="Search services...">
+                <input type="text" class="form-control" placeholder="🔍 Search services...">
             </div>
-            <h6 class="text-muted mb-3">Choose the customer's laundry service</h6>
+            <h6 class="text-muted mb-3" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Choose the customer's laundry service</h6>
             <div class="row" id="servicesContainer"></div>
         </div>
 
@@ -71,13 +84,13 @@
                     <p class="text-muted text-center small">Cart is empty.</p>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">CUSTOMER</label>
+                    <label class="form-label">CUSTOMER</label>
                     <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
                     <datalist id="customerList"></datalist>
                     <small class="text-muted" style="font-size: 11px;">Type to see saved customers</small>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small text-muted">PAYMENT</label>
+                    <label class="form-label">PAYMENT</label>
                     <select id="paymentStatus" class="form-select">
                         <option value="Paid">💵 Pay Now</option>
                         <option value="Pending">⏳ Pay Later</option>
@@ -98,7 +111,6 @@
     </div>
 </div>
 
-<!-- Cashier PIN Modal -->
 <div class="modal fade" id="cashierModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -152,12 +164,14 @@
             if (!services) return;
             const container = document.getElementById('servicesContainer');
             services.forEach(service => {
+                const color = service.color || '#1e40af';
                 container.innerHTML += `
                     <div class="col-md-4 mb-3">
                         <div class="card service-card p-3 text-center" onclick="addToCart('${service.name}', ${service.price}, '${service.unit}')">
                             <div class="card-body">
-                                <h6 class="card-title fw-bold">${service.name}</h6>
-                                <p class="text-primary fw-bold mb-1">₱${parseFloat(service.price).toFixed(2)} / ${service.unit}</p>
+                                <div class="mb-2" style="width: 20px; height: 20px; border-radius: 50%; background: ${color}; margin: 0 auto;"></div>
+                                <h6 class="service-name">${service.name}</h6>
+                                <p class="fw-bold mb-1" style="color: #1e40af; font-size: 14px;">₱${parseFloat(service.price).toFixed(2)} / ${service.unit}</p>
                                 <small class="text-muted">Available</small>
                             </div>
                         </div>
@@ -180,7 +194,6 @@
         list.innerHTML = '';
         total = 0;
         let itemCount = 0;
-
         if (cart.length === 0) {
             list.innerHTML = '<p class="text-muted text-center small">Cart is empty.</p>';
         } else {
@@ -204,15 +217,13 @@
         if (cart.length === 0) return alert("Cart is empty.");
         document.getElementById('cashierPinInput').value = '';
         document.getElementById('cashierPinError').style.display = 'none';
-        const modal = new bootstrap.Modal(document.getElementById('cashierModal'));
-        modal.show();
+        new bootstrap.Modal(document.getElementById('cashierModal')).show();
         setTimeout(() => document.getElementById('cashierPinInput').focus(), 300);
     }
 
     function verifyPin() {
         const pin = document.getElementById('cashierPinInput').value.trim();
         if (!pin) return;
-
         fetch('/api/cashiers/verify', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -243,8 +254,7 @@
         btn.disabled = true;
 
         const receiptData = {
-            customer: customer,
-            total: total,
+            customer: customer, total: total,
             items: JSON.parse(JSON.stringify(cart)),
             date: new Date().toLocaleString(),
             paymentStatus: paymentStatus
@@ -253,13 +263,7 @@
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ 
-                customer, 
-                total, 
-                cartItems: cart, 
-                paymentStatus, 
-                cashierName: currentCashier ? currentCashier.name : 'Admin' 
-            })
+            body: JSON.stringify({ customer, total, cartItems: cart, paymentStatus, cashierName: currentCashier ? currentCashier.name : 'Admin' })
         })
         .then(res => res.json())
         .then(data => {
@@ -291,9 +295,7 @@
         const cur = shopSettings.currency || '₱';
 
         const itemsHtml = lastOrder.items.map(item => {
-            const nameTrunc = item.name.length > (size === '58' ? 16 : 28) 
-                ? item.name.substring(0, size === '58' ? 15 : 27) + '.' 
-                : item.name;
+            const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td><td style="text-align:right;">${cur}${(item.price * item.qty).toFixed(2)}</td></tr>`;
         }).join('');
 

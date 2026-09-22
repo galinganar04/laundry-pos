@@ -20,6 +20,21 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_data TEXT;`);
         await pool.query(`CREATE TABLE IF NOT EXISTS replenishments (id SERIAL PRIMARY KEY, product_id INTEGER REFERENCES products(id), quantity INTEGER NOT NULL, cost NUMERIC DEFAULT 0, date TIMESTAMPTZ DEFAULT NOW(), notes TEXT);`);
 
+        // Service enhancements
+        await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#4f46e5';`);
+        await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS service_type TEXT DEFAULT 'Per Load';`);
+        await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS minimum NUMERIC DEFAULT 1;`);
+        await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS unit_label TEXT DEFAULT 'kg';`);
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS service_materials (
+                id SERIAL PRIMARY KEY,
+                service_id INTEGER REFERENCES services(id) ON DELETE CASCADE,
+                product_id INTEGER REFERENCES products(id),
+                quantity INTEGER DEFAULT 1,
+                amount NUMERIC DEFAULT 0
+            );
+        `);
+
         const defaults = [
             ['shop_name', "Hawi's Lovada"], ['tagline', 'Clean. Fresh. Wash with Love.'],
             ['tin', ''], ['address', ''], ['phone', ''], ['email', ''], ['facebook', ''],
@@ -43,16 +58,67 @@ async function initDatabase() {
 initDatabase();
 
 async function getServices() {
-    const result = await pool.query("SELECT * FROM services WHERE status = 'Available'");
-    return result.rows;
+    const result = await pool.query("SELECT * FROM services WHERE status = 'Available' ORDER BY id ASC");
+    const services = result.rows;
+    for (const s of services) {
+        const mats = await pool.query(
+            `SELECT sm.id, sm.product_id, sm.quantity, sm.amount, p.name AS product_name
+             FROM service_materials sm
+             LEFT JOIN products p ON p.id = sm.product_id
+             WHERE sm.service_id = $1`,
+            [s.id]
+        );
+        s.materials = mats.rows;
+    }
+    return services;
 }
 
-async function addService(name, price, unit) {
-    const result = await pool.query("INSERT INTO services (name, price, unit, status) VALUES ($1, $2, $3, 'Available') RETURNING id", [name, price, unit]);
-    return result.rows[0].id;
+async function addService(data) {
+    const result = await pool.query(
+        `INSERT INTO services (name, price, unit, status, color, service_type, minimum, unit_label)
+         VALUES ($1, $2, $3, 'Available', $4, $5, $6, $7) RETURNING id`,
+        [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg',
+         data.color || '#4f46e5', data.service_type || 'Per Load',
+         parseFloat(data.minimum) || 1, data.unit_label || 'kg']
+    );
+    const serviceId = result.rows[0].id;
+    if (Array.isArray(data.materials)) {
+        for (const m of data.materials) {
+            if (m.product_id && m.quantity > 0) {
+                await pool.query(
+                    `INSERT INTO service_materials (service_id, product_id, quantity, amount) VALUES ($1, $2, $3, $4)`,
+                    [serviceId, m.product_id, parseInt(m.quantity) || 1, parseFloat(m.amount) || 0]
+                );
+            }
+        }
+    }
+    return serviceId;
 }
 
-async function deleteService(id) { await pool.query("DELETE FROM services WHERE id = $1", [id]); }
+async function updateService(id, data) {
+    await pool.query(
+        `UPDATE services SET name = $1, price = $2, unit = $3, color = $4, service_type = $5, minimum = $6, unit_label = $7 WHERE id = $8`,
+        [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg',
+         data.color || '#4f46e5', data.service_type || 'Per Load',
+         parseFloat(data.minimum) || 1, data.unit_label || 'kg', id]
+    );
+    await pool.query("DELETE FROM service_materials WHERE service_id = $1", [id]);
+    if (Array.isArray(data.materials)) {
+        for (const m of data.materials) {
+            if (m.product_id && m.quantity > 0) {
+                await pool.query(
+                    `INSERT INTO service_materials (service_id, product_id, quantity, amount) VALUES ($1, $2, $3, $4)`,
+                    [id, m.product_id, parseInt(m.quantity) || 1, parseFloat(m.amount) || 0]
+                );
+            }
+        }
+    }
+}
+
+async function deleteService(id) {
+    await pool.query("DELETE FROM service_materials WHERE service_id = $1", [id]);
+    await pool.query("DELETE FROM services WHERE id = $1", [id]);
+}
 
 async function saveOrder(customer, total, cartItems, paymentStatus, cashierName) {
     const date = new Date().toISOString();
@@ -247,7 +313,7 @@ async function getLowStockProducts() {
 }
 
 module.exports = {
-    pool, getServices, addService, deleteService, saveOrder, getOrders,
+    pool, getServices, addService, updateService, deleteService, saveOrder, getOrders,
     markAsPaid, markAsUnpaid, deleteOrder, updateOrderStatus,
     getCustomers, getCustomer, addCustomer, updateCustomer, deleteCustomer, getCustomerOrders,
     getReportSummary, getReportDaily, getReportTopServices, getReportTopCustomers,

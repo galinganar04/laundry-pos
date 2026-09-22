@@ -7,31 +7,43 @@
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
-        .stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 4px solid #1e40af; }
-        .stat-card .label { font-size: 12px; text-transform: uppercase; color: #6b7280; letter-spacing: 1px; }
-        .stat-card .value { font-size: 28px; font-weight: bold; color: #1e293b; }
+        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #1e40af; }
+        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1.5px; font-weight: 600; }
+        .stat-card .value { font-size: 26px; font-weight: 700; color: #1e293b; margin-top: 4px; }
         .stat-card.green { border-left-color: #10b981; }
         .stat-card.orange { border-left-color: #f59e0b; }
         .stat-card.blue { border-left-color: #3b82f6; }
-        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
         .chart-bar { background: #1e40af; border-radius: 4px 4px 0 0; }
+        .table { font-size: 13px; }
+        .table thead th {
+            font-size: 11px; text-transform: uppercase; color: #94a3b8;
+            font-weight: 600; letter-spacing: 1px; border-bottom: 1px solid #e5e7eb;
+            padding: 10px 8px; background: transparent;
+        }
+        .table td { padding: 10px 8px; border-color: #f1f5f9; vertical-align: middle; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .stat-card .value { color: #e2e8f0 !important; }
         [data-theme="dark"] .stat-card .label { color: #94a3b8 !important; }
         [data-theme="dark"] .table { color: #e2e8f0 !important; }
-        [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
-        [data-theme="dark"] .table td { border-color: #334155 !important; }
+        [data-theme="dark"] .table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .table td { border-color: #334155 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .panel h5 { color: #e2e8f0 !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] h3, [data-theme="dark"] h5 { color: #e2e8f0 !important; }
+        [data-theme="dark"] .chart-bar { background: #3b82f6 !important; }
     </style>
 </head>
 <body>
@@ -42,34 +54,38 @@
             <h4 class="text-center mb-4">Hawi's Lovada</h4>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html" class="active">📊 Dashboard</a>
-            <a href="/reports.html">📈 Reports</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/settings.html">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
-            <a href="/settings.html">⚙️ Settings</a>
         </div>
 
         <div class="col-md-10 p-4">
-            <h3 class="mb-4">Sales Dashboard</h3>
+            <h3 class="page-title">Sales Dashboard</h3>
+
             <div class="row g-3 mb-4">
                 <div class="col-md-3"><div class="stat-card green"><div class="label">Today's Revenue</div><div class="value" id="todayRevenue">₱0.00</div></div></div>
                 <div class="col-md-3"><div class="stat-card blue"><div class="label">Today's Orders</div><div class="value" id="todayOrders">0</div></div></div>
                 <div class="col-md-3"><div class="stat-card"><div class="label">All-Time Revenue</div><div class="value" id="allTimeRevenue">₱0.00</div></div></div>
                 <div class="col-md-3"><div class="stat-card orange"><div class="label">Pending Orders</div><div class="value" id="pendingOrders">0</div></div></div>
             </div>
+
             <div class="panel mb-4">
                 <h5>Last 7 Days</h5>
                 <div id="weeklyChart" style="height: 220px; display: flex; align-items: flex-end; justify-content: center; gap: 20px; padding: 20px 0;"></div>
             </div>
+
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="panel">
                         <h5>Top Services</h5>
-                        <table class="table table-sm mt-3">
-                            <thead><tr><th>Service</th><th class="text-end">Qty Sold</th><th class="text-end">Revenue</th></tr></thead>
+                        <table class="table">
+                            <thead><tr><th>Service</th><th class="text-end">Qty</th><th class="text-end">Revenue</th></tr></thead>
                             <tbody id="topServicesTable"><tr><td colspan="3" class="text-muted text-center">No data yet.</td></tr></tbody>
                         </table>
                     </div>
@@ -77,7 +93,7 @@
                 <div class="col-md-7">
                     <div class="panel">
                         <h5>Recent Orders</h5>
-                        <table class="table table-sm mt-3">
+                        <table class="table">
                             <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Status</th></tr></thead>
                             <tbody id="recentOrdersTable"><tr><td colspan="5" class="text-muted text-center">No orders yet.</td></tr></tbody>
                         </table>
@@ -114,10 +130,10 @@
                     const date = new Date(day.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     return `
                         <div style="width: 80px; text-align: center;">
-                            <div style="font-size: 11px; color: #6b7280; margin-bottom: 4px;">₱${parseFloat(day.revenue).toFixed(0)}</div>
+                            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">₱${parseFloat(day.revenue).toFixed(0)}</div>
                             <div class="chart-bar" style="height: ${Math.max(height, 4)}px; width: 40px; margin: 0 auto;"></div>
                             <div style="font-size: 11px; margin-top: 6px;">${date}</div>
-                            <div style="font-size: 10px; color: #6b7280;">${day.order_count} orders</div>
+                            <div style="font-size: 10px; color: #94a3b8;">${day.order_count} orders</div>
                         </div>
                     `;
                 }).join('');
@@ -138,10 +154,8 @@
             } else {
                 ordersTable.innerHTML = data.recentOrders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-                    const statusBadge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
-                    return `
-                        <tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${statusBadge}">${o.payment_status}</span></td></tr>
-                    `;
+                    const badge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
+                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
                 }).join('');
             }
         });

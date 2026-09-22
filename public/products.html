@@ -7,40 +7,71 @@
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
-        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .product-thumb { width: 50px; height: 50px; object-fit: cover; border-radius: 8px; background: #f3f4f6; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; }
-        .stock-badge { padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px; }
-        .stock-ok { background: #d1fae5; color: #065f46; }
-        .stock-low { background: #fee2e2; color: #991b1b; }
-        .stock-out { background: #fecaca; color: #7f1d1d; }
+        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .btn-primary { background: #1e40af; border-color: #1e40af; }
+        .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
+        .products-table { width: 100%; border-collapse: collapse; }
+        .products-table thead th {
+            font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+            color: #94a3b8; font-weight: 600; padding: 14px 12px;
+            border-bottom: 1px solid #e5e7eb; background: transparent;
+        }
+        .products-table tbody td {
+            padding: 14px 12px; border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle; font-size: 14px;
+        }
+        .products-table tbody tr:hover { background-color: #f8fafc; }
+        .product-thumb {
+            width: 40px; height: 40px; border-radius: 6px; object-fit: cover;
+            background: #f1f5f9; display: inline-flex; align-items: center;
+            justify-content: center; font-size: 20px; border: 1px solid #e2e8f0;
+        }
+        .product-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; letter-spacing: 0.3px; }
+        .product-desc { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+        .category-text { color: #475569; font-size: 13px; }
+        .stock-pill { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #d1fae5; color: #065f46; }
+        .stock-pill.low { background: #fee2e2; color: #991b1b; }
+        .stock-pill.out { background: #fecaca; color: #7f1d1d; }
+        .low-limit-text { color: #94a3b8; text-align: center; font-size: 13px; }
+        .btn-manage { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; }
+        .btn-manage:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .price-text { color: #1e293b; font-weight: 500; }
         .image-upload-box { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; background: #f9fafb; }
         .image-upload-box:hover { border-color: #3b82f6; background: #eff6ff; }
         .image-preview { max-width: 100px; max-height: 100px; border-radius: 8px; margin-top: 10px; }
+        .form-label.small { font-size: 12px; color: #475569; font-weight: 500; }
+        .modal-header { border-bottom: 1px solid #e5e7eb; }
+        .modal-footer { border-top: 1px solid #e5e7eb; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .table { color: #e2e8f0 !important; }
-        [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
-        [data-theme="dark"] .table td { border-color: #334155 !important; }
-        [data-theme="dark"] .table-hover > tbody > tr:hover > * { background-color: rgba(59,130,246,0.15) !important; }
+        [data-theme="dark"] .products-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .products-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .products-table tbody tr:hover { background-color: #0f172a !important; }
+        [data-theme="dark"] .product-name { color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title { color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
-        [data-theme="dark"] .product-thumb { background: #334155; }
+        [data-theme="dark"] .btn-manage { background: #334155; border-color: #475569; color: #cbd5e1; }
+        [data-theme="dark"] .btn-manage:hover { background: #475569; }
+        [data-theme="dark"] .product-thumb { background: #334155; border-color: #475569; }
         [data-theme="dark"] .image-upload-box { background: #334155; border-color: #475569; }
         [data-theme="dark"] .image-upload-box:hover { background: #1e3a8a; border-color: #60a5fa; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] h3, [data-theme="dark"] h5 { color: #e2e8f0 !important; }
         [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { border-color: #334155 !important; }
         [data-theme="dark"] .dropdown-menu { background-color: #1e293b !important; border-color: #334155 !important; }
         [data-theme="dark"] .dropdown-item { color: #e2e8f0 !important; }
-        [data-theme="dark"] .dropdown-item:hover { background-color: #1e40af !important; }
+        [data-theme="dark"] .dropdown-item:hover { background-color: #1e40af !important; color: white !important; }
     </style>
 </head>
 <body>
@@ -51,10 +82,11 @@
             <h4 class="text-center mb-4">Hawi's Lovada</h4>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/reports.html">📈 Reports</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/products.html" class="active">📦 Products</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="/products.html" class="active">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/settings.html">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
@@ -63,7 +95,7 @@
 
         <div class="col-md-10 p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="mb-0">Products</h3>
+                <h3 class="page-title mb-0">Products</h3>
                 <button class="btn btn-primary" onclick="openProductModal()">+ Add New Product</button>
             </div>
 
@@ -71,7 +103,7 @@
 
             <div class="panel mb-4">
                 <div class="row g-2">
-                    <div class="col-md-5">
+                    <div class="col-md-6">
                         <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search products..." oninput="debouncedLoad()">
                     </div>
                     <div class="col-md-4">
@@ -79,32 +111,30 @@
                             <option>All Categories</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <a href="/replenishments.html" class="btn btn-outline-secondary w-100">📥 Replenishment Log</a>
+                    <div class="col-md-2">
+                        <a href="/replenishments.html" class="btn btn-outline-secondary w-100">📥 Log</a>
                     </div>
                 </div>
             </div>
 
-            <div class="panel">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th style="width: 70px;">Image</th>
-                                <th>Product Details</th>
-                                <th>Category</th>
-                                <th class="text-end">Cost Price</th>
-                                <th class="text-end">Selling Price</th>
-                                <th class="text-center">Current Stock</th>
-                                <th class="text-center">Low Limit</th>
-                                <th class="text-end">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTable">
-                            <tr><td colspan="8" class="text-center text-muted">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="panel p-0">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;">Image</th>
+                            <th>Product Details</th>
+                            <th style="width: 120px;">Category</th>
+                            <th class="text-end" style="width: 120px;">Cost Price</th>
+                            <th class="text-end" style="width: 120px;">Selling Price</th>
+                            <th class="text-center" style="width: 130px;">Current Stock</th>
+                            <th class="text-center" style="width: 100px;">Low Limit</th>
+                            <th class="text-end" style="width: 120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTable">
+                        <tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -133,9 +163,9 @@
                     </div>
                     <input type="file" id="pImageFile" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
                     <div class="mt-2 d-flex align-items-center gap-2">
-                        <label class="form-label small mb-0">Or use emoji:</label>
+                        <label class="form-label small mb-0">Or emoji:</label>
                         <input type="text" id="pIcon" class="form-control text-center" value="📦" maxlength="4" style="font-size: 20px; max-width: 80px;" oninput="handleIconChange()">
-                        <button class="btn btn-sm btn-outline-secondary ms-2" onclick="clearImage()">Clear Image</button>
+                        <button class="btn btn-sm btn-outline-secondary ms-2" type="button" onclick="clearImage()">Clear Image</button>
                     </div>
                 </div>
 
@@ -183,37 +213,6 @@
     </div>
 </div>
 
-<div class="modal fade" id="replenishModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">📥 Replenish Stock</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small">Adding stock for <strong id="replenishProductName"></strong></p>
-                <input type="hidden" id="replenishProductId">
-                <div class="mb-3">
-                    <label class="form-label small">Quantity to add</label>
-                    <input type="number" id="replenishQty" class="form-control" placeholder="0" min="1">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">Total Cost (₱) - optional</label>
-                    <input type="number" id="replenishCost" class="form-control" placeholder="0.00" step="0.01">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">Notes</label>
-                    <input type="text" id="replenishNotes" class="form-control" placeholder="e.g., Bought from SM">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" onclick="saveReplenishment()">💾 Add Stock</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
@@ -223,9 +222,7 @@
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadProducts(), 300); }
 
     function renderThumb(p) {
-        if (p.image_data) {
-            return `<img src="${p.image_data}" class="product-thumb" alt="${p.name}">`;
-        }
+        if (p.image_data) return `<img src="${p.image_data}" class="product-thumb" alt="${p.name}">`;
         return `<div class="product-thumb">${p.icon || '📦'}</div>`;
     }
 
@@ -242,33 +239,32 @@
                 if (!products) return;
                 const table = document.getElementById('productsTable');
                 if (products.length === 0) {
-                    table.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No products yet. Click "+ Add New Product" to start.</td></tr>';
+                    table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No products yet. Click "+ Add New Product" to start.</td></tr>';
                     return;
                 }
                 table.innerHTML = products.map(p => {
                     const isLow = p.stock <= p.low_limit;
                     const isOut = p.stock === 0;
-                    let stockClass = 'stock-ok';
-                    if (isOut) stockClass = 'stock-out';
-                    else if (isLow) stockClass = 'stock-low';
+                    let stockClass = '';
+                    if (isOut) stockClass = 'out';
+                    else if (isLow) stockClass = 'low';
                     return `
                         <tr>
                             <td>${renderThumb(p)}</td>
                             <td>
-                                <strong>${p.name}</strong>
-                                <div class="text-muted small">${p.description || 'No description.'}</div>
+                                <div class="product-name">${p.name}</div>
+                                <div class="product-desc">${p.description || 'No description.'}</div>
                             </td>
-                            <td><span class="badge bg-secondary">${p.category || 'General'}</span></td>
-                            <td class="text-end">₱${parseFloat(p.cost_price).toFixed(2)}</td>
-                            <td class="text-end">₱${parseFloat(p.selling_price).toFixed(2)}</td>
-                            <td class="text-center"><span class="stock-badge ${stockClass}">${p.stock} pc</span></td>
-                            <td class="text-center">${p.low_limit}</td>
+                            <td><span class="category-text">${p.category || 'General'}</span></td>
+                            <td class="text-end price-text">₱${parseFloat(p.cost_price).toFixed(2)}</td>
+                            <td class="text-end price-text">₱${parseFloat(p.selling_price).toFixed(2)}</td>
+                            <td class="text-center"><span class="stock-pill ${stockClass}">${p.stock} pc</span></td>
+                            <td class="low-limit-text">${p.low_limit}</td>
                             <td class="text-end">
                                 <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">Manage</button>
+                                    <button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button>
                                     <ul class="dropdown-menu dropdown-menu-end">
                                         <li><a class="dropdown-item" href="#" onclick="editProduct(${p.id}); return false;">✏️ Edit</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="openReplenish(${p.id}, '${p.name.replace(/'/g, "\\'")}'); return false;">📥 Replenish Stock</a></li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li><a class="dropdown-item text-danger" href="#" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li>
                                     </ul>
@@ -322,9 +318,7 @@
         document.getElementById('imageUploadPrompt').style.display = 'block';
     }
 
-    function handleIconChange() {
-        clearImage();
-    }
+    function handleIconChange() { clearImage(); }
 
     function handleCategorySelect() {
         const val = document.getElementById('pCategorySelect').value;
@@ -414,34 +408,6 @@
         if (!confirm(`Delete product "${name}"?`)) return;
         fetch('/api/products/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
             .then(() => { loadProducts(); loadCategories(); loadLowStock(); });
-    }
-
-    function openReplenish(id, name) {
-        document.getElementById('replenishProductId').value = id;
-        document.getElementById('replenishProductName').innerText = name;
-        document.getElementById('replenishQty').value = '';
-        document.getElementById('replenishCost').value = '';
-        document.getElementById('replenishNotes').value = '';
-        new bootstrap.Modal(document.getElementById('replenishModal')).show();
-    }
-
-    function saveReplenishment() {
-        const id = document.getElementById('replenishProductId').value;
-        const quantity = document.getElementById('replenishQty').value;
-        const cost = document.getElementById('replenishCost').value;
-        const notes = document.getElementById('replenishNotes').value;
-        if (!quantity || quantity <= 0) return alert('Please enter a valid quantity.');
-        fetch(`/api/products/${id}/replenish`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ quantity: parseInt(quantity), cost: parseFloat(cost) || 0, notes })
-        })
-        .then(res => res.json())
-        .then(res => {
-            if (res.error) return alert('Error: ' + res.error);
-            bootstrap.Modal.getInstance(document.getElementById('replenishModal')).hide();
-            loadProducts(); loadLowStock();
-        });
     }
 
     function logout() {

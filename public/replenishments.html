@@ -7,22 +7,55 @@
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
-        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .btn-primary { background: #1e40af; border-color: #1e40af; }
+        .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
+        .ledger-table { width: 100%; border-collapse: collapse; }
+        .ledger-table thead th {
+            font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+            color: #94a3b8; font-weight: 600; padding: 14px 12px;
+            border-bottom: 1px solid #e5e7eb; background: transparent;
+        }
+        .ledger-table tbody td {
+            padding: 14px 12px; border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle; font-size: 14px;
+        }
+        .ledger-table tbody tr:hover { background-color: #f8fafc; }
+        .ref-id { color: #64748b; font-family: 'Courier New', monospace; font-size: 13px; }
+        .item-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; }
+        .item-stock { font-size: 11px; color: #94a3b8; }
+        .product-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #e2e8f0; margin-right: 10px; }
+        .btn-manage { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .btn-manage:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .info-msg { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
+        .form-label.small { font-size: 12px; color: #475569; font-weight: 500; margin-bottom: 4px; }
+        .modal-header { border-bottom: 1px solid #e5e7eb; }
+        .modal-footer { border-top: 1px solid #e5e7eb; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .table { color: #e2e8f0 !important; }
-        [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
-        [data-theme="dark"] .table td { border-color: #334155 !important; }
+        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .ledger-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .ledger-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .ledger-table tbody tr:hover { background-color: #0f172a !important; }
+        [data-theme="dark"] .item-name { color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title { color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
+        [data-theme="dark"] .btn-manage { background: #334155; border-color: #475569; color: #cbd5e1; }
+        [data-theme="dark"] .product-thumb { background: #334155; border-color: #475569; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] h3 { color: #e2e8f0 !important; }
+        [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { border-color: #334155 !important; }
+        [data-theme="dark"] .info-msg { color: #94a3b8 !important; }
     </style>
 </head>
 <body>
@@ -33,11 +66,11 @@
             <h4 class="text-center mb-4">Hawi's Lovada</h4>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/reports.html">📈 Reports</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/products.html">📦 Products</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/replenishments.html" class="active">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/settings.html">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
@@ -46,63 +79,194 @@
 
         <div class="col-md-10 p-4">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="mb-0">Replenishment Log</h3>
-                <a href="/products.html" class="btn btn-outline-secondary">← Back to Products</a>
+                <h3 class="page-title mb-0">Replenishments Ledger</h3>
+                <button class="btn btn-primary" onclick="openReplenishModal()">+ Log Stock Replenishment</button>
             </div>
 
-            <div class="panel">
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Date</th>
-                                <th>Product</th>
-                                <th class="text-end">Quantity Added</th>
-                                <th class="text-end">Total Cost</th>
-                                <th>Notes</th>
-                            </tr>
-                        </thead>
-                        <tbody id="replenishTable">
-                            <tr><td colspan="6" class="text-center text-muted">Loading...</td></tr>
-                        </tbody>
-                    </table>
+            <div class="panel mb-4">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Filter supplier name..." oninput="debouncedLoad()">
+                    </div>
                 </div>
+            </div>
+
+            <div class="panel p-0">
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">Ref ID</th>
+                            <th>Item Stocked</th>
+                            <th style="width: 180px;">Supplier</th>
+                            <th class="text-end" style="width: 110px;">Cost</th>
+                            <th class="text-end" style="width: 150px;">Total Allocation</th>
+                            <th style="width: 150px;">Replenish Date</th>
+                            <th class="text-end" style="width: 110px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerTable">
+                        <tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
+<div class="modal fade" id="replenishModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Log Stock Replenishment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small">Target Product Item</label>
+                    <select id="rProduct" class="form-select">
+                        <option value="">Select a catalog item...</option>
+                    </select>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small">Quantity</label>
+                        <input type="number" id="rQty" class="form-control" placeholder="0" min="1">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Total Cost (₱)</label>
+                        <input type="number" id="rCost" class="form-control" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+
+                <div class="mb-3 mt-3">
+                    <label class="form-label small">Supplier</label>
+                    <input type="text" id="rSupplier" class="form-control" placeholder="e.g. Tech Distribution Inc.">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label small">Warehouse Notes / Ledger Tags</label>
+                    <textarea id="rNotes" class="form-control" rows="2" placeholder="Shipment references..."></textarea>
+                    <div class="info-msg">The replenishment total is automatically posted to the Expense ledger under Merchandise Inventory.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveReplenishment()">Process Stock Intake</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    fetch('/api/replenishments', { headers: { 'x-auth-token': authToken } })
-        .then(res => {
-            if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
-            return res.json();
+    let allProducts = [];
+    let searchTimeout;
+
+    function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadLedger(), 300); }
+
+    function formatRefId(id) { return 'REF-' + String(id).padStart(5, '0'); }
+
+    function renderThumb(r) {
+        if (r.product_image) return `<img src="${r.product_image}" class="product-thumb" alt="">`;
+        return `<span class="product-thumb">${r.product_icon || '📦'}</span>`;
+    }
+
+    function loadProducts() {
+        return fetch('/api/products', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(products => {
+                allProducts = products || [];
+                const sel = document.getElementById('rProduct');
+                sel.innerHTML = '<option value="">Select a catalog item...</option>' +
+                    allProducts.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock})</option>`).join('');
+            });
+    }
+
+    function loadLedger() {
+        const search = document.getElementById('searchBox').value.toLowerCase();
+        fetch('/api/replenishments', { headers: { 'x-auth-token': authToken } })
+            .then(res => {
+                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
+                return res.json();
+            })
+            .then(items => {
+                if (!items) return;
+                const filtered = search ? items.filter(r => (r.supplier || '').toLowerCase().includes(search)) : items;
+                const table = document.getElementById('ledgerTable');
+                if (filtered.length === 0) {
+                    table.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No replenishments yet.</td></tr>';
+                    return;
+                }
+                table.innerHTML = filtered.map(r => {
+                    const date = new Date(r.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+                    const cost = parseFloat(r.cost) || 0;
+                    const qty = parseInt(r.quantity) || 0;
+                    const allocation = cost * qty;
+                    return `
+                        <tr>
+                            <td><span class="ref-id">${formatRefId(r.id)}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    ${renderThumb(r)}
+                                    <div>
+                                        <div class="item-name">${r.product_name}</div>
+                                        <div class="item-stock">+${qty} pc added</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>${r.supplier || '<span class="text-muted">—</span>'}</td>
+                            <td class="text-end">₱${cost.toFixed(2)}</td>
+                            <td class="text-end"><strong>₱${allocation.toFixed(2)}</strong></td>
+                            <td><small>${date}</small></td>
+                            <td class="text-end">
+                                <button class="btn btn-manage" onclick="viewNotes(${r.id}, '${(r.notes || '').replace(/'/g, "\\'")}')">View</button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            });
+    }
+
+    function viewNotes(id, notes) {
+        alert(`REF-${String(id).padStart(5, '0')}\n\nNotes: ${notes || '(none)'}`);
+    }
+
+    function openReplenishModal() {
+        document.getElementById('rProduct').value = '';
+        document.getElementById('rQty').value = '';
+        document.getElementById('rCost').value = '';
+        document.getElementById('rSupplier').value = '';
+        document.getElementById('rNotes').value = '';
+        new bootstrap.Modal(document.getElementById('replenishModal')).show();
+    }
+
+    function saveReplenishment() {
+        const productId = document.getElementById('rProduct').value;
+        const quantity = document.getElementById('rQty').value;
+        const cost = document.getElementById('rCost').value;
+        const supplier = document.getElementById('rSupplier').value.trim();
+        const notes = document.getElementById('rNotes').value.trim();
+
+        if (!productId) return alert('Please select a product.');
+        if (!quantity || quantity <= 0) return alert('Please enter a valid quantity.');
+
+        fetch(`/api/products/${productId}/replenish`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ quantity: parseInt(quantity), cost: parseFloat(cost) || 0, notes, supplier })
         })
-        .then(items => {
-            if (!items) return;
-            const table = document.getElementById('replenishTable');
-            if (items.length === 0) {
-                table.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No replenishments yet.</td></tr>';
-                return;
-            }
-            table.innerHTML = items.map(r => {
-                const date = new Date(r.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
-                return `
-                    <tr>
-                        <td>#${r.id}</td>
-                        <td><small>${date}</small></td>
-                        <td><strong>${r.product_name}</strong></td>
-                        <td class="text-end"><span class="badge bg-success">+${r.quantity} pc</span></td>
-                        <td class="text-end">₱${parseFloat(r.cost).toFixed(2)}</td>
-                        <td><small class="text-muted">${r.notes || '-'}</small></td>
-                    </tr>
-                `;
-            }).join('');
+        .then(res => res.json())
+        .then(res => {
+            if (res.error) return alert('Error: ' + res.error);
+            bootstrap.Modal.getInstance(document.getElementById('replenishModal')).hide();
+            loadLedger();
+            loadProducts();
         });
+    }
 
     function logout() {
         const token = localStorage.getItem('authToken');
@@ -110,6 +274,8 @@
         localStorage.removeItem('authToken');
         window.location.href = '/login.html';
     }
+
+    loadProducts().then(() => loadLedger());
 </script>
 <script src="/theme.js"></script>
 </body>

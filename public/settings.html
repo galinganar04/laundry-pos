@@ -7,26 +7,41 @@
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
-        .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .section-title { font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #6b7280; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; }
-        .sub-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; }
+        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .page-sub { color: #94a3b8; font-size: 13px; margin-bottom: 24px; }
+        .panel { background: white; border-radius: 10px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .btn-primary { background: #1e40af; border-color: #1e40af; }
+        .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
+        .section-title { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #e5e7eb; }
+        .sub-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; height: 100%; }
+        .sub-card h6 { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+        .form-label.small { font-size: 12px; color: #475569; font-weight: 500; margin-bottom: 4px; }
+        .cashier-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+        .cashier-row:last-child { border-bottom: none; }
+        .cashier-name { font-weight: 600; color: #1e293b; }
+        .badge-active { background: #d1fae5; color: #065f46; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; margin-left: 8px; }
+        .btn-manage { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 5px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; }
+        .btn-manage:hover { background: #f8fafc; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .sub-card { border-color: #334155 !important; }
+        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .sub-card { background-color: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .sub-card h6, [data-theme="dark"] .cashier-name { color: #e2e8f0 !important; }
+        [data-theme="dark"] .section-title { color: #94a3b8 !important; border-color: #334155 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
-        [data-theme="dark"] .section-title { color: #94a3b8 !important; border-bottom-color: #334155 !important; }
-        [data-theme="dark"] .form-label { color: #cbd5e1 !important; }
-        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] h3, [data-theme="dark"] h5, [data-theme="dark"] h6 { color: #e2e8f0 !important; }
+        [data-theme="dark"] .btn-manage { background: #334155; border-color: #475569; color: #cbd5e1; }
+        [data-theme="dark"] .text-muted, [data-theme="dark"] .page-sub { color: #94a3b8 !important; }
+        [data-theme="dark"] .cashier-row { border-color: #334155 !important; }
+        [data-theme="dark"] .badge-active { background: #065f46 !important; color: #d1fae5 !important; }
     </style>
 </head>
 <body>
@@ -37,19 +52,20 @@
             <h4 class="text-center mb-4">Hawi's Lovada</h4>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/reports.html">📈 Reports</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/settings.html" class="active">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
-            <a href="/settings.html" class="active">⚙️ Settings</a>
         </div>
 
         <div class="col-md-10 p-4">
-            <h3 class="mb-1">Shop Profile</h3>
-            <p class="text-muted small mb-4">These details print on every receipt and invoice, and set the currency and tax that applies to new sales.</p>
+            <h3 class="page-title">Shop Profile</h3>
+            <p class="page-sub">These details print on every receipt and invoice, and set the currency and tax that applies to new sales.</p>
 
             <!-- Business Identity -->
             <div class="panel">
@@ -120,39 +136,28 @@
                 </div>
             </div>
 
-            <!-- People & Access (Combined) -->
+            <!-- People & Access -->
             <div class="panel">
-                <div class="d-flex align-items-start mb-3">
-                    <div class="me-3" style="font-size: 24px;">👥</div>
-                    <div>
-                        <h5 class="mb-0">People & Access</h5>
-                        <p class="text-muted small mb-0">Register the staff who operate the counter, and set the PIN that guards every switch between them.</p>
-                    </div>
-                </div>
+                <div class="section-title">PEOPLE & ACCESS</div>
+                <p class="text-muted small mb-3">Register the staff who operate the counter, and set the PIN that guards every switch between them.</p>
 
                 <div class="row g-3">
-                    <!-- Add a Cashier -->
                     <div class="col-md-6">
-                        <div class="sub-card h-100">
-                            <div class="section-title">ADD A CASHIER</div>
-                            <div class="input-group mb-2">
+                        <div class="sub-card">
+                            <h6>Add a Cashier</h6>
+                            <div class="mb-2">
                                 <input type="text" id="newCashierName" class="form-control" placeholder="Cashier name">
                             </div>
-                            <div class="input-group mb-2">
+                            <div class="input-group">
                                 <input type="text" id="newCashierPin" class="form-control" placeholder="PIN (4+ digits)" maxlength="8">
                                 <button class="btn btn-primary" onclick="addCashier()">+ Add Cashier</button>
                             </div>
-                            <small class="text-muted">Each sale and payment is filed under whoever was operating the terminal at the time.</small>
+                            <small class="text-muted d-block mt-2">Each sale and payment is filed under whoever was operating the terminal at the time.</small>
                         </div>
                     </div>
-
-                    <!-- Registered Cashiers -->
                     <div class="col-md-6">
-                        <div class="sub-card h-100">
-                            <div class="section-title">
-                                REGISTERED CASHIERS 
-                                <span id="cashierCount" class="badge bg-secondary ms-2">0</span>
-                            </div>
+                        <div class="sub-card">
+                            <h6>Registered Cashiers <span id="cashierCount" class="badge bg-secondary ms-2">0</span></h6>
                             <div id="cashiersList">
                                 <p class="text-muted small">No cashiers yet.</p>
                             </div>
@@ -206,7 +211,6 @@
         .catch(err => alert('Error: ' + err.message));
     }
 
-    // ====== CASHIERS ======
     function loadCashiers() {
         fetch('/api/cashiers', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -218,14 +222,14 @@
                     return;
                 }
                 list.innerHTML = cashiers.map(c => `
-                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2" style="border-bottom: 1px solid #e5e7eb;">
+                    <div class="cashier-row">
                         <div>
-                            <strong>${c.name}</strong>
-                            <span class="badge ${c.active ? 'bg-success' : 'bg-secondary'} ms-2">${c.active ? 'Active' : 'Inactive'}</span>
+                            <span class="cashier-name">${c.name}</span>
+                            <span class="badge-active">Active</span>
                         </div>
                         <div>
-                            <button class="btn btn-sm btn-outline-primary" onclick="changePin(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🔑 PIN</button>
-                            <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteCashier(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🗑</button>
+                            <button class="btn btn-manage" onclick="changePin(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🔑 PIN</button>
+                            <button class="btn btn-manage ms-1" onclick="deleteCashier(${c.id}, '${c.name.replace(/'/g, "\\'")}')">🗑</button>
                         </div>
                     </div>
                 `).join('');
