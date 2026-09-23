@@ -14,8 +14,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; height: 100%; }
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        /* FIXED: Removed height: 100% and overflow: hidden to allow natural scroll */
+        html, body { margin: 0; padding: 0; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 90px; }
 
         /* TOP BAR (mobile) */
         .topbar {
@@ -204,10 +205,10 @@
             font-size: 13px;
         }
         .cart-item:last-child { border-bottom: none; }
-        .cart-item-info { flex: 1; }
-        .cart-item-name { font-weight: 600; color: #1e293b; font-size: 13px; }
+        .cart-item-info { flex: 1; min-width: 0; }
+        .cart-item-name { font-weight: 600; color: #1e293b; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .cart-item-sub { font-size: 11px; color: #94a3b8; }
-        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .qty-controls { display: flex; align-items: center; gap: 6px; }
         .qty-btn {
             border: 1px solid #e2e8f0;
             background: white;
@@ -220,9 +221,10 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            flex-shrink: 0;
         }
         .qty-btn:hover { background: #f1f5f9; }
-        .cart-item-price { font-weight: 700; color: #1e40af; min-width: 70px; text-align: right; }
+        .cart-item-price { font-weight: 700; color: #1e40af; min-width: 70px; text-align: right; flex-shrink: 0; }
 
         .form-label {
             font-size: 12px;
@@ -307,6 +309,33 @@
             color: #1e293b;
         }
 
+        /* ===== STICKY BOTTOM ACTION BAR (mobile only) ===== */
+        .mobile-bottom-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 10px 16px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.1);
+            z-index: 99;
+            border-top: 1px solid #e5e7eb;
+        }
+        .mobile-bottom-bar .row-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .mobile-bottom-bar .total-label {
+            font-size: 15px;
+            color: #1e40af;
+        }
+
         /* DARK MODE */
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
@@ -323,13 +352,20 @@
         [data-theme="dark"] .qty-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
         [data-theme="dark"] .cart-item { border-color: #334155; }
         [data-theme="dark"] .cart-total-row { color: #e2e8f0; }
+        [data-theme="dark"] .mobile-bottom-bar { background: #1e293b; border-top-color: #334155; }
+        [data-theme="dark"] .mobile-bottom-bar .row-info { color: #e2e8f0; }
 
         /* RESPONSIVE */
         @media (max-width: 767px) {
             .desktop-sidebar { display: none !important; }
-            .desktop-cart-col { order: 2; }
             .main-content { padding: 12px; }
             .service-thumb { height: 110px; }
+            /* Show sticky bottom bar on mobile */
+            .mobile-bottom-bar { display: block; }
+            /* Hide the cart's checkout & total since it's now on the sticky bar */
+            .cart-panel .btn-checkout-desktop { display: none; }
+            /* Add padding to bottom of page so sticky bar doesn't cover content */
+            body { padding-bottom: 140px; }
         }
         @media (min-width: 768px) {
             .topbar { display: none; }
@@ -337,11 +373,13 @@
             .main-content { padding: 24px; }
             .service-thumb { height: 140px; }
             .desktop-cart-col .cart-panel { position: sticky; top: 20px; }
+            .mobile-bottom-bar { display: none !important; }
         }
     </style>
 </head>
 <body>
 
+<!-- TOP BAR (mobile) -->
 <div class="topbar d-md-none">
     <img src="/logo.png" alt="Hawi's Lovada" class="logo-img" onerror="this.style.display='none'">
     <div class="user-info">
@@ -353,6 +391,7 @@
 
 <div class="container-fluid">
     <div class="row">
+        <!-- DESKTOP SIDEBAR -->
         <div class="col-md-2 sidebar desktop-sidebar d-none d-md-block">
             <div class="text-center mb-4">
                 <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'">
@@ -370,6 +409,7 @@
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
+        <!-- MAIN CONTENT (Services/Add-ons) -->
         <div class="col-md-7 main-content">
             <div class="d-none d-md-flex justify-content-between align-items-center mb-3">
                 <h3 class="page-title mb-0">Point of Sale</h3>
@@ -390,6 +430,7 @@
             <div class="row" id="addonsContainer" style="display: none;"></div>
         </div>
 
+        <!-- CART PANEL -->
         <div class="col-md-3 main-content desktop-cart-col">
             <div class="cart-panel">
                 <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
@@ -422,13 +463,27 @@
                     <span id="cartTotal">₱0.00</span>
                 </div>
 
-                <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
+                <!-- Desktop checkout button (visible only on desktop) -->
+                <button class="btn-checkout btn-checkout-desktop" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
                 <div class="print-buttons" id="printButtons">
                     <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
                     <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- STICKY BOTTOM BAR (mobile only) -->
+<div class="mobile-bottom-bar" id="mobileBottomBar">
+    <div class="row-info">
+        <span>Total: <span class="total-label" id="cartTotalMobile">₱0.00</span></span>
+        <span style="font-size: 12px; color: #64748b;"><span id="cartCountMobile">0 items</span></span>
+    </div>
+    <button class="btn-checkout" id="checkoutBtnMobile" onclick="checkout()">✅ Checkout</button>
+    <div class="print-buttons" id="printButtonsMobile">
+        <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
+        <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
     </div>
 </div>
 
@@ -506,6 +561,9 @@
         const list = document.getElementById('cartItemsList');
         const countSpan = document.getElementById('cartCount');
         const totalSpan = document.getElementById('cartTotal');
+        const totalMobile = document.getElementById('cartTotalMobile');
+        const countMobile = document.getElementById('cartCountMobile');
+
         list.innerHTML = ''; total = 0; let itemCount = 0;
         if (cart.length === 0) {
             list.innerHTML = '<p class="text-muted text-center small">Cart is empty.</p>';
@@ -521,6 +579,8 @@
         }
         countSpan.innerText = itemCount + ' items';
         totalSpan.innerText = '₱' + total.toFixed(2);
+        if (totalMobile) totalMobile.innerText = '₱' + total.toFixed(2);
+        if (countMobile) countMobile.innerText = itemCount + ' items';
     }
 
     function checkout() {
@@ -529,7 +589,9 @@
         const paymentStatus = document.getElementById('paymentStatus').value;
         const cashierName = localStorage.getItem('userName') || 'Unknown';
         const btn = document.getElementById('checkoutBtn');
-        btn.innerText = 'Processing...'; btn.disabled = true;
+        const btnMobile = document.getElementById('checkoutBtnMobile');
+        if (btn) { btn.innerText = 'Processing...'; btn.disabled = true; }
+        if (btnMobile) { btnMobile.innerText = 'Processing...'; btnMobile.disabled = true; }
 
         const receiptData = { customer, total, items: JSON.parse(JSON.stringify(cart)), date: new Date().toLocaleString(), paymentStatus };
         fetch('/api/checkout', {
@@ -539,17 +601,33 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.error) { alert('Error: ' + data.error); btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
+            if (data.error) {
+                alert('Error: ' + data.error);
+                if (btn) { btn.innerText = '✅ Checkout'; btn.disabled = false; }
+                if (btnMobile) { btnMobile.innerText = '✅ Checkout'; btnMobile.disabled = false; }
+                return;
+            }
             alert(data.message + ' (Cashier: ' + cashierName + ')');
             receiptData.orderId = data.orderId;
             lastOrder = receiptData;
             cart = []; updateCartUI();
-            btn.innerText = '✅ Checkout'; btn.disabled = false;
+            if (btn) { btn.innerText = '✅ Checkout'; btn.disabled = false; }
+            if (btnMobile) { btnMobile.innerText = '✅ Checkout'; btnMobile.disabled = false; }
+            // Show print buttons
             document.getElementById('printButtons').style.display = 'block';
-            if (window.innerWidth < 768) document.querySelector('.desktop-cart-col').scrollIntoView({ behavior: 'smooth' });
+            if (document.getElementById('printButtonsMobile')) {
+                document.getElementById('printButtonsMobile').style.display = 'block';
+            }
+            if (window.innerWidth < 768) {
+                document.querySelector('.mobile-bottom-bar').scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
             switchTab('services');
         })
-        .catch(() => { alert("Error saving order."); btn.innerText = '✅ Checkout'; btn.disabled = false; });
+        .catch(() => {
+            alert("Error saving order.");
+            if (btn) { btn.innerText = '✅ Checkout'; btn.disabled = false; }
+            if (btnMobile) { btnMobile.innerText = '✅ Checkout'; btnMobile.disabled = false; }
+        });
     }
 
     function printReceipt(size) {
