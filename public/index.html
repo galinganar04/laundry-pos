@@ -17,7 +17,7 @@
         html, body { margin: 0; padding: 0; height: 100%; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
 
-        /* ===== TOP BAR (mobile) ===== */
+        /* TOP BAR (mobile) */
         .topbar {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
@@ -70,7 +70,7 @@
         }
         .topbar .icon-btn:hover { background: rgba(255,255,255,0.25); color: white; }
 
-        /* ===== DESKTOP SIDEBAR ===== */
+        /* DESKTOP SIDEBAR */
         .sidebar {
             background-color: #1e293b;
             color: white;
@@ -89,7 +89,7 @@
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
 
-        /* ===== MAIN CONTENT ===== */
+        /* MAIN CONTENT */
         .main-content { padding: 16px; }
         .page-title { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 14px; }
         .tab-switch {
@@ -122,7 +122,7 @@
         }
         .search-input:focus { outline: none; border-color: #3b82f6; }
 
-        /* ===== SERVICE CARDS ===== */
+        /* SERVICE CARDS */
         .service-card {
             cursor: pointer;
             border: none;
@@ -156,7 +156,7 @@
         .service-thumb .name { font-weight: 800; font-size: 13px; text-transform: uppercase; }
         .service-thumb .price { font-weight: 800; font-size: 13px; margin-top: 2px; }
 
-        /* ===== ADD-ON CARDS ===== */
+        /* ADD-ON CARDS */
         .addon-card {
             cursor: pointer;
             border: 1px solid #e5e7eb;
@@ -186,7 +186,7 @@
         .addon-meta { font-size: 11px; color: #94a3b8; }
         .addon-price { font-weight: 700; color: #1e40af; font-size: 14px; }
 
-        /* ===== CART PANEL ===== */
+        /* CART PANEL */
         .cart-panel {
             background: white;
             border-radius: 12px;
@@ -307,7 +307,7 @@
             color: #1e293b;
         }
 
-        /* ===== DARK MODE ===== */
+        /* DARK MODE */
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
@@ -324,18 +324,15 @@
         [data-theme="dark"] .cart-item { border-color: #334155; }
         [data-theme="dark"] .cart-total-row { color: #e2e8f0; }
 
-        /* ===== RESPONSIVE LAYOUT ===== */
-        /* Mobile: single column, cart below services */
+        /* RESPONSIVE */
         @media (max-width: 767px) {
             .desktop-sidebar { display: none !important; }
             .desktop-cart-col { order: 2; }
             .main-content { padding: 12px; }
             .service-thumb { height: 110px; }
         }
-
-        /* Desktop: 3-column layout */
         @media (min-width: 768px) {
-            .topbar { display: none; } /* Hide top bar on desktop */
+            .topbar { display: none; }
             .desktop-sidebar { display: block; }
             .main-content { padding: 24px; }
             .service-thumb { height: 140px; }
@@ -345,7 +342,6 @@
 </head>
 <body>
 
-<!-- ===== TOP BAR (mobile only) ===== -->
 <div class="topbar d-md-none">
     <img src="/logo.png" alt="Hawi's Lovada" class="logo-img" onerror="this.style.display='none'">
     <div class="user-info">
@@ -357,7 +353,6 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- ===== DESKTOP SIDEBAR ===== -->
         <div class="col-md-2 sidebar desktop-sidebar d-none d-md-block">
             <div class="text-center mb-4">
                 <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'">
@@ -375,7 +370,6 @@
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
-        <!-- ===== MAIN CONTENT (Services/Add-ons) ===== -->
         <div class="col-md-7 main-content">
             <div class="d-none d-md-flex justify-content-between align-items-center mb-3">
                 <h3 class="page-title mb-0">Point of Sale</h3>
@@ -396,7 +390,6 @@
             <div class="row" id="addonsContainer" style="display: none;"></div>
         </div>
 
-        <!-- ===== CART PANEL ===== -->
         <div class="col-md-3 main-content desktop-cart-col">
             <div class="cart-panel">
                 <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
@@ -553,7 +546,6 @@
             cart = []; updateCartUI();
             btn.innerText = '✅ Checkout'; btn.disabled = false;
             document.getElementById('printButtons').style.display = 'block';
-            // Scroll to cart on mobile so they can see print buttons
             if (window.innerWidth < 768) document.querySelector('.desktop-cart-col').scrollIntoView({ behavior: 'smooth' });
             switchTab('services');
         })
