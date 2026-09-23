@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Hawi's Lovada - POS</title>
     <link rel="icon" type="image/png" href="/logo.png">
-        <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1e3a8a">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -13,82 +13,355 @@
     <link rel="apple-touch-icon" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        html, body { height: 100%; overflow: hidden; }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; height: 100%; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; height: 100vh; padding-top: 20px; overflow-y: auto; }
-        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+
+        /* ===== TOP BAR (mobile) ===== */
+        .topbar {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .topbar .logo-img {
+            height: 38px;
+            width: auto;
+            background: rgba(255,255,255,0.15);
+            border-radius: 6px;
+            padding: 4px;
+        }
+        .topbar .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .topbar .user-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .topbar .icon-btn {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .topbar .icon-btn:hover { background: rgba(255,255,255,0.25); color: white; }
+
+        /* ===== DESKTOP SIDEBAR ===== */
+        .sidebar {
+            background-color: #1e293b;
+            color: white;
+            min-height: 100vh;
+            padding-top: 20px;
+        }
+        .sidebar a {
+            color: #cbd5e1;
+            text-decoration: none;
+            padding: 12px 20px;
+            display: block;
+            font-size: 14px;
+            border-radius: 6px;
+            margin: 2px 10px;
+        }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
-        .main-row { height: 100vh; }
-        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
-        .tab-switch { display: flex; background: #f1f5f9; border-radius: 8px; padding: 4px; margin-bottom: 16px; width: fit-content; }
-        .tab-switch button { border: none; background: transparent; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content { padding: 16px; }
+        .page-title { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 14px; }
+        .tab-switch {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 14px;
+        }
+        .tab-switch button {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+        }
         .tab-switch button.active { background: #1e40af; color: white; }
-        .cards-scroll-box { max-height: calc(100vh - 260px); overflow-y: auto; overflow-x: hidden; padding-right: 8px; border-radius: 8px; }
-        .cards-scroll-box::-webkit-scrollbar { width: 10px; }
-        .cards-scroll-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
-        .cards-scroll-box::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
-        .cart-scroll-box { max-height: 340px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; }
-        .cart-scroll-box::-webkit-scrollbar { width: 8px; }
-        .cart-scroll-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
-        .cart-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
-        .service-card { cursor: pointer; transition: 0.2s; border: none; border-radius: 10px; background: white; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .service-card:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
-        .service-thumb-large { height: 160px; width: 100%; position: relative; border-radius: 10px; overflow: hidden; background: #0f172a; }
-        .service-thumb-large img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; padding: 4px; }
-        .service-thumb-large .overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 10px; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%); text-align: center; color: white; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
-        .service-thumb-large .overlay .name { color: white; font-size: 13px; font-weight: 800; text-transform: uppercase; }
-        .service-thumb-large .overlay .price { color: white; font-size: 14px; font-weight: 800; margin-top: 2px; }
-        .addon-card { cursor: pointer; transition: 0.2s; border: 1px solid #e5e7eb; border-radius: 10px; background: white; padding: 12px; display: flex; align-items: center; gap: 12px; }
-        .addon-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); }
-        .addon-thumb { width: 44px; height: 44px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; flex-shrink: 0; }
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            margin-bottom: 16px;
+            background: white;
+        }
+        .search-input:focus { outline: none; border-color: #3b82f6; }
+
+        /* ===== SERVICE CARDS ===== */
+        .service-card {
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            background: white;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            transition: 0.2s;
+        }
+        .service-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
+        .service-thumb {
+            height: 120px;
+            width: 100%;
+            position: relative;
+            background: #0f172a;
+        }
+        .service-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 4px;
+        }
+        .service-thumb .overlay {
+            position: absolute;
+            left: 0; right: 0; bottom: 0;
+            padding: 8px;
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%);
+            color: white;
+            text-align: center;
+        }
+        .service-thumb .name { font-weight: 800; font-size: 13px; text-transform: uppercase; }
+        .service-thumb .price { font-weight: 800; font-size: 13px; margin-top: 2px; }
+
+        /* ===== ADD-ON CARDS ===== */
+        .addon-card {
+            cursor: pointer;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            background: white;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            transition: 0.2s;
+        }
+        .addon-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
+        .addon-thumb {
+            width: 48px; height: 48px;
+            border-radius: 8px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
         .addon-thumb img { width: 100%; height: 100%; object-fit: cover; }
-        .addon-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 12px; }
+        .addon-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; }
         .addon-meta { font-size: 11px; color: #94a3b8; }
-        .addon-price { font-weight: 700; color: #1e40af; font-size: 13px; }
-        .cart-panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: calc(100vh - 40px); display: flex; flex-direction: column; }
-        .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; }
-        .btn-checkout { background: #1e40af; color: white; width: 100%; padding: 12px; font-weight: 600; border: none; border-radius: 8px; font-size: 14px; }
+        .addon-price { font-weight: 700; color: #1e40af; font-size: 14px; }
+
+        /* ===== CART PANEL ===== */
+        .cart-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            margin-top: 16px;
+        }
+        .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 10px; }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+        .cart-item:last-child { border-bottom: none; }
+        .cart-item-info { flex: 1; }
+        .cart-item-name { font-weight: 600; color: #1e293b; font-size: 13px; }
+        .cart-item-sub { font-size: 11px; color: #94a3b8; }
+        .qty-controls { display: flex; align-items: center; gap: 8px; }
+        .qty-btn {
+            border: 1px solid #e2e8f0;
+            background: white;
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            color: #475569;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .qty-btn:hover { background: #f1f5f9; }
+        .cart-item-price { font-weight: 700; color: #1e40af; min-width: 70px; text-align: right; }
+
+        .form-label {
+            font-size: 12px;
+            color: #475569;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-control, .form-select {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            font-size: 15px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .btn-checkout {
+            background: #1e40af;
+            color: white;
+            width: 100%;
+            padding: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            margin-top: 12px;
+            cursor: pointer;
+        }
         .btn-checkout:hover { background: #1e3a8a; color: white; }
-        .btn-print { background: #10b981; color: white; width: 100%; padding: 10px; font-weight: 600; border: none; border-radius: 8px; margin-top: 8px; font-size: 13px; }
+        .btn-checkout:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-print {
+            background: #10b981;
+            color: white;
+            width: 100%;
+            padding: 12px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
         .btn-print:hover { background: #059669; color: white; }
         .btn-print-80 { background: #0891b2; }
         .btn-print-80:hover { background: #0e7490; }
         .print-buttons { display: none; }
-        .form-label { font-size: 12px; color: #475569; font-weight: 500; }
-        .addon-prompt { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; font-size: 12px; color: #1e40af; margin-bottom: 12px; }
-        .btn-browse { background: white; border: 1px solid #bfdbfe; color: #1e40af; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-top: 8px; }
-        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
-        .qty-btn { border: 1px solid #e2e8f0; background: white; width: 24px; height: 24px; border-radius: 4px; font-size: 12px; cursor: pointer; color: #475569; }
-        .user-badge { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
-        [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; }
+
+        .addon-prompt {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 12px;
+            color: #1e40af;
+            margin-bottom: 12px;
+        }
+        .btn-browse {
+            background: white;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            font-weight: 700;
+            font-size: 16px;
+            color: #1e293b;
+        }
+
+        /* ===== DARK MODE ===== */
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .cart-panel, [data-theme="dark"] .addon-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .page-title, [data-theme="dark"] .addon-name { color: #e2e8f0 !important; }
+        [data-theme="dark"] .cart-panel, [data-theme="dark"] .addon-card, [data-theme="dark"] .service-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .addon-name, [data-theme="dark"] .cart-item-name { color: #e2e8f0 !important; }
         [data-theme="dark"] .tab-switch { background: #1e293b; }
         [data-theme="dark"] .tab-switch button { color: #94a3b8; }
-        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select, [data-theme="dark"] .search-input { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
         [data-theme="dark"] .addon-prompt { background: #1e3a8a !important; border-color: #1e40af !important; color: #bfdbfe !important; }
         [data-theme="dark"] .addon-thumb { background: #334155; }
         [data-theme="dark"] .qty-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
-        [data-theme="dark"] .cards-scroll-box::-webkit-scrollbar-track { background: #1e293b; }
-        [data-theme="dark"] .cards-scroll-box::-webkit-scrollbar-thumb { background: #475569; }
-        [data-theme="dark"] .cart-scroll-box::-webkit-scrollbar-track { background: #1e293b; }
-        [data-theme="dark"] .cart-scroll-box::-webkit-scrollbar-thumb { background: #475569; }
-        [data-theme="dark"] .user-badge { background: #1e3a8a; color: #bfdbfe; }
+        [data-theme="dark"] .cart-item { border-color: #334155; }
+        [data-theme="dark"] .cart-total-row { color: #e2e8f0; }
+
+        /* ===== RESPONSIVE LAYOUT ===== */
+        /* Mobile: single column, cart below services */
+        @media (max-width: 767px) {
+            .desktop-sidebar { display: none !important; }
+            .desktop-cart-col { order: 2; }
+            .main-content { padding: 12px; }
+            .service-thumb { height: 110px; }
+        }
+
+        /* Desktop: 3-column layout */
+        @media (min-width: 768px) {
+            .topbar { display: none; } /* Hide top bar on desktop */
+            .desktop-sidebar { display: block; }
+            .main-content { padding: 24px; }
+            .service-thumb { height: 140px; }
+            .desktop-cart-col .cart-panel { position: sticky; top: 20px; }
+        }
     </style>
 </head>
 <body>
 
+<!-- ===== TOP BAR (mobile only) ===== -->
+<div class="topbar d-md-none">
+    <img src="/logo.png" alt="Hawi's Lovada" class="logo-img" onerror="this.style.display='none'">
+    <div class="user-info">
+        <a href="/orders.html" class="icon-btn" title="Orders">📋</a>
+        <span class="user-badge">👤 <span id="currentUserMobile">—</span></span>
+        <button class="icon-btn" onclick="logout()" title="Logout">🚪</button>
+    </div>
+</div>
+
 <div class="container-fluid">
-    <div class="row main-row">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="text-center mb-4"><img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'"></div>
+    <div class="row">
+        <!-- ===== DESKTOP SIDEBAR ===== -->
+        <div class="col-md-2 sidebar desktop-sidebar d-none d-md-block">
+            <div class="text-center mb-4">
+                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'">
+            </div>
             <a href="/" class="active">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
             <a href="/services.html">🧴 Services</a>
@@ -102,10 +375,13 @@
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
-        <div class="col-md-7 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+        <!-- ===== MAIN CONTENT (Services/Add-ons) ===== -->
+        <div class="col-md-7 main-content">
+            <div class="d-none d-md-flex justify-content-between align-items-center mb-3">
                 <h3 class="page-title mb-0">Point of Sale</h3>
-                <div class="user-badge">👤 <span id="currentUser">—</span></div>
+                <div style="background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;">
+                    👤 <span id="currentUserDesktop">—</span>
+                </div>
             </div>
 
             <div class="tab-switch">
@@ -113,53 +389,50 @@
                 <button id="tabAddons" onclick="switchTab('addons')">✨ Add-ons</button>
             </div>
 
-            <div class="input-group mb-4">
-                <input type="text" class="form-control" placeholder="🔍 Search services...">
-            </div>
+            <input type="text" class="search-input" placeholder="🔍 Search services...">
+            <h6 class="text-muted mb-3" style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px;" id="sectionTitle">Choose the customer's laundry service</h6>
 
-            <h6 class="text-muted mb-3" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;" id="sectionTitle">Choose the customer's laundry service</h6>
-
-            <div class="cards-scroll-box">
-                <div class="row" id="servicesContainer"></div>
-                <div class="row" id="addonsContainer" style="display: none;"></div>
-            </div>
+            <div class="row" id="servicesContainer"></div>
+            <div class="row" id="addonsContainer" style="display: none;"></div>
         </div>
 
-        <div class="col-md-3 p-4">
+        <!-- ===== CART PANEL ===== -->
+        <div class="col-md-3 main-content desktop-cart-col">
             <div class="cart-panel">
                 <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
                 <hr>
-                <div id="cartItemsList" class="cart-scroll-box mb-4"><p class="text-muted text-center small">Cart is empty.</p></div>
+                <div id="cartItemsList" class="mb-3">
+                    <p class="text-muted text-center small">Cart is empty.</p>
+                </div>
 
                 <div id="addonPrompt" class="addon-prompt" style="display: none;">
                     <strong>✨ Customer wants an extra product?</strong>
                     Add detergent, fabcon, bleach, or another retail item to this same cart.
-                    <button class="btn-browse w-100" onclick="switchTab('addons')">Browse Add-ons</button>
+                    <button class="btn-browse" onclick="switchTab('addons')">Browse Add-ons</button>
                 </div>
 
-                <div class="mt-auto">
-                    <div class="mb-3">
-                        <label class="form-label">CUSTOMER</label>
-                        <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
-                        <datalist id="customerList"></datalist>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">PAYMENT</label>
-                        <select id="paymentStatus" class="form-select">
-                            <option value="Paid">💵 Pay Now</option>
-                            <option value="Pending">⏳ Pay Later</option>
-                        </select>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Total</span>
-                        <strong id="cartTotal">₱0.00</strong>
-                    </div>
-                    <button class="btn-checkout mt-3" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
-                    <div class="print-buttons" id="printButtons">
-                        <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
-                        <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
-                    </div>
+                <div class="mb-3">
+                    <label class="form-label">Customer</label>
+                    <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
+                    <datalist id="customerList"></datalist>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Payment</label>
+                    <select id="paymentStatus" class="form-select">
+                        <option value="Paid">💵 Pay Now</option>
+                        <option value="Pending">⏳ Pay Later</option>
+                    </select>
+                </div>
+
+                <div class="cart-total-row">
+                    <span>Total</span>
+                    <span id="cartTotal">₱0.00</span>
+                </div>
+
+                <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
+                <div class="print-buttons" id="printButtons">
+                    <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
+                    <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
                 </div>
             </div>
         </div>
@@ -169,7 +442,9 @@
 <script src="/role-guard.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
-    document.getElementById('currentUser').innerText = localStorage.getItem('userName') || 'Unknown';
+    const userName = localStorage.getItem('userName') || 'Unknown';
+    document.getElementById('currentUserMobile').innerText = userName;
+    document.getElementById('currentUserDesktop').innerText = userName;
 
     let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: '₱' };
     fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
@@ -196,11 +471,11 @@
                 const unit = service.unit_label || service.unit || 'kg';
                 let inner;
                 if (service.image_data) {
-                    inner = `<div class="service-thumb-large"><img src="${service.image_data}"><div class="overlay"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div></div>`;
+                    inner = `<div class="service-thumb"><img src="${service.image_data}"><div class="overlay"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div></div>`;
                 } else {
-                    inner = `<div class="service-thumb-large" style="background: ${color};"><div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 10px; text-align: center;"><div style="font-size: 14px; font-weight: 800; text-transform: uppercase;">${service.name}</div><div style="font-size: 15px; font-weight: 800; margin-top: 6px;">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div></div>`;
+                    inner = `<div class="service-thumb" style="background: ${color};"><div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 8px; text-align: center;"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div></div>`;
                 }
-                container.innerHTML += `<div class="col-md-4 mb-3"><div class="card service-card" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service')">${inner}</div></div>`;
+                container.innerHTML += `<div class="col-6 col-md-4 mb-3"><div class="card service-card" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service')">${inner}</div></div>`;
             });
         });
 
@@ -212,7 +487,7 @@
             if (addons.length === 0) { container.innerHTML = '<div class="col-12 text-center text-muted py-4">No add-ons available.</div>'; return; }
             addons.forEach(p => {
                 const thumb = p.image_data ? `<div class="addon-thumb"><img src="${p.image_data}"></div>` : `<div class="addon-thumb">${p.icon || '📦'}</div>`;
-                container.innerHTML += `<div class="col-md-6 mb-3"><div class="addon-card" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon')">${thumb}<div class="flex-grow-1"><div class="addon-name">${p.name}</div><div class="addon-meta">${p.category || 'General'} • ${p.stock} in stock</div></div><div class="addon-price">₱${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div></div></div>`;
+                container.innerHTML += `<div class="col-12 col-md-6"><div class="addon-card" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon')">${thumb}<div class="flex-grow-1"><div class="addon-name">${p.name}</div><div class="addon-meta">${p.category || 'General'} • ${p.stock} in stock</div></div><div class="addon-price">₱${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div></div></div>`;
             });
         });
 
@@ -246,7 +521,7 @@
             cart.forEach(item => {
                 const itemTotal = item.price * item.qty;
                 total += itemTotal; itemCount += item.qty;
-                list.innerHTML += `<div class="cart-item"><div><div style="font-weight: 600; color: #1e293b;">${item.name}</div><small class="text-muted">₱${item.price.toFixed(2)} × ${item.qty}</small></div><div class="d-flex align-items-center gap-2"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">−</button><span style="font-weight: 600; min-width: 20px; text-align: center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button><span style="font-weight: 700; color: #1e40af; min-width: 70px; text-align: right;">₱${itemTotal.toFixed(2)}</span></div></div>`;
+                list.innerHTML += `<div class="cart-item"><div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-sub">₱${item.price.toFixed(2)} × ${item.qty}</div></div><div class="qty-controls"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">−</button><span style="font-weight:600; min-width:18px; text-align:center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button></div><div class="cart-item-price">₱${itemTotal.toFixed(2)}</div></div>`;
             });
             const hasService = cart.some(i => i.type === 'service');
             document.getElementById('addonPrompt').style.display = hasService ? 'block' : 'none';
@@ -278,6 +553,8 @@
             cart = []; updateCartUI();
             btn.innerText = '✅ Checkout'; btn.disabled = false;
             document.getElementById('printButtons').style.display = 'block';
+            // Scroll to cart on mobile so they can see print buttons
+            if (window.innerWidth < 768) document.querySelector('.desktop-cart-col').scrollIntoView({ behavior: 'smooth' });
             switchTab('services');
         })
         .catch(() => { alert("Error saving order."); btn.innerText = '✅ Checkout'; btn.disabled = false; });
@@ -294,13 +571,11 @@
         const cur = shopSettings.currency || '₱';
         const customerName = (lastOrder.customer || 'Walk-In Customer').toUpperCase();
 
-        // CUSTOMER COPY ITEMS (with prices)
         const itemsCustomerHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td><td style="text-align:right;">${cur}${(item.price * item.qty).toFixed(2)}</td></tr>`;
         }).join('');
 
-        // SHOP COPY ITEMS (no prices)
         const itemsShopHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 20 : 32) ? item.name.substring(0, size === '58' ? 19 : 31) + '.' : item.name;
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td></tr>`;
@@ -394,20 +669,13 @@
         localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
-</script>
-<script src="/theme.js"></script>
-<script>
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(registration => {
-                    console.log('Service Worker registered:', registration.scope);
-                })
-                .catch(err => {
-                    console.log('Service Worker registration failed:', err);
-                });
+            navigator.serviceWorker.register('/service-worker.js').catch(() => {});
         });
     }
 </script>
+<script src="/theme.js"></script>
 </body>
 </html>
