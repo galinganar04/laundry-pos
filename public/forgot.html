@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .card-box { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); width: 100%; max-width: 440px; }
+        .logo-img { text-align: center; margin-bottom: 15px; }
+        .logo-img img { max-width: 140px; }
+        h2 { text-align: center; color: #1e3a8a; margin-bottom: 5px; font-weight: 700; font-size: 22px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 25px; }
+        .btn-primary-custom { background: #1e40af; color: white; border: none; padding: 12px; font-weight: 600; width: 100%; border-radius: 8px; }
+        .btn-primary-custom:hover { background: #1e3a8a; color: white; }
+        .error { color: #dc2626; text-align: center; margin-top: 12px; font-size: 14px; display: none; }
+        .success { color: #065f46; text-align: center; margin-top: 12px; font-size: 14px; display: none; background: #d1fae5; padding: 12px; border-radius: 8px; }
+        .form-label { font-size: 13px; color: #475569; font-weight: 500; }
+        .tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #e5e7eb; }
+        .tabs button { flex: 1; background: transparent; border: none; padding: 12px; font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px; }
+        .tabs button.active { color: #1e40af; border-bottom-color: #1e40af; }
+        .small-link { text-align: center; display: block; margin-top: 15px; color: #64748b; font-size: 13px; text-decoration: none; }
+        .small-link:hover { color: #1e40af; text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="card-box">
+        <div class="logo-img"><img src="/logo.png" alt="Hawi's Lovada" onerror="this.style.display='none'"></div>
+        <h2>Forgot Password?</h2>
+        <p class="subtitle">Recover your account below</p>
+
+        <div class="tabs">
+            <button id="tabEmail" class="active" onclick="switchTab('email')">📧 Via Email</button>
+            <button id="tabQuestion" onclick="switchTab('question')">🔐 Security Question</button>
+        </div>
+
+        <!-- EMAIL FORM -->
+        <div id="emailForm">
+            <form onsubmit="sendReset(event)">
+                <div class="mb-3">
+                    <label class="form-label">Your Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="Enter your email" required autocomplete="email">
+                </div>
+                <button type="submit" class="btn-primary-custom" id="emailBtn">📧 Send Reset Link</button>
+                <div class="error" id="emailError"></div>
+                <div class="success" id="emailSuccess"></div>
+            </form>
+        </div>
+
+        <!-- SECURITY QUESTION FORM -->
+        <div id="questionForm" style="display: none;">
+            <form onsubmit="recoverByQuestion(event)">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" id="qUsername" class="form-control" placeholder="Enter your username" required autocomplete="username">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Security Answer</label>
+                    <input type="text" id="qAnswer" class="form-control" placeholder="Your answer" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">New Password (min 6 chars)</label>
+                    <input type="password" id="qPassword" class="form-control" placeholder="New password" required autocomplete="new-password">
+                </div>
+                <button type="submit" class="btn-primary-custom" id="qBtn">🔐 Reset Password</button>
+                <div class="error" id="qError"></div>
+                <div class="success" id="qSuccess"></div>
+            </form>
+        </div>
+
+        <a href="/login.html" class="small-link">← Back to login</a>
+    </div>
+
+<script>
+    function switchTab(tab) {
+        document.getElementById('tabEmail').classList.toggle('active', tab === 'email');
+        document.getElementById('tabQuestion').classList.toggle('active', tab === 'question');
+        document.getElementById('emailForm').style.display = tab === 'email' ? 'block' : 'none';
+        document.getElementById('questionForm').style.display = tab === 'question' ? 'block' : 'none';
+    }
+
+    function sendReset(e) {
+        e.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const errorMsg = document.getElementById('emailError');
+        const successMsg = document.getElementById('emailSuccess');
+        const btn = document.getElementById('emailBtn');
+        errorMsg.style.display = 'none';
+        successMsg.style.display = 'none';
+        btn.innerText = 'Sending...';
+        btn.disabled = true;
+
+        fetch('/api/auth/forgot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                successMsg.innerText = '✅ ' + (data.message || 'Reset link sent. Check your email.');
+                successMsg.style.display = 'block';
+            } else {
+                errorMsg.innerText = data.error || 'Failed to send.';
+                errorMsg.style.display = 'block';
+            }
+            btn.innerText = '📧 Send Reset Link';
+            btn.disabled = false;
+        })
+        .catch(() => {
+            errorMsg.innerText = 'Connection error. Try again.';
+            errorMsg.style.display = 'block';
+            btn.innerText = '📧 Send Reset Link';
+            btn.disabled = false;
+        });
+    }
+
+    function recoverByQuestion(e) {
+        e.preventDefault();
+        const username = document.getElementById('qUsername').value.trim();
+        const security_answer = document.getElementById('qAnswer').value.trim();
+        const new_password = document.getElementById('qPassword').value;
+        const errorMsg = document.getElementById('qError');
+        const successMsg = document.getElementById('qSuccess');
+        const btn = document.getElementById('qBtn');
+        errorMsg.style.display = 'none';
+        successMsg.style.display = 'none';
+
+        if (new_password.length < 6) {
+            errorMsg.innerText = 'Password must be at least 6 characters.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        btn.innerText = 'Resetting...';
+        btn.disabled = true;
+
+        fetch('/api/auth/recover-by-question', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, security_answer, new_password })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                successMsg.innerText = '✅ Password reset! Redirecting to login...';
+                successMsg.style.display = 'block';
+                setTimeout(() => { window.location.href = '/login.html'; }, 2000);
+            } else {
+                errorMsg.innerText = data.error || 'Recovery failed.';
+                errorMsg.style.display = 'block';
+                btn.innerText = '🔐 Reset Password';
+                btn.disabled = false;
+            }
+        })
+        .catch(() => {
+            errorMsg.innerText = 'Connection error. Try again.';
+            errorMsg.style.display = 'block';
+            btn.innerText = '🔐 Reset Password';
+            btn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>

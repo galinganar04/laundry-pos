@@ -2,16 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hawi's Lovada - Reports</title>
+    <link rel="icon" type="image/png" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; }
-        .sidebar a:hover, .sidebar a.active { background-color: #3b82f6; color: white; border-radius: 5px; }
-        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 4px solid #1e40af; }
+        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .btn-primary { background: #1e40af; border-color: #1e40af; }
+        .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
+        .stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #1e40af; }
         .stat-card .label { font-size: 12px; text-transform: uppercase; color: #6b7280; letter-spacing: 1px; }
         .stat-card .value { font-size: 26px; font-weight: bold; color: #1e293b; }
         .stat-card.green { border-left-color: #10b981; }
@@ -19,22 +23,42 @@
         .stat-card.blue { border-left-color: #3b82f6; }
         .stat-card.red { border-left-color: #dc2626; }
         .period-btn { margin-right: 6px; margin-bottom: 6px; }
-
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover, [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .stat-card .value { color: #e2e8f0 !important; }
-        [data-theme="dark"] .stat-card .label { color: #94a3b8 !important; }
         [data-theme="dark"] .table { color: #e2e8f0 !important; }
         [data-theme="dark"] .table th { color: #cbd5e1 !important; border-color: #334155 !important; }
         [data-theme="dark"] .table td { border-color: #334155 !important; }
-        [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * { background-color: rgba(255,255,255,0.03) !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
         [data-theme="dark"] h3, [data-theme="dark"] h5 { color: #e2e8f0 !important; }
+
+        /* Force all outline buttons visible */
+        .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
+        .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
+        .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
+        .btn-outline-warning:hover { background: #f59e0b !important; color: white !important; }
+        .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
+        .btn-outline-primary:hover { background: #1e40af !important; color: white !important; }
+        .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
+        .btn-outline-success:hover { background: #10b981 !important; color: white !important; }
+        .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
+        .btn-outline-dark:hover { background: #1e293b !important; color: white !important; }
+        .btn-outline-info { color: #155e75 !important; border-color: #06b6d4 !important; background: #cffafe !important; font-weight: 600 !important; }
+        .btn-outline-info:hover { background: #06b6d4 !important; color: white !important; }
+        .btn-outline-danger { color: #991b1b !important; border-color: #ef4444 !important; background: #fee2e2 !important; font-weight: 600 !important; }
+        .btn-outline-danger:hover { background: #dc2626 !important; color: white !important; }
+        [data-theme="dark"] .btn-outline-secondary { color: #e2e8f0 !important; border-color: #475569 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-warning { color: #fbbf24 !important; border-color: #92400e !important; background: #422006 !important; }
+        [data-theme="dark"] .btn-outline-primary { color: #93c5fd !important; border-color: #1e40af !important; background: #1e3a8a !important; }
+        [data-theme="dark"] .btn-outline-success { color: #6ee7b7 !important; border-color: #065f46 !important; background: #064e3b !important; }
+        [data-theme="dark"] .btn-outline-dark { color: #f1f5f9 !important; border-color: #cbd5e1 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-info { color: #67e8f9 !important; border-color: #0e7490 !important; background: #155e75 !important; }
+        [data-theme="dark"] .btn-outline-danger { color: #fca5a5 !important; border-color: #991b1b !important; background: #7f1d1d !important; }
     </style>
 </head>
 <body>
@@ -42,22 +66,24 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Hawi's Lovada</h4>
+        <div class="text-center mb-4">
+        <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+            </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/reports.html" class="active">📈 Reports</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/customers.html">👥 Customers</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/settings.html">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
-            <a href="/settings.html">⚙️ Settings</a>
         </div>
 
         <div class="col-md-10 p-4">
-            <h3 class="mb-4">Reports</h3>
-
+            <h3 class="page-title">Reports</h3>
             <div class="panel mb-4">
                 <div class="mb-2">
                     <button class="btn btn-sm btn-outline-primary period-btn" onclick="setPeriod('today', this)">Today</button>
@@ -123,7 +149,6 @@
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
-
     let currentData = null;
 
     function setPeriod(period, btn) {
@@ -139,16 +164,12 @@
         document.getElementById('dateTo').value = toISO(to);
         loadReport();
     }
-
-    function toISO(d) {
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
+    function toISO(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
     function loadReport() {
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
         if (!dateFrom || !dateTo) return alert('Please select both dates.');
-
         fetch(`/api/reports?dateFrom=${dateFrom}&dateTo=${dateTo}`, { headers: { 'x-auth-token': authToken } })
             .then(res => {
                 if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -163,24 +184,14 @@
                 document.getElementById('reportUnpaid').innerText = '₱' + parseFloat(data.summary.unpaid_revenue).toFixed(2);
 
                 const dailyTable = document.getElementById('dailyTable');
-                if (data.daily.length === 0) {
-                    dailyTable.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No orders in this period.</td></tr>';
-                } else {
-                    dailyTable.innerHTML = data.daily.map(d => {
-                        const day = new Date(d.day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                        return `<tr><td>${day}</td><td class="text-end">${d.order_count}</td><td class="text-end">₱${parseFloat(d.revenue).toFixed(2)}</td><td class="text-end">₱${parseFloat(d.avg_order).toFixed(2)}</td></tr>`;
-                    }).join('');
-                }
+                if (data.daily.length === 0) { dailyTable.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No orders in this period.</td></tr>'; }
+                else { dailyTable.innerHTML = data.daily.map(d => { const day = new Date(d.day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }); return `<tr><td>${day}</td><td class="text-end">${d.order_count}</td><td class="text-end">₱${parseFloat(d.revenue).toFixed(2)}</td><td class="text-end">₱${parseFloat(d.avg_order).toFixed(2)}</td></tr>`; }).join(''); }
 
                 const tsTable = document.getElementById('topServicesTable');
-                tsTable.innerHTML = data.topServices.length === 0
-                    ? '<tr><td colspan="3" class="text-center text-muted">No data</td></tr>'
-                    : data.topServices.map(s => `<tr><td><strong>${s.service_name}</strong></td><td class="text-end">${s.total_qty}</td><td class="text-end">₱${parseFloat(s.total_revenue).toFixed(2)}</td></tr>`).join('');
+                tsTable.innerHTML = data.topServices.length === 0 ? '<tr><td colspan="3" class="text-center text-muted">No data</td></tr>' : data.topServices.map(s => `<tr><td><strong>${s.service_name}</strong></td><td class="text-end">${s.total_qty}</td><td class="text-end">₱${parseFloat(s.total_revenue).toFixed(2)}</td></tr>`).join('');
 
                 const tcTable = document.getElementById('topCustomersTable');
-                tcTable.innerHTML = data.topCustomers.length === 0
-                    ? '<tr><td colspan="3" class="text-center text-muted">No data</td></tr>'
-                    : data.topCustomers.map(c => `<tr><td><strong>${c.customer}</strong></td><td class="text-end">${c.order_count}</td><td class="text-end">₱${parseFloat(c.total_spent).toFixed(2)}</td></tr>`).join('');
+                tcTable.innerHTML = data.topCustomers.length === 0 ? '<tr><td colspan="3" class="text-center text-muted">No data</td></tr>' : data.topCustomers.map(c => `<tr><td><strong>${c.customer}</strong></td><td class="text-end">${c.order_count}</td><td class="text-end">₱${parseFloat(c.total_spent).toFixed(2)}</td></tr>`).join('');
             });
     }
 
@@ -189,10 +200,7 @@
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
         let csv = `Hawi's Lovada Laundry Shop - Sales Report\nPeriod,${dateFrom},to,${dateTo}\n\n`;
-        csv += `Total Revenue,${parseFloat(currentData.summary.total_revenue).toFixed(2)}\n`;
-        csv += `Total Orders,${currentData.summary.order_count}\n`;
-        csv += `Average Order Value,${parseFloat(currentData.summary.avg_order_value).toFixed(2)}\n`;
-        csv += `Unpaid Amount,${parseFloat(currentData.summary.unpaid_revenue).toFixed(2)}\n\n`;
+        csv += `Total Revenue,${parseFloat(currentData.summary.total_revenue).toFixed(2)}\nTotal Orders,${currentData.summary.order_count}\nAverage Order Value,${parseFloat(currentData.summary.avg_order_value).toFixed(2)}\nUnpaid Amount,${parseFloat(currentData.summary.unpaid_revenue).toFixed(2)}\n\n`;
         csv += 'Daily Breakdown\nDate,Orders,Revenue,Average\n';
         currentData.daily.forEach(d => { csv += `${d.day},${d.order_count},${parseFloat(d.revenue).toFixed(2)},${parseFloat(d.avg_order).toFixed(2)}\n`; });
         csv += '\nTop Services\nService,Quantity,Revenue\n';

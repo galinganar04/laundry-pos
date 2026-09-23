@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - Hawi's Lovada</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: white;
+        }
+        .offline-card {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            max-width: 400px;
+            text-align: center;
+            color: #1e293b;
+        }
+        .logo { max-width: 150px; margin-bottom: 20px; }
+        h1 { color: #1e3a8a; font-size: 24px; margin-bottom: 12px; }
+        p { color: #64748b; margin-bottom: 20px; line-height: 1.6; }
+        .btn-retry {
+            background: #1e40af; color: white; border: none;
+            padding: 12px 24px; font-weight: 600; border-radius: 8px;
+            font-size: 14px; cursor: pointer; width: 100%;
+        }
+        .btn-retry:hover { background: #1e3a8a; }
+        .icon { font-size: 60px; margin-bottom: 15px; }
+        .tip {
+            background: #eff6ff; border-left: 4px solid #3b82f6;
+            padding: 12px; border-radius: 6px; font-size: 13px;
+            color: #1e40af; margin-top: 20px; text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-card">
+        <div class="icon">📡</div>
+        <img src="/logo.png" class="logo" alt="Hawi's Lovada" onerror="this.style.display='none'">
+        <h1>You're Offline</h1>
+        <p>Walang internet connection. Hindi makapag-save ng bagong order habang offline.</p>
+        <button class="btn-retry" onclick="window.location.reload()">🔄 Try Again</button>
+        <div class="tip">
+            <strong>💡 Tip:</strong> I-check kung:
+            <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+                <li>Bukas ba ang WiFi mo?</li>
+                <li>May data ba yung mobile mo?</li>
+                <li>Naka-airplane mode ka ba?</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

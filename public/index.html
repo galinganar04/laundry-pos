@@ -4,22 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hawi's Lovada - POS</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+        <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Hawi's POS">
+    <link rel="apple-touch-icon" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        html, body { height: 100%; overflow: hidden; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar { background-color: #1e293b; color: white; height: 100vh; padding-top: 20px; overflow-y: auto; }
         .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
-        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
-        .service-card {
-            cursor: pointer; transition: 0.2s; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-            border-radius: 10px; background: white;
-        }
-        .service-card:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); border-color: #cbd5e1; }
-        .service-card .service-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; letter-spacing: 0.3px; }
-        .cart-panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: 100%; }
+        .main-row { height: 100vh; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
+        .tab-switch { display: flex; background: #f1f5f9; border-radius: 8px; padding: 4px; margin-bottom: 16px; width: fit-content; }
+        .tab-switch button { border: none; background: transparent; padding: 8px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; color: #64748b; cursor: pointer; }
+        .tab-switch button.active { background: #1e40af; color: white; }
+        .cards-scroll-box { max-height: calc(100vh - 260px); overflow-y: auto; overflow-x: hidden; padding-right: 8px; border-radius: 8px; }
+        .cards-scroll-box::-webkit-scrollbar { width: 10px; }
+        .cards-scroll-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .cards-scroll-box::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
+        .cart-scroll-box { max-height: 340px; overflow-y: auto; overflow-x: hidden; padding-right: 6px; }
+        .cart-scroll-box::-webkit-scrollbar { width: 8px; }
+        .cart-scroll-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .cart-scroll-box::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+        .service-card { cursor: pointer; transition: 0.2s; border: none; border-radius: 10px; background: white; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .service-card:hover { transform: translateY(-3px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
+        .service-thumb-large { height: 160px; width: 100%; position: relative; border-radius: 10px; overflow: hidden; background: #0f172a; }
+        .service-thumb-large img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; object-position: center; padding: 4px; }
+        .service-thumb-large .overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 10px; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%); text-align: center; color: white; text-shadow: 0 2px 6px rgba(0,0,0,0.9); }
+        .service-thumb-large .overlay .name { color: white; font-size: 13px; font-weight: 800; text-transform: uppercase; }
+        .service-thumb-large .overlay .price { color: white; font-size: 14px; font-weight: 800; margin-top: 2px; }
+        .addon-card { cursor: pointer; transition: 0.2s; border: 1px solid #e5e7eb; border-radius: 10px; background: white; padding: 12px; display: flex; align-items: center; gap: 12px; }
+        .addon-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.08); }
+        .addon-thumb { width: 44px; height: 44px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; flex-shrink: 0; }
+        .addon-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .addon-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 12px; }
+        .addon-meta { font-size: 11px; color: #94a3b8; }
+        .addon-price { font-weight: 700; color: #1e40af; font-size: 13px; }
+        .cart-panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); height: calc(100vh - 40px); display: flex; flex-direction: column; }
         .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; }
         .btn-checkout { background: #1e40af; color: white; width: 100%; padding: 12px; font-weight: 600; border: none; border-radius: 8px; font-size: 14px; }
         .btn-checkout:hover { background: #1e3a8a; color: white; }
@@ -29,31 +57,38 @@
         .btn-print-80:hover { background: #0e7490; }
         .print-buttons { display: none; }
         .form-label { font-size: 12px; color: #475569; font-weight: 500; }
-
-        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        .addon-prompt { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 12px; font-size: 12px; color: #1e40af; margin-bottom: 12px; }
+        .btn-browse { background: white; border: 1px solid #bfdbfe; color: #1e40af; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 13px; }
+        .qty-btn { border: 1px solid #e2e8f0; background: white; width: 24px; height: 24px; border-radius: 4px; font-size: 12px; cursor: pointer; color: #475569; }
+        .user-badge { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+        [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .cart-panel, [data-theme="dark"] .service-card, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .service-card { border-color: #334155 !important; }
-        [data-theme="dark"] .service-card .service-name { color: #e2e8f0 !important; }
-        [data-theme="dark"] .page-title { color: #e2e8f0 !important; }
+        [data-theme="dark"] .cart-panel, [data-theme="dark"] .addon-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .addon-name { color: #e2e8f0 !important; }
+        [data-theme="dark"] .tab-switch { background: #1e293b; }
+        [data-theme="dark"] .tab-switch button { color: #94a3b8; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
-        [data-theme="dark"] hr { border-color: #334155 !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] h5 { color: #e2e8f0 !important; }
-        [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { border-color: #334155 !important; }
+        [data-theme="dark"] .addon-prompt { background: #1e3a8a !important; border-color: #1e40af !important; color: #bfdbfe !important; }
+        [data-theme="dark"] .addon-thumb { background: #334155; }
+        [data-theme="dark"] .qty-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
+        [data-theme="dark"] .cards-scroll-box::-webkit-scrollbar-track { background: #1e293b; }
+        [data-theme="dark"] .cards-scroll-box::-webkit-scrollbar-thumb { background: #475569; }
+        [data-theme="dark"] .cart-scroll-box::-webkit-scrollbar-track { background: #1e293b; }
+        [data-theme="dark"] .cart-scroll-box::-webkit-scrollbar-thumb { background: #475569; }
+        [data-theme="dark"] .user-badge { background: #1e3a8a; color: #bfdbfe; }
     </style>
 </head>
 <body>
 
 <div class="container-fluid">
-    <div class="row">
+    <div class="row main-row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Hawi's Lovada</h4>
+            <div class="text-center mb-4"><img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'"></div>
             <a href="/" class="active">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
             <a href="/services.html">🧴 Services</a>
@@ -68,92 +103,85 @@
         </div>
 
         <div class="col-md-7 p-4">
-            <h3 class="page-title">Point of Sale</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="page-title mb-0">Point of Sale</h3>
+                <div class="user-badge">👤 <span id="currentUser">—</span></div>
+            </div>
+
+            <div class="tab-switch">
+                <button id="tabServices" class="active" onclick="switchTab('services')">🧴 Services</button>
+                <button id="tabAddons" onclick="switchTab('addons')">✨ Add-ons</button>
+            </div>
+
             <div class="input-group mb-4">
                 <input type="text" class="form-control" placeholder="🔍 Search services...">
             </div>
-            <h6 class="text-muted mb-3" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">Choose the customer's laundry service</h6>
-            <div class="row" id="servicesContainer"></div>
+
+            <h6 class="text-muted mb-3" style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px;" id="sectionTitle">Choose the customer's laundry service</h6>
+
+            <div class="cards-scroll-box">
+                <div class="row" id="servicesContainer"></div>
+                <div class="row" id="addonsContainer" style="display: none;"></div>
+            </div>
         </div>
 
         <div class="col-md-3 p-4">
             <div class="cart-panel">
                 <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
                 <hr>
-                <div id="cartItemsList" class="mb-4">
-                    <p class="text-muted text-center small">Cart is empty.</p>
+                <div id="cartItemsList" class="cart-scroll-box mb-4"><p class="text-muted text-center small">Cart is empty.</p></div>
+
+                <div id="addonPrompt" class="addon-prompt" style="display: none;">
+                    <strong>✨ Customer wants an extra product?</strong>
+                    Add detergent, fabcon, bleach, or another retail item to this same cart.
+                    <button class="btn-browse w-100" onclick="switchTab('addons')">Browse Add-ons</button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">CUSTOMER</label>
-                    <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
-                    <datalist id="customerList"></datalist>
-                    <small class="text-muted" style="font-size: 11px;">Type to see saved customers</small>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">PAYMENT</label>
-                    <select id="paymentStatus" class="form-select">
-                        <option value="Paid">💵 Pay Now</option>
-                        <option value="Pending">⏳ Pay Later</option>
-                    </select>
-                </div>
-                <hr>
-                <div class="d-flex justify-content-between mb-2">
-                    <span>Total</span>
-                    <strong id="cartTotal">₱0.00</strong>
-                </div>
-                <button class="btn-checkout mt-3" id="checkoutBtn" onclick="openCashierModal()">Checkout</button>
-                <div class="print-buttons" id="printButtons">
-                    <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
-                    <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
+
+                <div class="mt-auto">
+                    <div class="mb-3">
+                        <label class="form-label">CUSTOMER</label>
+                        <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
+                        <datalist id="customerList"></datalist>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">PAYMENT</label>
+                        <select id="paymentStatus" class="form-select">
+                            <option value="Paid">💵 Pay Now</option>
+                            <option value="Pending">⏳ Pay Later</option>
+                        </select>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total</span>
+                        <strong id="cartTotal">₱0.00</strong>
+                    </div>
+                    <button class="btn-checkout mt-3" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
+                    <div class="print-buttons" id="printButtons">
+                        <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
+                        <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal fade" id="cashierModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">🔐 Enter Cashier PIN</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p class="text-muted small">Who is processing this sale?</p>
-                <input type="password" id="cashierPinInput" class="form-control text-center" 
-                       style="font-size: 24px; letter-spacing: 8px;" maxlength="8" autocomplete="off" 
-                       placeholder="••••" onkeypress="if(event.key==='Enter') verifyPin()">
-                <div id="cashierPinError" class="text-danger small mt-2" style="display: none;">Invalid PIN. Try again.</div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" onclick="verifyPin()">Confirm</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/role-guard.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
-    if (!authToken) { window.location.href = '/login.html'; }
+    document.getElementById('currentUser').innerText = localStorage.getItem('userName') || 'Unknown';
 
     let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: '₱' };
     fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
-        .then(res => res.json())
-        .then(data => { if (data) shopSettings = data; });
+        .then(res => res.json()).then(data => { if (data) shopSettings = data; });
 
     fetch('/api/customers', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(customers => {
-            const datalist = document.getElementById('customerList');
-            datalist.innerHTML = customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
+            document.getElementById('customerList').innerHTML = customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
         });
 
-    let cart = [];
-    let total = 0;
-    let lastOrder = null;
-    let currentCashier = null;
+    let cart = [], total = 0, lastOrder = null, currentTab = 'services';
 
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
         .then(response => {
@@ -165,182 +193,195 @@
             const container = document.getElementById('servicesContainer');
             services.forEach(service => {
                 const color = service.color || '#1e40af';
-                container.innerHTML += `
-                    <div class="col-md-4 mb-3">
-                        <div class="card service-card p-3 text-center" onclick="addToCart('${service.name}', ${service.price}, '${service.unit}')">
-                            <div class="card-body">
-                                <div class="mb-2" style="width: 20px; height: 20px; border-radius: 50%; background: ${color}; margin: 0 auto;"></div>
-                                <h6 class="service-name">${service.name}</h6>
-                                <p class="fw-bold mb-1" style="color: #1e40af; font-size: 14px;">₱${parseFloat(service.price).toFixed(2)} / ${service.unit}</p>
-                                <small class="text-muted">Available</small>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                const unit = service.unit_label || service.unit || 'kg';
+                let inner;
+                if (service.image_data) {
+                    inner = `<div class="service-thumb-large"><img src="${service.image_data}"><div class="overlay"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div></div>`;
+                } else {
+                    inner = `<div class="service-thumb-large" style="background: ${color};"><div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 10px; text-align: center;"><div style="font-size: 14px; font-weight: 800; text-transform: uppercase;">${service.name}</div><div style="font-size: 15px; font-weight: 800; margin-top: 6px;">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div></div>`;
+                }
+                container.innerHTML += `<div class="col-md-4 mb-3"><div class="card service-card" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service')">${inner}</div></div>`;
             });
         });
 
-    function addToCart(name, price, unit) {
+    fetch('/api/products', { headers: { 'x-auth-token': authToken } })
+        .then(res => res.json())
+        .then(products => {
+            const addons = (products || []).filter(p => p.stock > 0);
+            const container = document.getElementById('addonsContainer');
+            if (addons.length === 0) { container.innerHTML = '<div class="col-12 text-center text-muted py-4">No add-ons available.</div>'; return; }
+            addons.forEach(p => {
+                const thumb = p.image_data ? `<div class="addon-thumb"><img src="${p.image_data}"></div>` : `<div class="addon-thumb">${p.icon || '📦'}</div>`;
+                container.innerHTML += `<div class="col-md-6 mb-3"><div class="addon-card" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon')">${thumb}<div class="flex-grow-1"><div class="addon-name">${p.name}</div><div class="addon-meta">${p.category || 'General'} • ${p.stock} in stock</div></div><div class="addon-price">₱${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div></div></div>`;
+            });
+        });
+
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tabServices').classList.toggle('active', tab === 'services');
+        document.getElementById('tabAddons').classList.toggle('active', tab === 'addons');
+        document.getElementById('servicesContainer').style.display = tab === 'services' ? 'flex' : 'none';
+        document.getElementById('addonsContainer').style.display = tab === 'addons' ? 'flex' : 'none';
+        document.getElementById('sectionTitle').innerText = tab === 'services' ? "Choose the customer's laundry service" : "Add extra products (detergent, fabcon, etc.)";
+    }
+
+    function addToCart(name, price, unit, type) {
         const existingItem = cart.find(item => item.name === name);
-        if (existingItem) { existingItem.qty += 1; }
-        else { cart.push({ name: name, price: parseFloat(price), unit: unit, qty: 1 }); }
+        if (existingItem) existingItem.qty += 1;
+        else cart.push({ name: name, price: parseFloat(price), unit: unit, qty: 1, type: type || 'service' });
         updateCartUI();
     }
+    function increaseQty(name) { const i = cart.find(x => x.name === name); if (i) { i.qty += 1; updateCartUI(); } }
+    function decreaseQty(name) { const i = cart.find(x => x.name === name); if (i) { i.qty -= 1; if (i.qty <= 0) cart = cart.filter(x => x.name !== name); updateCartUI(); } }
 
     function updateCartUI() {
         const list = document.getElementById('cartItemsList');
         const countSpan = document.getElementById('cartCount');
         const totalSpan = document.getElementById('cartTotal');
-        list.innerHTML = '';
-        total = 0;
-        let itemCount = 0;
+        list.innerHTML = ''; total = 0; let itemCount = 0;
         if (cart.length === 0) {
             list.innerHTML = '<p class="text-muted text-center small">Cart is empty.</p>';
+            document.getElementById('addonPrompt').style.display = 'none';
         } else {
             cart.forEach(item => {
                 const itemTotal = item.price * item.qty;
-                total += itemTotal;
-                itemCount += item.qty;
-                list.innerHTML += `
-                    <div class="d-flex justify-content-between mb-2 small">
-                        <span>${item.name} (x${item.qty})</span>
-                        <span>₱${itemTotal.toFixed(2)}</span>
-                    </div>
-                `;
+                total += itemTotal; itemCount += item.qty;
+                list.innerHTML += `<div class="cart-item"><div><div style="font-weight: 600; color: #1e293b;">${item.name}</div><small class="text-muted">₱${item.price.toFixed(2)} × ${item.qty}</small></div><div class="d-flex align-items-center gap-2"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">−</button><span style="font-weight: 600; min-width: 20px; text-align: center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button><span style="font-weight: 700; color: #1e40af; min-width: 70px; text-align: right;">₱${itemTotal.toFixed(2)}</span></div></div>`;
             });
+            const hasService = cart.some(i => i.type === 'service');
+            document.getElementById('addonPrompt').style.display = hasService ? 'block' : 'none';
         }
         countSpan.innerText = itemCount + ' items';
         totalSpan.innerText = '₱' + total.toFixed(2);
     }
 
-    function openCashierModal() {
-        if (cart.length === 0) return alert("Cart is empty.");
-        document.getElementById('cashierPinInput').value = '';
-        document.getElementById('cashierPinError').style.display = 'none';
-        new bootstrap.Modal(document.getElementById('cashierModal')).show();
-        setTimeout(() => document.getElementById('cashierPinInput').focus(), 300);
-    }
-
-    function verifyPin() {
-        const pin = document.getElementById('cashierPinInput').value.trim();
-        if (!pin) return;
-        fetch('/api/cashiers/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ pin })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                currentCashier = data.cashier;
-                bootstrap.Modal.getInstance(document.getElementById('cashierModal')).hide();
-                checkout();
-            } else {
-                document.getElementById('cashierPinError').style.display = 'block';
-                document.getElementById('cashierPinInput').value = '';
-            }
-        })
-        .catch(() => {
-            document.getElementById('cashierPinError').innerText = 'Connection error.';
-            document.getElementById('cashierPinError').style.display = 'block';
-        });
-    }
-
     function checkout() {
+        if (cart.length === 0) return alert("Cart is empty.");
         const customer = document.getElementById('customerName').value;
         const paymentStatus = document.getElementById('paymentStatus').value;
+        const cashierName = localStorage.getItem('userName') || 'Unknown';
         const btn = document.getElementById('checkoutBtn');
-        btn.innerText = 'Processing...';
-        btn.disabled = true;
+        btn.innerText = 'Processing...'; btn.disabled = true;
 
-        const receiptData = {
-            customer: customer, total: total,
-            items: JSON.parse(JSON.stringify(cart)),
-            date: new Date().toLocaleString(),
-            paymentStatus: paymentStatus
-        };
-
+        const receiptData = { customer, total, items: JSON.parse(JSON.stringify(cart)), date: new Date().toLocaleString(), paymentStatus };
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ customer, total, cartItems: cart, paymentStatus, cashierName: currentCashier ? currentCashier.name : 'Admin' })
+            body: JSON.stringify({ customer, total, cartItems: cart, paymentStatus, cashierName })
         })
         .then(res => res.json())
         .then(data => {
-            alert(data.message + ' (Cashier: ' + (currentCashier ? currentCashier.name : 'Admin') + ')');
+            if (data.error) { alert('Error: ' + data.error); btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
+            alert(data.message + ' (Cashier: ' + cashierName + ')');
             receiptData.orderId = data.orderId;
             lastOrder = receiptData;
-            cart = [];
-            updateCartUI();
-            btn.innerText = 'Checkout';
-            btn.disabled = false;
-            currentCashier = null;
+            cart = []; updateCartUI();
+            btn.innerText = '✅ Checkout'; btn.disabled = false;
             document.getElementById('printButtons').style.display = 'block';
+            switchTab('services');
         })
-        .catch(() => {
-            alert("Error saving order.");
-            btn.innerText = 'Checkout';
-            btn.disabled = false;
-        });
+        .catch(() => { alert("Error saving order."); btn.innerText = '✅ Checkout'; btn.disabled = false; });
     }
 
     function printReceipt(size) {
         if (!lastOrder) return alert("No recent order to print.");
         const isPaid = String(lastOrder.paymentStatus).toLowerCase() === 'paid';
-        const statusLabel = isPaid ? '** PAID **' : '** UNPAID **';
-        const payNote = isPaid ? '' : 'Pay on Pickup';
+        const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
+        const payNote = isPaid ? '' : 'Please pay upon pickup.';
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const logoSrc = window.location.origin + '/logo.png';
         const cur = shopSettings.currency || '₱';
+        const customerName = (lastOrder.customer || 'Walk-In Customer').toUpperCase();
 
-        const itemsHtml = lastOrder.items.map(item => {
+        // CUSTOMER COPY ITEMS (with prices)
+        const itemsCustomerHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td><td style="text-align:right;">${cur}${(item.price * item.qty).toFixed(2)}</td></tr>`;
         }).join('');
 
-        const receiptHtml = `
-            <!DOCTYPE html><html><head><title>Receipt #${lastOrder.orderId}</title>
-            <style>
-                @page { size: ${pageWidth} auto; margin: 0; }
-                body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; }
-                .center { text-align: center; }
-                .bold { font-weight: 900; }
-                .big { font-size: ${size === '58' ? 14 : 16}px; }
-                .divider { border-top: 1px dashed #000; margin: 4px 0; }
-                .logo { text-align: center; margin-bottom: 3px; }
-                .logo img { max-width: ${size === '58' ? '60px' : '80px'}; height: auto; filter: grayscale(100%); }
-                table { width: 100%; border-collapse: collapse; }
-                .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
-                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; }
-                .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
-                .info { font-size: ${fontSize}px; margin: 2px 0; }
-                .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1e40af; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
-                @media print { .print-btn { display: none; } body { padding: 2mm; } }
-            </style></head><body>
+        // SHOP COPY ITEMS (no prices)
+        const itemsShopHtml = lastOrder.items.map(item => {
+            const nameTrunc = item.name.length > (size === '58' ? 20 : 32) ? item.name.substring(0, size === '58' ? 19 : 31) + '.' : item.name;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td></tr>`;
+        }).join('');
+
+        const customerCopyHtml = `
+            <div class="receipt-copy">
                 <div class="logo"><img src="${logoSrc}" alt="${shopSettings.shop_name}"></div>
                 <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
-                ${shopSettings.address ? `<div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.address}</div>` : ''}
-                ${shopSettings.phone ? `<div class="center" style="font-size: ${fontSize - 1}px;">Tel: ${shopSettings.phone}</div>` : ''}
-                ${shopSettings.tin ? `<div class="center" style="font-size: ${fontSize - 1}px;">TIN: ${shopSettings.tin}</div>` : ''}
-                <div class="divider"></div>
+                <div class="divider-solid"></div>
                 <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
                 <div class="info">Date: ${lastOrder.date}</div>
                 <div class="info">Customer: ${lastOrder.customer}</div>
                 <div class="divider"></div>
-                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
                 <div class="divider"></div>
                 <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${lastOrder.total.toFixed(2)}</td></tr></table>
+                <div class="divider"></div>
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
-                <div class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.<br>${shopSettings.facebook ? 'FB: ' + shopSettings.facebook : ''}</div>
-                <br><br><br>
-                <button class="print-btn" onclick="window.print()">🖨️ Print</button>
-            </body></html>
+                <div class="center big bold customer-name">${customerName}</div>
+                <div class="divider-solid"></div>
+                <div class="footer">Thank you for your business!</div>
+            </div>
         `;
-        const w = window.open('', '_blank', 'width=400,height=600');
+
+        const shopCopyHtml = `
+            <div class="receipt-copy shop-copy">
+                <div class="copy-label">SHOP COPY</div>
+                <div class="logo"><img src="${logoSrc}" alt="${shopSettings.shop_name}"></div>
+                <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
+                <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
+                <div class="center big bold customer-name">${customerName}</div>
+                <div class="divider-solid"></div>
+                <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
+                <div class="info">Date: ${lastOrder.date}</div>
+                <div class="divider"></div>
+                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
+                <div class="divider"></div>
+                <div class="status">${statusLabel}</div>
+                ${payNote ? `<div class="center">${payNote}</div>` : ''}
+                <div class="divider-solid"></div>
+                <div class="footer">Thank you for your business!</div>
+            </div>
+        `;
+
+        const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${lastOrder.orderId}</title>
+            <style>
+                @page { size: ${pageWidth} auto; margin: 0; }
+                body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; }
+                .receipt-copy { padding-bottom: 10px; }
+                .receipt-copy.shop-copy { border-top: 2px dashed #000; padding-top: 12px; margin-top: 10px; }
+                .copy-label { text-align: center; font-weight: 900; background: #000; color: #fff; padding: 4px; margin-bottom: 8px; font-size: ${fontSize + 1}px; letter-spacing: 2px; }
+                .center { text-align: center; }
+                .bold { font-weight: 900; }
+                .big { font-size: ${size === '58' ? 14 : 16}px; }
+                .customer-name { margin-top: 2px; margin-bottom: 4px; }
+                .divider { border-top: 1px dashed #000; margin: 4px 0; }
+                .divider-solid { border-top: 2px solid #000; margin: 6px 0; }
+                .logo { text-align: center; margin-bottom: 3px; }
+                .logo img { max-width: ${size === '58' ? '60px' : '80px'}; height: auto; filter: grayscale(100%); }
+                table { width: 100%; border-collapse: collapse; }
+                .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
+                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; color: #000; background: #fff; }
+                .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
+                .info { font-size: ${fontSize}px; margin: 2px 0; }
+                .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
+                @media print {
+                    .print-btn { display: none; }
+                    body { padding: 2mm; }
+                    * { color: #000 !important; background: #fff !important; }
+                }
+            </style></head><body>
+                ${customerCopyHtml}
+                ${shopCopyHtml}
+                <br><br><br>
+                <button class="print-btn" onclick="window.print()">🖨️ Print Both Copies</button>
+            </body></html>`;
+        const w = window.open('', '_blank', 'width=400,height=700');
         w.document.write(receiptHtml);
         w.document.close();
     }
@@ -349,9 +390,24 @@
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 </script>
 <script src="/theme.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered:', registration.scope);
+                })
+                .catch(err => {
+                    console.log('Service Worker registration failed:', err);
+                });
+        });
+    }
+</script>
 </body>
 </html>

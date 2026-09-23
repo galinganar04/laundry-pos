@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .page-sub { color: #94a3b8; font-size: 13px; margin-bottom: 20px; }
+        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .btn-primary { background: #1e40af; border-color: #1e40af; }
+        .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
+        .period-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .period-btn { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; }
+        .period-btn:hover { background: #f8fafc; }
+        .period-btn.active { background: #1e40af; color: white; border-color: #1e40af; }
+        .search-wrap { position: relative; }
+        .search-wrap input { padding-left: 40px; height: 42px; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .year-select { height: 42px; }
+        .stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative; height: 100%; }
+        .stat-card .label { font-size: 12px; color: #64748b; font-weight: 500; margin-bottom: 10px; }
+        .stat-card .value { font-size: 26px; font-weight: 700; color: #1e293b; }
+        .stat-card .sub { font-size: 11px; color: #94a3b8; margin-top: 6px; }
+        .stat-card .icon { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .stat-red .value { color: #dc2626; }
+        .stat-red .icon { background: #fee2e2; color: #dc2626; }
+        .stat-yellow .icon { background: #fef3c7; color: #92400e; }
+        .stat-blue .icon { background: #dbeafe; color: #1e40af; }
+        .stat-purple .icon { background: #ede9fe; color: #6b21a8; }
+        .ledger-table { width: 100%; border-collapse: collapse; }
+        .ledger-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 16px 12px; border-bottom: 1px solid #e5e7eb; }
+        .ledger-table tbody td { padding: 16px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 13px; }
+        .ledger-table tbody tr:hover { background-color: #f8fafc; }
+        .desc-main { font-weight: 600; color: #1e293b; font-size: 13px; }
+        .desc-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .si-or { font-family: 'Courier New', monospace; font-size: 11px; color: #1e40af; background: #dbeafe; padding: 4px 10px; border-radius: 4px; display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .account-text { color: #475569; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+        .source-badge { font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 600; }
+        .source-Replenishment { background: #dbeafe; color: #1e40af; }
+        .source-Manual { background: #f1f5f9; color: #475569; }
+        .amount-text { color: #dc2626; font-weight: 700; text-align: right; }
+        .btn-icon { background: transparent; border: none; color: #94a3b8; padding: 4px 6px; font-size: 14px; cursor: pointer; }
+        .btn-icon:hover { color: #dc2626; }
+        .btn-icon.edit:hover { color: #1e40af; }
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .stat-card, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .ledger-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .ledger-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .desc-main { color: #e2e8f0 !important; }
+        [data-theme="dark"] .stat-card .value { color: #e2e8f0 !important; }
+        [data-theme="dark"] .stat-red .value { color: #f87171 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .period-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
+        [data-theme="dark"] .period-btn.active { background: #1e40af; color: white; }
+        [data-theme="dark"] .account-text { color: #cbd5e1 !important; }
+        [data-theme="dark"] .text-muted, [data-theme="dark"] .page-sub { color: #94a3b8 !important; }
+
+        /* Force all outline buttons visible */
+        .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
+        .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
+        .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
+        .btn-outline-warning:hover { background: #f59e0b !important; color: white !important; }
+        .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
+        .btn-outline-primary:hover { background: #1e40af !important; color: white !important; }
+        .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
+        .btn-outline-success:hover { background: #10b981 !important; color: white !important; }
+        .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
+        .btn-outline-dark:hover { background: #1e293b !important; color: white !important; }
+        .btn-outline-info { color: #155e75 !important; border-color: #06b6d4 !important; background: #cffafe !important; font-weight: 600 !important; }
+        .btn-outline-info:hover { background: #06b6d4 !important; color: white !important; }
+        .btn-outline-danger { color: #991b1b !important; border-color: #ef4444 !important; background: #fee2e2 !important; font-weight: 600 !important; }
+        .btn-outline-danger:hover { background: #dc2626 !important; color: white !important; }
+        [data-theme="dark"] .btn-outline-secondary { color: #e2e8f0 !important; border-color: #475569 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-warning { color: #fbbf24 !important; border-color: #92400e !important; background: #422006 !important; }
+        [data-theme="dark"] .btn-outline-primary { color: #93c5fd !important; border-color: #1e40af !important; background: #1e3a8a !important; }
+        [data-theme="dark"] .btn-outline-success { color: #6ee7b7 !important; border-color: #065f46 !important; background: #064e3b !important; }
+        [data-theme="dark"] .btn-outline-dark { color: #f1f5f9 !important; border-color: #cbd5e1 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-info { color: #67e8f9 !important; border-color: #0e7490 !important; background: #155e75 !important; }
+        [data-theme="dark"] .btn-outline-danger { color: #fca5a5 !important; border-color: #991b1b !important; background: #7f1d1d !important; }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+        <div class="text-center mb-4">
+        <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+            </div>
+            <a href="/">🧺 POS</a>
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/orders.html">📋 Orders</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/services.html">🧴 Services</a>            
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html" class="active">💰 Expenses</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/settings.html">⚙️ Settings</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </div>
+
+        <div class="col-md-10 p-4">
+            <h3 class="page-title">Expense Ledger</h3>
+            <p class="page-sub">Track operating costs and inventory acquisitions in one place.</p>
+
+            <div class="period-btns">
+                <button class="period-btn active" data-period="all">All</button>
+                <button class="period-btn" data-period="today">Today</button>
+                <button class="period-btn" data-period="month">This Month</button>
+                <button class="period-btn" data-period="range">Date Range</button>
+                <button class="period-btn" data-period="year">Year</button>
+                <button class="period-btn" data-period="q1">1st Quarter</button>
+                <button class="period-btn" data-period="q2">2nd Quarter</button>
+                <button class="period-btn" data-period="q3">3rd Quarter</button>
+                <button class="period-btn" data-period="q4">4th Quarter</button>
+            </div>
+
+            <div class="row g-2 mb-3 align-items-center">
+                <div class="col-md-7"><div class="search-wrap"><span class="search-icon">🔍</span><input type="text" id="searchBox" class="form-control" placeholder="Search particulars, SI/OR #, account..." oninput="debouncedLoad()"></div></div>
+                <div class="col-md-2"><select id="yearSelect" class="form-select year-select" onchange="loadLedger()"><option>2026</option><option>2025</option><option>2024</option></select></div>
+                <div class="col-md-3 text-end"><button class="btn btn-primary" onclick="openExpenseModal()">+ Add Expense</button></div>
+            </div>
+
+            <div class="row g-2 mb-3" id="dateRangeRow" style="display: none;">
+                <div class="col-md-4"><input type="date" id="rangeFrom" class="form-control"></div>
+                <div class="col-md-4"><input type="date" id="rangeTo" class="form-control"></div>
+                <div class="col-md-2"><button class="btn btn-primary w-100" onclick="loadLedger(); loadStats();">Apply</button></div>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-3"><div class="stat-card stat-red"><div class="icon">📉</div><div class="label">Total Expense</div><div class="value" id="statTotal">₱0.00</div><div class="sub">For the active date filter</div></div></div>
+                <div class="col-md-3"><div class="stat-card stat-yellow"><div class="icon">📈</div><div class="label">Highest Expense</div><div class="value" id="statHighest">₱0.00</div><div class="sub" id="statHighestDesc">—</div></div></div>
+                <div class="col-md-3"><div class="stat-card stat-blue"><div class="icon">🧮</div><div class="label">Average Expense</div><div class="value" id="statAverage">₱0.00</div><div class="sub">Average per ledger entry</div></div></div>
+                <div class="col-md-3"><div class="stat-card stat-purple"><div class="icon">📋</div><div class="label">Transactions</div><div class="value" id="statCount">0</div><div class="sub">All expense records</div></div></div>
+            </div>
+
+            <div class="panel p-0">
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">Date</th>
+                            <th>Particulars / Description</th>
+                            <th style="width: 220px;">SI/OR #</th>
+                            <th style="width: 200px;">Account</th>
+                            <th style="width: 130px;">Source</th>
+                            <th class="text-end" style="width: 120px;">Amount</th>
+                            <th class="text-end" style="width: 100px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerTable"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="expenseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="expenseModalTitle">Add Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="expenseId">
+                <div class="mb-3">
+                    <label class="form-label small">Category *</label>
+                    <input type="text" id="eCategory" class="form-control" placeholder="e.g. Rent, Electricity, Salary" list="categoryList">
+                    <datalist id="categoryList"><option value="Rent"><option value="Electricity"><option value="Water"><option value="Salary"><option value="Gas / Fuel"><option value="Supplies"><option value="Maintenance"><option value="Marketing"><option value="Other"></datalist>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label small">Amount (₱) *</label><input type="number" id="eAmount" class="form-control" placeholder="0.00" step="0.01"></div>
+                    <div class="col-md-6"><label class="form-label small">SI/OR #</label><input type="text" id="eSiOr" class="form-control" placeholder="Receipt number"></div>
+                </div>
+                <div class="mb-3 mt-3"><label class="form-label small">Description</label><input type="text" id="eDescription" class="form-control" placeholder="e.g. Monthly rent for September"></div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label small">Supplier / Payee</label><input type="text" id="eSupplier" class="form-control" placeholder="e.g. Meralco"></div>
+                    <div class="col-md-6"><label class="form-label small">Account</label><select id="eAccount" class="form-select"><option>Operating Expense</option><option>Merchandise Inventory</option><option>Utilities</option><option>Salaries & Wages</option><option>Rent</option><option>Other</option></select></div>
+                </div>
+                <div class="mb-3 mt-3"><label class="form-label small">Notes</label><textarea id="eNotes" class="form-control" rows="2" placeholder="Any additional notes..."></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveExpense()">💾 Save Expense</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+
+    let currentPeriod = 'all';
+    let searchTimeout;
+
+    function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { loadLedger(); loadStats(); }, 300); }
+
+    document.querySelectorAll('.period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentPeriod = btn.dataset.period;
+            document.getElementById('dateRangeRow').style.display = (currentPeriod === 'range') ? 'flex' : 'none';
+            if (currentPeriod !== 'range') { loadLedger(); loadStats(); }
+        });
+    });
+
+    function toISO(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+    function getDateRange() {
+        const today = new Date();
+        const year = document.getElementById('yearSelect').value;
+        let from = '', to = '';
+        if (currentPeriod === 'today') { from = to = toISO(today); }
+        else if (currentPeriod === 'month') { from = toISO(new Date(today.getFullYear(), today.getMonth(), 1)); to = toISO(today); }
+        else if (currentPeriod === 'year') { from = year + '-01-01'; to = year + '-12-31'; }
+        else if (currentPeriod === 'q1') { from = year + '-01-01'; to = year + '-03-31'; }
+        else if (currentPeriod === 'q2') { from = year + '-04-01'; to = year + '-06-30'; }
+        else if (currentPeriod === 'q3') { from = year + '-07-01'; to = year + '-09-30'; }
+        else if (currentPeriod === 'q4') { from = year + '-10-01'; to = year + '-12-31'; }
+        else if (currentPeriod === 'range') { from = document.getElementById('rangeFrom').value; to = document.getElementById('rangeTo').value; }
+        return { from, to };
+    }
+
+    function loadLedger() {
+        const search = document.getElementById('searchBox').value;
+        const { from, to } = getDateRange();
+        let url = `/api/expenses/ledger?search=${encodeURIComponent(search)}`;
+        if (from) url += '&dateFrom=' + from;
+        if (to) url += '&dateTo=' + to;
+        fetch(url, { headers: { 'x-auth-token': authToken } })
+            .then(res => {
+                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
+                return res.json();
+            })
+            .then(items => {
+                if (!items) return;
+                const table = document.getElementById('ledgerTable');
+                if (items.length === 0) { table.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No entries yet.</td></tr>'; return; }
+                table.innerHTML = items.map(e => {
+                    const date = new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const sourceClass = e.source === 'Replenishment' ? 'source-Replenishment' : 'source-Manual';
+                    const siOr = e.si_or_number ? `<span class="si-or">${e.si_or_number}</span>` : '<span class="text-muted">—</span>';
+                    const isReplenishment = e.source === 'Replenishment';
+                    const actions = isReplenishment ? `<span class="text-muted small">—</span>` : `<button class="btn-icon edit" onclick="editExpense(${e.ref_id})">✏️</button><button class="btn-icon" onclick="deleteExpense(${e.ref_id})">🗑</button>`;
+                    return `<tr><td><small>${date}</small></td><td><div class="desc-main">${e.description || '—'}</div><div class="desc-sub">by ${e.supplier || 'Admin'}</div></td><td>${siOr}</td><td><span class="account-text">🏢 ${e.account || 'Operating Expense'}</span></td><td><span class="source-badge ${sourceClass}">${e.source}</span></td><td class="amount-text">₱${parseFloat(e.amount).toFixed(2)}</td><td class="text-end">${actions}</td></tr>`;
+                }).join('');
+            });
+    }
+
+    function loadStats() {
+        const { from, to } = getDateRange();
+        let url = '/api/expenses/stats';
+        if (from && to) url += `?dateFrom=${from}&dateTo=${to}`;
+        fetch(url, { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('statTotal').innerText = '₱' + data.total.toFixed(2);
+                document.getElementById('statHighest').innerText = '₱' + data.highest.toFixed(2);
+                document.getElementById('statAverage').innerText = '₱' + data.average.toFixed(2);
+                document.getElementById('statCount').innerText = data.count;
+            });
+    }
+
+    function openExpenseModal() {
+        document.getElementById('expenseModalTitle').innerText = 'Add Expense';
+        document.getElementById('expenseId').value = '';
+        document.getElementById('eCategory').value = '';
+        document.getElementById('eAmount').value = '';
+        document.getElementById('eSiOr').value = '';
+        document.getElementById('eDescription').value = '';
+        document.getElementById('eSupplier').value = '';
+        document.getElementById('eAccount').value = 'Operating Expense';
+        document.getElementById('eNotes').value = '';
+        new bootstrap.Modal(document.getElementById('expenseModal')).show();
+    }
+
+    function editExpense(id) {
+        fetch('/api/expenses', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(expenses => {
+                const e = expenses.find(x => x.id === id);
+                if (!e) return;
+                document.getElementById('expenseModalTitle').innerText = 'Edit Expense';
+                document.getElementById('expenseId').value = e.id;
+                document.getElementById('eCategory').value = e.category;
+                document.getElementById('eAmount').value = e.amount;
+                document.getElementById('eSiOr').value = e.si_or_number || '';
+                document.getElementById('eDescription').value = e.description || '';
+                document.getElementById('eSupplier').value = e.supplier || '';
+                document.getElementById('eAccount').value = e.account || 'Operating Expense';
+                document.getElementById('eNotes').value = e.notes || '';
+                new bootstrap.Modal(document.getElementById('expenseModal')).show();
+            });
+    }
+
+    function saveExpense() {
+        const id = document.getElementById('expenseId').value;
+        const data = {
+            category: document.getElementById('eCategory').value.trim(),
+            amount: document.getElementById('eAmount').value,
+            si_or_number: document.getElementById('eSiOr').value.trim(),
+            description: document.getElementById('eDescription').value.trim(),
+            supplier: document.getElementById('eSupplier').value.trim(),
+            account: document.getElementById('eAccount').value,
+            notes: document.getElementById('eNotes').value.trim()
+        };
+        if (!data.category) return alert('Category is required.');
+        if (!data.amount || parseFloat(data.amount) <= 0) return alert('A valid amount is required.');
+        const url = id ? `/api/expenses/${id}` : '/api/expenses';
+        const method = id ? 'PUT' : 'POST';
+        fetch(url, { method: method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(res => {
+                if (res.error) return alert('Error: ' + res.error);
+                bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
+                loadLedger(); loadStats();
+            });
+    }
+
+    function deleteExpense(id) {
+        if (!confirm(`Delete expense #${id}?`)) return;
+        fetch('/api/expenses/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => { loadLedger(); loadStats(); });
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken');
+        window.location.href = '/login.html';
+    }
+
+    loadLedger();
+    loadStats();
+</script>
+<script src="/role-guard.js"></script>
+<script src="/theme.js"></script>
+</body>
+</html>

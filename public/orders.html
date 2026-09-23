@@ -3,40 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <title>Hawi's Lovada - Orders</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        html, body { height: 100%; overflow: hidden; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
+        .sidebar { background-color: #1e293b; color: white; height: 100vh; overflow-y: auto; padding-top: 20px; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
-        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
+        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
         .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .btn-primary { background: #1e40af; border-color: #1e40af; }
         .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
-        .filter-btn { margin-right: 6px; margin-bottom: 6px; font-size: 12px; padding: 5px 12px; border-radius: 20px; }
+        .filter-btn { margin-right: 6px; margin-bottom: 6px; font-size: 13px; padding: 6px 14px; border-radius: 20px; font-weight: 600; }
+        .period-btn.active { background: #1e40af !important; color: white !important; border-color: #1e40af !important; }
+
+        .orders-scroll-box { max-height: calc(100vh - 340px); overflow-y: auto; overflow-x: hidden; border-radius: 10px; }
+        .orders-scroll-box::-webkit-scrollbar { width: 12px; }
+        .orders-scroll-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .orders-scroll-box::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
+
         .orders-table { width: 100%; border-collapse: collapse; }
         .orders-table thead th {
-            font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
-            color: #94a3b8; font-weight: 600; padding: 14px 12px;
-            border-bottom: 1px solid #e5e7eb; background: transparent;
+            font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase;
+            color: #0f172a; font-weight: 700; padding: 16px 14px;
+            border-bottom: 2px solid #cbd5e1; background: #f1f5f9;
+            position: sticky; top: 0; z-index: 2;
         }
-        .orders-table tbody td {
-            padding: 14px 12px; border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle; font-size: 14px;
-        }
-        .orders-table tbody tr:hover { background-color: #f8fafc; }
-        .status-badge { font-size: 11px; padding: 5px 10px; font-weight: 600; border-radius: 12px; }
+        .orders-table tbody td { padding: 16px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 15px; background: white; }
+        .orders-table tbody tr:hover td { background-color: #f8fafc; }
+        .status-badge { font-size: 13px; padding: 6px 14px; font-weight: 700; border-radius: 14px; white-space: nowrap; }
         .status-Received { background-color: #fef3c7; color: #92400e; }
         .status-Washing { background-color: #dbeafe; color: #1e40af; }
         .status-Drying { background-color: #ede9fe; color: #6b21a8; }
         .status-Ready { background-color: #d1fae5; color: #065f46; }
         .status-PickedUp { background-color: #f1f5f9; color: #475569; }
-        .btn-manage { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; }
-        .btn-manage:hover { background: #f8fafc; border-color: #cbd5e1; }
-        .order-checkbox { cursor: pointer; transform: scale(1.2); }
-        .row-selected { background-color: #eff6ff !important; }
+        .action-btn { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid; cursor: pointer; white-space: nowrap; font-weight: 600; }
+        .btn-status { background: #1e40af; color: white; border-color: #1e40af; }
+        .btn-pay { background: #10b981; color: white; border-color: #10b981; }
+        .btn-unpay { background: white; color: #92400e; border-color: #f59e0b; }
+        .btn-print { background: white; color: #1e40af; border-color: #bfdbfe; }
+        .btn-del { background: white; color: #dc2626; border-color: #fecaca; }
+        .order-checkbox { cursor: pointer; transform: scale(1.5); }
+        .row-selected td { background-color: #eff6ff !important; }
+        .customer-name { font-weight: 700; color: #1e293b; font-size: 15px; }
+        .order-id { font-weight: 700; color: #64748b; font-size: 15px; }
+        .date-cell { color: #64748b; font-size: 13px; }
+        .total-cell { font-weight: 700; color: #1e293b; font-size: 15px; }
+        .payment-badge { font-size: 13px; padding: 5px 12px; font-weight: 700; border-radius: 12px; }
         .batch-bar {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px;
@@ -45,29 +62,44 @@
         }
         .batch-bar.show { display: flex; }
         .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
-        .batch-bar .btn { font-size: 12px; }
 
-        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
         [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .orders-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
-        [data-theme="dark"] .orders-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .orders-table tbody tr:hover { background-color: #0f172a !important; }
-        [data-theme="dark"] .page-title { color: #e2e8f0 !important; }
+        [data-theme="dark"] .orders-table thead th { color: #f1f5f9 !important; border-color: #475569 !important; background: #0f172a !important; }
+        [data-theme="dark"] .orders-table tbody td { border-color: #334155 !important; color: #ffffff !important; background: #1e293b !important; }
+        [data-theme="dark"] .orders-table tbody tr:hover td { background-color: #16223b !important; }
+        [data-theme="dark"] .customer-name, [data-theme="dark"] .total-cell { color: #ffffff !important; }
+        [data-theme="dark"] .page-title { color: #ffffff !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
-        [data-theme="dark"] .btn-manage { background: #334155; border-color: #475569; color: #cbd5e1; }
-        [data-theme="dark"] .btn-manage:hover { background: #475569; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] .row-selected { background-color: #1e3a8a !important; }
+        [data-theme="dark"] .row-selected td { background-color: #1e3a8a !important; }
         [data-theme="dark"] .batch-bar { background: #020617 !important; }
         [data-theme="dark"] .dropdown-menu { background-color: #1e293b !important; border-color: #334155 !important; }
         [data-theme="dark"] .dropdown-item { color: #e2e8f0 !important; }
-        [data-theme="dark"] .dropdown-item:hover { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .btn-print { background: #334155; color: #60a5fa; border-color: #475569; }
+        [data-theme="dark"] .btn-del { background: #334155; color: #f87171; border-color: #7f1d1d; }
+        [data-theme="dark"] .btn-unpay { background: #334155; color: #fbbf24; border-color: #92400e; }
+        [data-theme="dark"] .orders-scroll-box::-webkit-scrollbar-track { background: #1e293b; }
+        [data-theme="dark"] .orders-scroll-box::-webkit-scrollbar-thumb { background: #475569; }
+
+        .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
+        .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
+        .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
+        .btn-outline-warning:hover { background: #f59e0b !important; color: white !important; }
+        .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
+        .btn-outline-primary:hover { background: #1e40af !important; color: white !important; }
+        .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
+        .btn-outline-success:hover { background: #10b981 !important; color: white !important; }
+        .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
+        .btn-outline-dark:hover { background: #1e293b !important; color: white !important; }
+        [data-theme="dark"] .btn-outline-secondary { color: #e2e8f0 !important; border-color: #475569 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-warning { color: #fbbf24 !important; border-color: #92400e !important; background: #422006 !important; }
+        [data-theme="dark"] .btn-outline-primary { color: #93c5fd !important; border-color: #1e40af !important; background: #1e3a8a !important; }
+        [data-theme="dark"] .btn-outline-success { color: #6ee7b7 !important; border-color: #065f46 !important; background: #064e3b !important; }
+        [data-theme="dark"] .btn-outline-dark { color: #f1f5f9 !important; border-color: #cbd5e1 !important; background: #334155 !important; }
     </style>
 </head>
 <body>
@@ -75,7 +107,7 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Hawi's Lovada</h4>
+            <div class="text-center mb-4"><img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'"></div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
             <a href="/services.html">🧴 Services</a>
@@ -91,7 +123,6 @@
 
         <div class="col-md-10 p-4">
             <h3 class="page-title">Orders</h3>
-
             <div class="panel mb-4">
                 <div class="row g-2">
                     <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search customer name or order #" oninput="debouncedLoad()"></div>
@@ -103,32 +134,41 @@
 
             <div class="panel p-0">
                 <div class="p-3 border-bottom">
-                    <button class="btn filter-btn btn-primary" onclick="setFilter('all')">All</button>
-                    <button class="btn filter-btn btn-outline-warning" onclick="setFilter('unpaid')">💰 Unpaid</button>
-                    <button class="btn filter-btn btn-outline-warning" onclick="setFilter('received')">📥 Received</button>
-                    <button class="btn filter-btn btn-outline-primary" onclick="setFilter('washing')">🌀 Washing</button>
-                    <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('drying')">💨 Drying</button>
-                    <button class="btn filter-btn btn-outline-success" onclick="setFilter('ready')">✅ Ready</button>
-                    <button class="btn filter-btn btn-outline-dark" onclick="setFilter('pickedup')">📦 Picked Up</button>
+                    <div class="mb-2">
+                        <small class="text-muted fw-bold me-2">PERIOD:</small>
+                        <button class="btn filter-btn period-btn active" data-period="today" onclick="setPeriod('today', this)">📅 Today</button>
+                        <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">📆 This Week</button>
+                        <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">🗓️ This Month</button>
+                        <button class="btn filter-btn period-btn" data-period="all" onclick="setPeriod('all', this)">📊 All</button>
+                    </div>
+                    <div>
+                        <small class="text-muted fw-bold me-2">STATUS:</small>
+                        <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('all')">All</button>
+                        <button class="btn filter-btn btn-outline-warning" onclick="setFilter('unpaid')">💰 Unpaid</button>
+                        <button class="btn filter-btn btn-outline-warning" onclick="setFilter('received')">📥 Received</button>
+                        <button class="btn filter-btn btn-outline-primary" onclick="setFilter('washing')">🌀 Washing</button>
+                        <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('drying')">💨 Drying</button>
+                        <button class="btn filter-btn btn-outline-success" onclick="setFilter('ready')">✅ Ready</button>
+                        <button class="btn filter-btn btn-outline-dark" onclick="setFilter('pickedup')">📦 Picked Up</button>
+                    </div>
                 </div>
-
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 40px;"><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
-                            <th style="width: 60px;">#</th>
-                            <th style="width: 140px;">Date</th>
-                            <th>Customer</th>
-                            <th class="text-end" style="width: 110px;">Total</th>
-                            <th style="width: 100px;">Payment</th>
-                            <th style="width: 130px;">Status</th>
-                            <th class="text-end" style="width: 260px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTable">
-                        <tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr>
-                    </tbody>
-                </table>
+                <div class="orders-scroll-box">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;"><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
+                                <th style="width: 70px;">#</th>
+                                <th style="width: 150px;">Date</th>
+                                <th>Customer</th>
+                                <th class="text-end" style="width: 130px;">Total</th>
+                                <th style="width: 120px;">Payment</th>
+                                <th style="width: 140px;">Status</th>
+                                <th class="text-end" style="width: 320px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -148,17 +188,21 @@
     </div>
     <button class="btn btn-sm btn-success" onclick="batchPay()">💰 Mark Paid</button>
     <button class="btn btn-sm btn-warning" onclick="batchUnpay()">⏳ Mark Unpaid</button>
-    <button class="btn btn-sm btn-danger" onclick="batchDelete()">🗑 Delete</button>
+    <button class="btn btn-sm btn-danger" id="batchDeleteBtn" onclick="batchDelete()">🗑 Delete</button>
     <button class="btn btn-sm btn-outline-light" onclick="clearSelection()">✕ Clear</button>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/role-guard.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
+    const userRole = localStorage.getItem('userRole') || 'staff';
     if (!authToken) { window.location.href = '/login.html'; }
-
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
     const statusList = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
     let currentFilter = 'all';
+    let currentPeriod = 'today';
     let searchTimeout;
 
     function statusBadgeClass(status) {
@@ -175,22 +219,49 @@
         const currentIdx = statusList.indexOf(currentStatus);
         if (currentIdx === statusList.length - 1) return `<span class="text-muted small">Complete</span>`;
         const nextStatus = statusList[currentIdx + 1];
-        return `<button class="btn btn-sm btn-primary" onclick="changeStatus(${order.id}, '${nextStatus}')">→ ${nextStatus}</button>`;
+        return `<button class="action-btn btn-status" onclick="changeStatus(${order.id}, '${nextStatus}')">→ ${nextStatus}</button>`;
     }
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
     function setFilter(f) { currentFilter = f; loadOrders(); }
+
+    function setPeriod(period, btn) {
+        currentPeriod = period;
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        loadOrders();
+    }
+
+    function toISO(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+    function getPeriodDates() {
+        const today = new Date();
+        const todayStr = toISO(today);
+        if (currentPeriod === 'today') return { from: todayStr, to: todayStr };
+        if (currentPeriod === 'week') {
+            const start = new Date(today);
+            const day = start.getDay();
+            start.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
+            return { from: toISO(start), to: todayStr };
+        }
+        if (currentPeriod === 'month') { const start = new Date(today.getFullYear(), today.getMonth(), 1); return { from: toISO(start), to: todayStr }; }
+        return { from: '', to: '' };
+    }
+
     function clearFilters() {
         document.getElementById('searchBox').value = '';
         document.getElementById('dateFrom').value = '';
         document.getElementById('dateTo').value = '';
         currentFilter = 'all';
+        currentPeriod = 'today';
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('.period-btn[data-period="today"]').classList.add('active');
         loadOrders();
     }
 
-    function getSelectedIds() {
-        return Array.from(document.querySelectorAll('.order-checkbox-row:checked')).map(cb => parseInt(cb.value));
-    }
+    function getSelectedIds() { return Array.from(document.querySelectorAll('.order-checkbox-row:checked')).map(cb => parseInt(cb.value)); }
     function updateBatchBar() {
         const ids = getSelectedIds();
         document.getElementById('selectedCount').innerText = ids.length;
@@ -211,18 +282,16 @@
         updateBatchBar();
     }
     function clearSelection() {
-        document.querySelectorAll('.order-checkbox-row').forEach(cb => {
-            cb.checked = false;
-            cb.closest('tr').classList.remove('row-selected');
-        });
+        document.querySelectorAll('.order-checkbox-row').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('row-selected'); });
         document.getElementById('selectAll').checked = false;
         updateBatchBar();
     }
 
     function loadOrders() {
         const search = document.getElementById('searchBox').value.trim();
-        const dateFrom = document.getElementById('dateFrom').value;
-        const dateTo = document.getElementById('dateTo').value;
+        let dateFrom = document.getElementById('dateFrom').value;
+        let dateTo = document.getElementById('dateTo').value;
+        if (!search && !dateFrom && !dateTo) { const pd = getPeriodDates(); dateFrom = pd.from; dateTo = pd.to; }
         let url = '/api/orders?filter=' + currentFilter;
         if (search) url += '&search=' + encodeURIComponent(search);
         if (dateFrom) url += '&dateFrom=' + dateFrom;
@@ -236,145 +305,154 @@
             .then(orders => {
                 if (!orders) return;
                 const table = document.getElementById('ordersTable');
-                if (orders.length === 0) {
-                    table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No orders found.</td></tr>';
-                    updateBatchBar();
-                    return;
-                }
+                if (orders.length === 0) { table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No orders found.</td></tr>'; updateBatchBar(); return; }
                 table.innerHTML = orders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
                     const payBadge = isPaid ? 'bg-success' : 'bg-warning text-dark';
-                    const payBtn = isPaid
-                        ? `<button class="btn btn-sm btn-outline-warning" onclick="markUnpaid(${o.id})">Mark Unpaid</button>`
-                        : `<button class="btn btn-sm btn-success" onclick="markPaid(${o.id})">Mark Paid</button>`;
+                    const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">↺ Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">✓ Paid</button>`;
                     const status = o.status || 'Received';
-                    return `
-                        <tr>
-                            <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
-                            <td>#${o.id}</td>
-                            <td><small>${date}</small></td>
-                            <td>${o.customer}</td>
-                            <td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td>
-                            <td><span class="badge ${payBadge}">${o.payment_status}</span></td>
-                            <td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
-                            <td class="text-end">
-                                <div class="btn-group">
-                                    <button class="btn btn-sm btn-outline-info dropdown-toggle" data-bs-toggle="dropdown" style="border-radius: 6px 0 0 6px;">🖨️</button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '58'); return false;">Print 58mm</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '80'); return false;">Print 80mm</a></li>
-                                    </ul>
-                                </div>
-                                ${nextStatusButton(o)}
-                                ${payBtn}
-                                <button class="btn btn-sm btn-outline-danger ms-1" onclick="deleteOrder(${o.id})">🗑</button>
-                            </td>
-                        </tr>
-                    `;
+                    const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">🗑</button>` : '';
+                    return `<tr><td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td><td><span class="order-id">#${o.id}</span></td><td><span class="date-cell">${date}</span></td><td><span class="customer-name">${o.customer}</span></td><td class="text-end"><span class="total-cell">₱${parseFloat(o.total).toFixed(2)}</span></td><td><span class="badge ${payBadge} payment-badge">${o.payment_status}</span></td><td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td><td class="text-end"><div class="d-inline-flex align-items-center gap-2"><div class="dropdown d-inline"><button class="action-btn btn-print dropdown-toggle" data-bs-toggle="dropdown">🖨️</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '58'); return false;">Print 58mm</a></li><li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '80'); return false;">Print 80mm</a></li></ul></div>${nextStatusButton(o)}${payBtn}${deleteBtnHtml}</div></td></tr>`;
                 }).join('');
                 document.getElementById('selectAll').checked = false;
                 updateBatchBar();
             });
     }
 
-    function changeStatus(id, newStatus) {
-        fetch('/api/orders/' + id + '/status', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ status: newStatus }) })
-            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
-    }
+    function changeStatus(id, newStatus) { fetch('/api/orders/' + id + '/status', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ status: newStatus }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); }); }
     function markPaid(id) { fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function markUnpaid(id) { fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function deleteOrder(id) {
-        if (!confirm('Delete order #' + id + '? This cannot be undone.')) return;
+        if (userRole === 'cashier') return alert('Cashiers cannot delete orders.');
+        if (!confirm('Delete order #' + id + '?\n\n⚠️ Sale will STILL count in your reports.')) return;
         fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
     }
-
     function batchStatus(status) {
         const ids = getSelectedIds();
         if (ids.length === 0 || !confirm(`Change status of ${ids.length} order(s) to "${status}"?`)) return;
-        fetch('/api/orders/batch/status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids, status }) })
-            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+        fetch('/api/orders/batch/status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids, status }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
     function batchPay() {
         const ids = getSelectedIds();
         if (ids.length === 0 || !confirm(`Mark ${ids.length} order(s) as PAID?`)) return;
-        fetch('/api/orders/batch/pay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
-            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+        fetch('/api/orders/batch/pay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
     function batchUnpay() {
         const ids = getSelectedIds();
         if (ids.length === 0 || !confirm(`Mark ${ids.length} order(s) as UNPAID?`)) return;
-        fetch('/api/orders/batch/unpay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
-            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+        fetch('/api/orders/batch/unpay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
     function batchDelete() {
+        if (userRole === 'cashier') return alert('Cashiers cannot delete orders.');
         const ids = getSelectedIds();
         if (ids.length === 0) return;
-        if (!confirm(`⚠️ DELETE ${ids.length} order(s) permanently?`)) return;
-        fetch('/api/orders/batch/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
-            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
+        if (!confirm(`⚠️ DELETE ${ids.length} order(s)?\n\nSales STILL count in your reports.`)) return;
+        fetch('/api/orders/batch/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
 
     function reprintReceipt(orderId, size) {
-        fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } })
-            .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
+        fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
     }
 
     function renderReceipt(order, size) {
         const isPaid = order.payment_status === 'Paid';
-        const statusLabel = isPaid ? '** PAID **' : '** UNPAID **';
-        const payNote = isPaid ? '' : 'Pay on Pickup';
+        const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
+        const payNote = isPaid ? '' : 'Please pay upon pickup.';
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const logoSrc = window.location.origin + '/logo.png';
+        const cur = '₱';
+        const customerName = (order.customer || 'Walk-In Customer').toUpperCase();
 
-        const itemsHtml = order.items.map(item => {
+        const itemsCustomerHtml = order.items.map(item => {
             const nameTrunc = item.service_name.length > (size === '58' ? 16 : 28) ? item.service_name.substring(0, size === '58' ? 15 : 27) + '.' : item.service_name;
-            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.quantity}</td><td style="text-align:right;">₱${(parseFloat(item.price) * item.quantity).toFixed(2)}</td></tr>`;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.quantity}</td><td style="text-align:right;">${cur}${(parseFloat(item.price) * item.quantity).toFixed(2)}</td></tr>`;
+        }).join('');
+
+        const itemsShopHtml = order.items.map(item => {
+            const nameTrunc = item.service_name.length > (size === '58' ? 20 : 32) ? item.service_name.substring(0, size === '58' ? 19 : 31) + '.' : item.service_name;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.quantity}</td></tr>`;
         }).join('');
 
         const formattedDate = new Date(order.date).toLocaleString();
 
-        const receiptHtml = `
-            <!DOCTYPE html><html><head><title>Receipt #${order.id}</title>
-            <style>
-                @page { size: ${pageWidth} auto; margin: 0; }
-                body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; }
-                .center { text-align: center; }
-                .bold { font-weight: 900; }
-                .big { font-size: ${size === '58' ? 14 : 16}px; }
-                .divider { border-top: 1px dashed #000; margin: 4px 0; }
-                .logo { text-align: center; margin-bottom: 3px; }
-                .logo img { max-width: ${size === '58' ? '60px' : '80px'}; height: auto; filter: grayscale(100%); }
-                table { width: 100%; border-collapse: collapse; }
-                .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
-                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; }
-                .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
-                .info { font-size: ${fontSize}px; margin: 2px 0; }
-                .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #1e40af; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
-                @media print { .print-btn { display: none; } body { padding: 2mm; } }
-            </style></head><body>
+        const customerCopyHtml = `
+            <div class="receipt-copy">
                 <div class="logo"><img src="${logoSrc}" alt="Hawi's Lovada"></div>
                 <div class="center big bold">HAWI'S LOVADA</div>
-                <div class="center">Laundry Shop</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
-                <div class="divider"></div>
+                <div class="divider-solid"></div>
                 <div class="info">Order #: <span class="bold">${order.id}</span></div>
                 <div class="info">Date: ${formattedDate}</div>
                 <div class="info">Customer: ${order.customer}</div>
                 <div class="divider"></div>
-                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
                 <div class="divider"></div>
-                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">₱${parseFloat(order.total).toFixed(2)}</td></tr></table>
+                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${parseFloat(order.total).toFixed(2)}</td></tr></table>
+                <div class="divider"></div>
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
-                <div class="footer">Thank you for your business!<br>Please keep this receipt.<br>Claim within 30 days.</div>
-                <br><br><br>
-                <button class="print-btn" onclick="window.print()">🖨️ Print</button>
-            </body></html>
+                <div class="center big bold customer-name">${customerName}</div>
+                <div class="divider-solid"></div>
+                <div class="footer">Thank you for your business!</div>
+            </div>
         `;
-        const w = window.open('', '_blank', 'width=400,height=600');
+
+        const shopCopyHtml = `
+            <div class="receipt-copy shop-copy">
+                <div class="copy-label">SHOP COPY</div>
+                <div class="logo"><img src="${logoSrc}" alt="Hawi's Lovada"></div>
+                <div class="center big bold">HAWI'S LOVADA</div>
+                <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
+                <div class="center big bold customer-name">${customerName}</div>
+                <div class="divider-solid"></div>
+                <div class="info">Order #: <span class="bold">${order.id}</span></div>
+                <div class="info">Date: ${formattedDate}</div>
+                <div class="divider"></div>
+                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
+                <div class="divider"></div>
+                <div class="status">${statusLabel}</div>
+                ${payNote ? `<div class="center">${payNote}</div>` : ''}
+                <div class="divider-solid"></div>
+                <div class="footer">Thank you for your business!</div>
+            </div>
+        `;
+
+        const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${order.id}</title>
+            <style>
+                @page { size: ${pageWidth} auto; margin: 0; }
+                body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; }
+                .receipt-copy { padding-bottom: 10px; }
+                .receipt-copy.shop-copy { border-top: 2px dashed #000; padding-top: 12px; margin-top: 10px; }
+                .copy-label { text-align: center; font-weight: 900; background: #000; color: #fff; padding: 4px; margin-bottom: 8px; font-size: ${fontSize + 1}px; letter-spacing: 2px; }
+                .center { text-align: center; }
+                .bold { font-weight: 900; }
+                .big { font-size: ${size === '58' ? 14 : 16}px; }
+                .customer-name { margin-top: 2px; margin-bottom: 4px; }
+                .divider { border-top: 1px dashed #000; margin: 4px 0; }
+                .divider-solid { border-top: 2px solid #000; margin: 6px 0; }
+                .logo { text-align: center; margin-bottom: 3px; }
+                .logo img { max-width: ${size === '58' ? '60px' : '80px'}; height: auto; filter: grayscale(100%); }
+                table { width: 100%; border-collapse: collapse; }
+                .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
+                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; color: #000; background: #fff; }
+                .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
+                .info { font-size: ${fontSize}px; margin: 2px 0; }
+                .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
+                @media print {
+                    .print-btn { display: none; }
+                    body { padding: 2mm; }
+                    * { color: #000 !important; background: #fff !important; }
+                }
+            </style></head><body>
+                ${customerCopyHtml}
+                ${shopCopyHtml}
+                <br><br><br>
+                <button class="print-btn" onclick="window.print()">🖨️ Print Both Copies</button>
+            </body></html>`;
+        const w = window.open('', '_blank', 'width=400,height=700');
         w.document.write(receiptHtml);
         w.document.close();
     }
@@ -383,7 +461,15 @@
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
         window.location.href = '/login.html';
+    }
+
+    // Hide batch delete button for cashiers
+    if (userRole === 'cashier') {
+        const deleteBtn = document.getElementById('batchDeleteBtn');
+        if (deleteBtn) deleteBtn.style.display = 'none';
     }
 
     loadOrders();

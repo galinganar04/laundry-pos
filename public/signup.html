@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
+        .signup-card { background: white; border-radius: 16px; padding: 40px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); width: 100%; max-width: 480px; }
+        .logo-img { text-align: center; margin-bottom: 15px; }
+        .logo-img img { max-width: 140px; }
+        h2 { text-align: center; color: #1e3a8a; margin-bottom: 5px; font-weight: 700; }
+        .tagline { text-align: center; color: #dc2626; font-style: italic; font-size: 13px; margin-bottom: 25px; }
+        .btn-signup { background: #1e40af; color: white; border: none; padding: 12px; font-weight: 600; width: 100%; border-radius: 8px; margin-top: 10px; font-size: 15px; }
+        .btn-signup:hover { background: #1e3a8a; color: white; }
+        .error { color: #dc2626; text-align: center; margin-top: 12px; font-size: 14px; display: none; }
+        .success { color: #065f46; text-align: center; margin-top: 12px; font-size: 14px; display: none; }
+        .form-label { font-size: 13px; color: #475569; font-weight: 500; }
+        .note { font-size: 12px; color: #94a3b8; }
+        .locked { text-align: center; padding: 40px 20px; }
+        .locked h3 { color: #dc2626; font-size: 20px; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div class="signup-card" id="signupCard">
+        <div class="logo-img"><img src="/logo.png" alt="Hawi's Lovada" onerror="this.style.display='none'"></div>
+        <h2>Create Owner Account</h2>
+        <p class="tagline">First-time setup — owner account</p>
+
+        <form onsubmit="signup(event)">
+            <div class="mb-3">
+                <label class="form-label">Username *</label>
+                <input type="text" id="username" class="form-control" placeholder="e.g., hawi_owner" required autocomplete="username">
+                <div class="note">Used to log in. No spaces.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="full_name" class="form-control" placeholder="Your name">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email * (for password recovery)</label>
+                <input type="email" id="email" class="form-control" placeholder="owner@example.com" required autocomplete="email">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password * (min 6 characters)</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required autocomplete="new-password">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Confirm Password *</label>
+                <input type="password" id="password2" class="form-control" placeholder="Repeat password" required autocomplete="new-password">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Security Question *</label>
+                <select id="security_question" class="form-select" required>
+                    <option value="">-- Choose a question --</option>
+                    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                    <option value="What is your favorite pet's name?">What is your favorite pet's name?</option>
+                    <option value="What was the name of your first school?">What was the name of your first school?</option>
+                    <option value="What city were you born in?">What city were you born in?</option>
+                    <option value="What is your favorite food?">What is your favorite food?</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Security Answer *</label>
+                <input type="text" id="security_answer" class="form-control" placeholder="Your answer" required>
+                <div class="note">Backup recovery if email is lost. Not case-sensitive.</div>
+            </div>
+            <button type="submit" class="btn-signup" id="signupBtn">✅ Create Owner Account</button>
+            <div class="error" id="errorMsg"></div>
+            <div class="success" id="successMsg"></div>
+        </form>
+        <a href="/login.html" class="d-block text-center mt-3" style="color:#64748b; font-size:13px;">← Back to login</a>
+    </div>
+
+    <div class="signup-card locked" id="lockedCard" style="display: none;">
+        <div class="logo-img"><img src="/logo.png" alt="Hawi's Lovada" onerror="this.style.display='none'"></div>
+        <h3>🔒 Signup Closed</h3>
+        <p>The owner account already exists.</p>
+        <p>Please log in with your credentials, or ask the owner to add you from Settings.</p>
+        <a href="/login.html" class="btn btn-primary mt-3" style="background:#1e40af; border:none;">Go to Login</a>
+    </div>
+
+<script>
+    // Check if signup is open
+    fetch('/api/auth/signup-status')
+        .then(res => res.json())
+        .then(data => {
+            if (!data.open) {
+                document.getElementById('signupCard').style.display = 'none';
+                document.getElementById('lockedCard').style.display = 'block';
+            }
+        });
+
+    function signup(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const full_name = document.getElementById('full_name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const password2 = document.getElementById('password2').value;
+        const security_question = document.getElementById('security_question').value;
+        const security_answer = document.getElementById('security_answer').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+        const successMsg = document.getElementById('successMsg');
+        const btn = document.getElementById('signupBtn');
+
+        errorMsg.style.display = 'none';
+        successMsg.style.display = 'none';
+
+        if (!username || !email || !password || !security_question || !security_answer) {
+            errorMsg.innerText = 'Please fill in all required fields.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+        if (/\s/.test(username)) {
+            errorMsg.innerText = 'Username cannot contain spaces.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+        if (password.length < 6) {
+            errorMsg.innerText = 'Password must be at least 6 characters.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+        if (password !== password2) {
+            errorMsg.innerText = 'Passwords do not match.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        btn.innerText = 'Creating account...';
+        btn.disabled = true;
+
+        fetch('/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password, email, full_name, security_question, security_answer })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                successMsg.innerText = '✅ Owner account created! Redirecting to login...';
+                successMsg.style.display = 'block';
+                setTimeout(() => { window.location.href = '/login.html'; }, 2000);
+            } else {
+                errorMsg.innerText = data.error || 'Signup failed.';
+                errorMsg.style.display = 'block';
+                btn.innerText = '✅ Create Owner Account';
+                btn.disabled = false;
+            }
+        })
+        .catch(() => {
+            errorMsg.innerText = 'Connection error. Try again.';
+            errorMsg.style.display = 'block';
+            btn.innerText = '✅ Create Owner Account';
+            btn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>

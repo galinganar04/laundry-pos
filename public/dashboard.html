@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hawi's Lovada - Dashboard</title>
+    <link rel="icon" type="image/png" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
@@ -11,39 +11,95 @@
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
-        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
-        .stat-card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 4px solid #1e40af; }
-        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1.5px; font-weight: 600; }
-        .stat-card .value { font-size: 26px; font-weight: 700; color: #1e293b; margin-top: 4px; }
+        .page-title { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
+        .stat-card { background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #1e40af; }
+        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #475569; letter-spacing: 1.5px; font-weight: 700; }
+        .stat-card .value { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px; }
         .stat-card.green { border-left-color: #10b981; }
         .stat-card.orange { border-left-color: #f59e0b; }
         .stat-card.blue { border-left-color: #3b82f6; }
-        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
-        .chart-bar { background: #1e40af; border-radius: 4px 4px 0 0; }
-        .table { font-size: 13px; }
+        .panel { background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .panel h5 { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
+        .table { font-size: 14px; color: #0f172a !important; margin-bottom: 0; }
         .table thead th {
-            font-size: 11px; text-transform: uppercase; color: #94a3b8;
-            font-weight: 600; letter-spacing: 1px; border-bottom: 1px solid #e5e7eb;
-            padding: 10px 8px; background: transparent;
+            font-size: 12px; text-transform: uppercase; color: #1e293b !important;
+            font-weight: 800; letter-spacing: 1px; border-bottom: 2px solid #cbd5e1;
+            padding: 12px 10px; background: #e2e8f0 !important; position: sticky; top: 0; z-index: 2;
         }
-        .table td { padding: 10px 8px; border-color: #f1f5f9; vertical-align: middle; }
+        .table tbody td { padding: 12px 10px; border-color: #e2e8f0; vertical-align: middle; color: #0f172a !important; font-weight: 600 !important; background: #ffffff; }
+        .table tbody tr:nth-child(even) td { background: #f8fafc; }
+        .table tbody tr:hover td { background: #e0e7ff !important; }
+        .table strong { color: #0f172a !important; font-weight: 800 !important; }
+        .service-name, .customer-name, .order-id { color: #0f172a !important; font-weight: 800 !important; }
+        .date-text { color: #334155 !important; font-weight: 600 !important; font-size: 13px; }
+        .table .badge { font-size: 12px; padding: 5px 10px; font-weight: 700; }
+        .scroll-box { max-height: 300px; overflow-y: scroll; overflow-x: hidden; border: 1px solid #e2e8f0; border-radius: 8px; }
+        .scroll-box::-webkit-scrollbar { width: 10px; }
+        .scroll-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+        .scroll-box::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
 
-        [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
+        .chart-header h5 { margin-bottom: 0; }
+        .chart-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chart-filters select {
+            padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;
+            background: white; font-size: 13px; font-weight: 600; color: #1e293b; cursor: pointer;
+        }
+        .chart-summary { font-size: 13px; color: #334155; font-weight: 600; margin-bottom: 10px; }
+
+        .chart-area {
+            display: flex; align-items: flex-end; justify-content: center;
+            gap: 12px; height: 240px; padding: 10px 0 0 0;
+            border-bottom: 2px solid #cbd5e1; position: relative; overflow-x: auto;
+        }
+        .chart-area::-webkit-scrollbar { height: 8px; }
+        .chart-area::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        .chart-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 70px; cursor: pointer; }
+        .chart-col .chart-value { font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 6px; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .chart-col .chart-bar-wrap { width: 100%; display: flex; justify-content: center; align-items: flex-end; height: 150px; }
+        .chart-col .chart-bar {
+            width: 42px; min-height: 6px;
+            background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(30,64,175,0.3);
+        }
+        .chart-col:hover .chart-bar {
+            background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
+            box-shadow: 0 4px 12px rgba(30,64,175,0.5);
+        }
+        .chart-col .chart-label { font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 8px; white-space: nowrap; }
+        .chart-col .chart-sub { font-size: 11px; color: #475569; font-weight: 600; margin-top: 2px; white-space: nowrap; }
+        .chart-empty { text-align: center; color: #94a3b8; padding: 40px; font-size: 14px; width: 100%; }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
         [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .stat-card .value { color: #e2e8f0 !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; }
+        [data-theme="dark"] .stat-card .value { color: #ffffff !important; }
         [data-theme="dark"] .stat-card .label { color: #94a3b8 !important; }
-        [data-theme="dark"] .table { color: #e2e8f0 !important; }
-        [data-theme="dark"] .table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
-        [data-theme="dark"] .table td { border-color: #334155 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .page-title, [data-theme="dark"] .panel h5 { color: #e2e8f0 !important; }
-        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] .chart-bar { background: #3b82f6 !important; }
+        [data-theme="dark"] .table { color: #f1f5f9 !important; }
+        [data-theme="dark"] .table thead th { color: #f1f5f9 !important; border-color: #475569 !important; background: #0f172a !important; }
+        [data-theme="dark"] .table tbody td { border-color: #334155 !important; color: #ffffff !important; background: #1e293b !important; }
+        [data-theme="dark"] .table tbody tr:nth-child(even) td { background: #16223b !important; color: #ffffff !important; }
+        [data-theme="dark"] .table tbody tr:hover td { background: #1e3a8a !important; color: #ffffff !important; }
+        [data-theme="dark"] .table strong, [data-theme="dark"] .service-name, [data-theme="dark"] .customer-name, [data-theme="dark"] .order-id { color: #ffffff !important; }
+        [data-theme="dark"] .date-text { color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .panel h5 { color: #ffffff !important; }
+        [data-theme="dark"] .text-muted { color: #cbd5e1 !important; }
+        [data-theme="dark"] .scroll-box { border-color: #334155; }
+        [data-theme="dark"] .scroll-box::-webkit-scrollbar-track { background: #1e293b; }
+        [data-theme="dark"] .scroll-box::-webkit-scrollbar-thumb { background: #475569; }
+        [data-theme="dark"] .chart-filters select { background: #334155; border-color: #475569; color: #ffffff; }
+        [data-theme="dark"] .chart-summary { color: #e2e8f0 !important; }
+        [data-theme="dark"] .chart-area { border-color: #334155; }
+        [data-theme="dark"] .chart-col .chart-value { background: #334155; color: #ffffff !important; }
+        [data-theme="dark"] .chart-col .chart-label { color: #ffffff !important; }
+        [data-theme="dark"] .chart-col .chart-sub { color: #cbd5e1 !important; }
+        [data-theme="dark"] .chart-empty { color: #cbd5e1; }
     </style>
 </head>
 <body>
@@ -51,12 +107,14 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Hawi's Lovada</h4>
+            <div class="text-center mb-4">
+                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+            </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html" class="active">📊 Dashboard</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
             <a href="/orders.html">📋 Orders</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/services.html">🧴 Services</a>            
             <a href="/replenishments.html">📥 Replenishments</a>
             <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
@@ -76,27 +134,52 @@
             </div>
 
             <div class="panel mb-4">
-                <h5>Last 7 Days</h5>
-                <div id="weeklyChart" style="height: 220px; display: flex; align-items: flex-end; justify-content: center; gap: 20px; padding: 20px 0;"></div>
+                <div class="chart-header">
+                    <h5>Sales Chart</h5>
+                    <div class="chart-filters">
+                        <select id="yearSelect" onchange="loadChart()"></select>
+                        <select id="monthSelect" onchange="onMonthChange()">
+                            <option value="all">Whole Year</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-summary" id="chartSummary">Loading...</div>
+                <div id="weeklyChart" class="chart-area"></div>
             </div>
 
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="panel">
                         <h5>Top Services</h5>
-                        <table class="table">
-                            <thead><tr><th>Service</th><th class="text-end">Qty</th><th class="text-end">Revenue</th></tr></thead>
-                            <tbody id="topServicesTable"><tr><td colspan="3" class="text-muted text-center">No data yet.</td></tr></tbody>
-                        </table>
+                        <div class="scroll-box">
+                            <table class="table">
+                                <thead><tr><th>Service</th><th class="text-end">Qty</th><th class="text-end">Revenue</th></tr></thead>
+                                <tbody id="topServicesTable"><tr><td colspan="3" class="text-muted text-center py-3">No data yet.</td></tr></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 <div class="col-md-7">
                     <div class="panel">
                         <h5>Recent Orders</h5>
-                        <table class="table">
-                            <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Status</th></tr></thead>
-                            <tbody id="recentOrdersTable"><tr><td colspan="5" class="text-muted text-center">No orders yet.</td></tr></tbody>
-                        </table>
+                        <div class="scroll-box">
+                            <table class="table">
+                                <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Status</th></tr></thead>
+                                <tbody id="recentOrdersTable"><tr><td colspan="5" class="text-muted text-center py-3">No orders yet.</td></tr></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -108,6 +191,7 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
+    // ===== Main dashboard numbers =====
     fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
         .then(res => {
             if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -120,45 +204,100 @@
             document.getElementById('allTimeRevenue').innerText = '₱' + data.allTime.revenue.toFixed(2);
             document.getElementById('pendingOrders').innerText = data.pending;
 
-            const chart = document.getElementById('weeklyChart');
-            if (data.weekly.length === 0) {
-                chart.innerHTML = '<p class="text-muted">No sales data yet.</p>';
-            } else {
-                const maxRevenue = Math.max(...data.weekly.map(d => parseFloat(d.revenue)), 1);
-                chart.innerHTML = data.weekly.map(day => {
-                    const height = (parseFloat(day.revenue) / maxRevenue) * 140;
-                    const date = new Date(day.day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    return `
-                        <div style="width: 80px; text-align: center;">
-                            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 4px;">₱${parseFloat(day.revenue).toFixed(0)}</div>
-                            <div class="chart-bar" style="height: ${Math.max(height, 4)}px; width: 40px; margin: 0 auto;"></div>
-                            <div style="font-size: 11px; margin-top: 6px;">${date}</div>
-                            <div style="font-size: 10px; color: #94a3b8;">${day.order_count} orders</div>
-                        </div>
-                    `;
-                }).join('');
-            }
-
             const servicesTable = document.getElementById('topServicesTable');
             if (data.topServices.length === 0) {
-                servicesTable.innerHTML = '<tr><td colspan="3" class="text-muted text-center">No sales yet.</td></tr>';
+                servicesTable.innerHTML = '<tr><td colspan="3" class="text-muted text-center py-3">No sales yet.</td></tr>';
             } else {
                 servicesTable.innerHTML = data.topServices.map(s => `
-                    <tr><td><strong>${s.service_name}</strong></td><td class="text-end">${s.total_qty}</td><td class="text-end">₱${parseFloat(s.total_revenue).toFixed(2)}</td></tr>
+                    <tr><td><span class="service-name">${s.service_name}</span></td><td class="text-end"><strong>${s.total_qty}</strong></td><td class="text-end"><strong>₱${parseFloat(s.total_revenue).toFixed(2)}</strong></td></tr>
                 `).join('');
             }
 
             const ordersTable = document.getElementById('recentOrdersTable');
             if (data.recentOrders.length === 0) {
-                ordersTable.innerHTML = '<tr><td colspan="5" class="text-muted text-center">No orders yet.</td></tr>';
+                ordersTable.innerHTML = '<tr><td colspan="5" class="text-muted text-center py-3">No orders yet.</td></tr>';
             } else {
                 ordersTable.innerHTML = data.recentOrders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const badge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
-                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
+                    return `<tr><td><span class="order-id">#${o.id}</span></td><td><span class="date-text">${date}</span></td><td><span class="customer-name">${o.customer}</span></td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
                 }).join('');
             }
         });
+
+    // ===== Years dropdown =====
+    function loadYears() {
+        fetch('/api/dashboard/years', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(years => {
+                const sel = document.getElementById('yearSelect');
+                sel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+                sel.value = years[years.length - 1];
+                loadChart();
+            });
+    }
+
+    function onMonthChange() {
+        loadChart();
+    }
+
+    function loadChart() {
+        const year = document.getElementById('yearSelect').value;
+        const month = document.getElementById('monthSelect').value;
+        const view = (month === 'all') ? 'month' : 'day';
+
+        fetch(`/api/dashboard/chart?year=${year}&month=${month}&view=${view}`, { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    document.getElementById('weeklyChart').innerHTML = '<div class="chart-empty">Error: ' + data.error + '</div>';
+                    return;
+                }
+                renderChart(data, view, month, year);
+            });
+    }
+
+    function renderChart(data, view, month, year) {
+        const chart = document.getElementById('weeklyChart');
+        const summary = document.getElementById('chartSummary');
+        const monthName = month === 'all' ? 'Whole Year' : new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
+
+        if (!data || data.length === 0) {
+            chart.innerHTML = `<div class="chart-empty">📊 No sales for ${monthName} ${year}.<br><small>Try another period.</small></div>`;
+            summary.innerText = `Showing ${monthName} ${year} — no data`;
+            return;
+        }
+
+        const totalRevenue = data.reduce((sum, d) => sum + parseFloat(d.revenue), 0);
+        const totalOrders = data.reduce((sum, d) => sum + parseInt(d.order_count), 0);
+        summary.innerHTML = `Showing <strong>${monthName} ${year}</strong> — Total: <strong>₱${totalRevenue.toFixed(2)}</strong> • ${totalOrders} order${totalOrders === 1 ? '' : 's'}`;
+
+        const maxRevenue = Math.max(...data.map(d => parseFloat(d.revenue)), 1);
+
+        chart.innerHTML = data.map(day => {
+            const revenue = parseFloat(day.revenue);
+            const height = (revenue / maxRevenue) * 140;
+            const dateObj = new Date(day.day);
+            let topLabel, subLabel;
+            if (view === 'month') {
+                topLabel = dateObj.toLocaleDateString('en-US', { month: 'short' });
+                subLabel = day.order_count + ' order' + (day.order_count === 1 ? '' : 's');
+            } else {
+                topLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                subLabel = day.order_count + ' order' + (day.order_count === 1 ? '' : 's');
+            }
+            return `
+                <div class="chart-col" title="${dateObj.toLocaleDateString()}: ₱${revenue.toFixed(2)} (${day.order_count} orders)">
+                    <div class="chart-value">₱${revenue.toFixed(0)}</div>
+                    <div class="chart-bar-wrap"><div class="chart-bar" style="height: ${Math.max(height, 6)}px;"></div></div>
+                    <div class="chart-label">${topLabel}</div>
+                    <div class="chart-sub">${subLabel}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    loadYears();
 
     function logout() {
         const token = localStorage.getItem('authToken');
@@ -167,6 +306,7 @@
         window.location.href = '/login.html';
     }
 </script>
+<script src="/role-guard.js"></script>
 <script src="/theme.js"></script>
 </body>
 </html>

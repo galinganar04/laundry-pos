@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hawi's Lovada - Replenishments</title>
+    <link rel="icon" type="image/png" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
@@ -16,46 +16,56 @@
         .btn-primary { background: #1e40af; border-color: #1e40af; }
         .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
         .ledger-table { width: 100%; border-collapse: collapse; }
-        .ledger-table thead th {
-            font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
-            color: #94a3b8; font-weight: 600; padding: 14px 12px;
-            border-bottom: 1px solid #e5e7eb; background: transparent;
-        }
-        .ledger-table tbody td {
-            padding: 14px 12px; border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle; font-size: 14px;
-        }
+        .ledger-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; }
+        .ledger-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
         .ledger-table tbody tr:hover { background-color: #f8fafc; }
         .ref-id { color: #64748b; font-family: 'Courier New', monospace; font-size: 13px; }
         .item-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; }
         .item-stock { font-size: 11px; color: #94a3b8; }
-        .product-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #e2e8f0; margin-right: 10px; }
+        .product-thumb { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; border: 1px solid #e2e8f0; margin-right: 10px; overflow: hidden; }
+        .product-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .btn-manage { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; }
-        .btn-manage:hover { background: #f8fafc; border-color: #cbd5e1; }
+        .btn-manage:hover { background: #f8fafc; }
         .info-msg { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
         .form-label.small { font-size: 12px; color: #475569; font-weight: 500; margin-bottom: 4px; }
-        .modal-header { border-bottom: 1px solid #e5e7eb; }
-        .modal-footer { border-top: 1px solid #e5e7eb; }
-
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .ledger-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
         [data-theme="dark"] .ledger-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .ledger-table tbody tr:hover { background-color: #0f172a !important; }
         [data-theme="dark"] .item-name { color: #e2e8f0 !important; }
         [data-theme="dark"] .page-title { color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
         [data-theme="dark"] .btn-manage { background: #334155; border-color: #475569; color: #cbd5e1; }
         [data-theme="dark"] .product-thumb { background: #334155; border-color: #475569; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { border-color: #334155 !important; }
         [data-theme="dark"] .info-msg { color: #94a3b8 !important; }
+
+        /* Force all outline buttons visible */
+        .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
+        .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
+        .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
+        .btn-outline-warning:hover { background: #f59e0b !important; color: white !important; }
+        .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
+        .btn-outline-primary:hover { background: #1e40af !important; color: white !important; }
+        .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
+        .btn-outline-success:hover { background: #10b981 !important; color: white !important; }
+        .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
+        .btn-outline-dark:hover { background: #1e293b !important; color: white !important; }
+        .btn-outline-info { color: #155e75 !important; border-color: #06b6d4 !important; background: #cffafe !important; font-weight: 600 !important; }
+        .btn-outline-info:hover { background: #06b6d4 !important; color: white !important; }
+        .btn-outline-danger { color: #991b1b !important; border-color: #ef4444 !important; background: #fee2e2 !important; font-weight: 600 !important; }
+        .btn-outline-danger:hover { background: #dc2626 !important; color: white !important; }
+        [data-theme="dark"] .btn-outline-secondary { color: #e2e8f0 !important; border-color: #475569 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-warning { color: #fbbf24 !important; border-color: #92400e !important; background: #422006 !important; }
+        [data-theme="dark"] .btn-outline-primary { color: #93c5fd !important; border-color: #1e40af !important; background: #1e3a8a !important; }
+        [data-theme="dark"] .btn-outline-success { color: #6ee7b7 !important; border-color: #065f46 !important; background: #064e3b !important; }
+        [data-theme="dark"] .btn-outline-dark { color: #f1f5f9 !important; border-color: #cbd5e1 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-info { color: #67e8f9 !important; border-color: #0e7490 !important; background: #155e75 !important; }
+        [data-theme="dark"] .btn-outline-danger { color: #fca5a5 !important; border-color: #991b1b !important; background: #7f1d1d !important; }
     </style>
 </head>
 <body>
@@ -63,12 +73,14 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Hawi's Lovada</h4>
+        <div class="text-center mb-4">
+        <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+            </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
             <a href="/orders.html">📋 Orders</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/services.html">🧴 Services</a>            
             <a href="/replenishments.html" class="active">📥 Replenishments</a>
             <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
@@ -84,11 +96,7 @@
             </div>
 
             <div class="panel mb-4">
-                <div class="row g-2">
-                    <div class="col-md-5">
-                        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Filter supplier name..." oninput="debouncedLoad()">
-                    </div>
-                </div>
+                <input type="text" id="searchBox" class="form-control" placeholder="🔍 Filter supplier name..." oninput="debouncedLoad()">
             </div>
 
             <div class="panel p-0">
@@ -104,9 +112,7 @@
                             <th class="text-end" style="width: 110px;">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="ledgerTable">
-                        <tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr>
-                    </tbody>
+                    <tbody id="ledgerTable"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -123,27 +129,13 @@
             <div class="modal-body">
                 <div class="mb-3">
                     <label class="form-label small">Target Product Item</label>
-                    <select id="rProduct" class="form-select">
-                        <option value="">Select a catalog item...</option>
-                    </select>
+                    <select id="rProduct" class="form-select"><option value="">Select a catalog item...</option></select>
                 </div>
-
                 <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label small">Quantity</label>
-                        <input type="number" id="rQty" class="form-control" placeholder="0" min="1">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small">Total Cost (₱)</label>
-                        <input type="number" id="rCost" class="form-control" placeholder="0.00" step="0.01">
-                    </div>
+                    <div class="col-md-6"><label class="form-label small">Quantity</label><input type="number" id="rQty" class="form-control" placeholder="0" min="1"></div>
+                    <div class="col-md-6"><label class="form-label small">Total Cost (₱)</label><input type="number" id="rCost" class="form-control" placeholder="0.00" step="0.01"></div>
                 </div>
-
-                <div class="mb-3 mt-3">
-                    <label class="form-label small">Supplier</label>
-                    <input type="text" id="rSupplier" class="form-control" placeholder="e.g. Tech Distribution Inc.">
-                </div>
-
+                <div class="mb-3 mt-3"><label class="form-label small">Supplier</label><input type="text" id="rSupplier" class="form-control" placeholder="e.g. Tech Distribution Inc."></div>
                 <div class="mb-3">
                     <label class="form-label small">Warehouse Notes / Ledger Tags</label>
                     <textarea id="rNotes" class="form-control" rows="2" placeholder="Shipment references..."></textarea>
@@ -167,11 +159,9 @@
     let searchTimeout;
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadLedger(), 300); }
-
     function formatRefId(id) { return 'REF-' + String(id).padStart(5, '0'); }
-
     function renderThumb(r) {
-        if (r.product_image) return `<img src="${r.product_image}" class="product-thumb" alt="">`;
+        if (r.product_image) return `<span class="product-thumb"><img src="${r.product_image}"></span>`;
         return `<span class="product-thumb">${r.product_icon || '📦'}</span>`;
     }
 
@@ -181,8 +171,7 @@
             .then(products => {
                 allProducts = products || [];
                 const sel = document.getElementById('rProduct');
-                sel.innerHTML = '<option value="">Select a catalog item...</option>' +
-                    allProducts.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock})</option>`).join('');
+                sel.innerHTML = '<option value="">Select a catalog item...</option>' + allProducts.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock})</option>`).join('');
             });
     }
 
@@ -197,44 +186,18 @@
                 if (!items) return;
                 const filtered = search ? items.filter(r => (r.supplier || '').toLowerCase().includes(search)) : items;
                 const table = document.getElementById('ledgerTable');
-                if (filtered.length === 0) {
-                    table.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No replenishments yet.</td></tr>';
-                    return;
-                }
+                if (filtered.length === 0) { table.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No replenishments yet.</td></tr>'; return; }
                 table.innerHTML = filtered.map(r => {
                     const date = new Date(r.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const cost = parseFloat(r.cost) || 0;
                     const qty = parseInt(r.quantity) || 0;
                     const allocation = cost * qty;
-                    return `
-                        <tr>
-                            <td><span class="ref-id">${formatRefId(r.id)}</span></td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    ${renderThumb(r)}
-                                    <div>
-                                        <div class="item-name">${r.product_name}</div>
-                                        <div class="item-stock">+${qty} pc added</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>${r.supplier || '<span class="text-muted">—</span>'}</td>
-                            <td class="text-end">₱${cost.toFixed(2)}</td>
-                            <td class="text-end"><strong>₱${allocation.toFixed(2)}</strong></td>
-                            <td><small>${date}</small></td>
-                            <td class="text-end">
-                                <button class="btn btn-manage" onclick="viewNotes(${r.id}, '${(r.notes || '').replace(/'/g, "\\'")}')">View</button>
-                            </td>
-                        </tr>
-                    `;
+                    return `<tr><td><span class="ref-id">${formatRefId(r.id)}</span></td><td><div class="d-flex align-items-center">${renderThumb(r)}<div><div class="item-name">${r.product_name}</div><div class="item-stock">+${qty} pc added</div></div></div></td><td>${r.supplier || '<span class="text-muted">—</span>'}</td><td class="text-end">₱${cost.toFixed(2)}</td><td class="text-end"><strong>₱${allocation.toFixed(2)}</strong></td><td><small>${date}</small></td><td class="text-end"><button class="btn btn-manage" onclick="viewNotes(${r.id}, '${(r.notes || '').replace(/'/g, "\\'")}')">View</button></td></tr>`;
                 }).join('');
             });
     }
 
-    function viewNotes(id, notes) {
-        alert(`REF-${String(id).padStart(5, '0')}\n\nNotes: ${notes || '(none)'}`);
-    }
-
+    function viewNotes(id, notes) { alert(`REF-${String(id).padStart(5, '0')}\n\nNotes: ${notes || '(none)'}`); }
     function openReplenishModal() {
         document.getElementById('rProduct').value = '';
         document.getElementById('rQty').value = '';
@@ -250,10 +213,8 @@
         const cost = document.getElementById('rCost').value;
         const supplier = document.getElementById('rSupplier').value.trim();
         const notes = document.getElementById('rNotes').value.trim();
-
         if (!productId) return alert('Please select a product.');
         if (!quantity || quantity <= 0) return alert('Please enter a valid quantity.');
-
         fetch(`/api/products/${productId}/replenish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
@@ -263,8 +224,7 @@
         .then(res => {
             if (res.error) return alert('Error: ' + res.error);
             bootstrap.Modal.getInstance(document.getElementById('replenishModal')).hide();
-            loadLedger();
-            loadProducts();
+            loadLedger(); loadProducts();
         });
     }
 
@@ -277,6 +237,7 @@
 
     loadProducts().then(() => loadLedger());
 </script>
+<script src="/role-guard.js"></script>
 <script src="/theme.js"></script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hawi's Lovada - Services</title>
+    <link rel="icon" type="image/png" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
@@ -16,50 +16,62 @@
         .btn-primary { background: #1e40af; border-color: #1e40af; }
         .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
         .services-table { width: 100%; border-collapse: collapse; }
-        .services-table thead th {
-            font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
-            color: #94a3b8; font-weight: 600; padding: 14px 12px;
-            border-bottom: 1px solid #e5e7eb; background: transparent;
-        }
-        .services-table tbody td {
-            padding: 14px 12px; border-bottom: 1px solid #f1f5f9;
-            vertical-align: middle; font-size: 14px;
-        }
+        .services-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; }
+        .services-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
         .services-table tbody tr:hover { background-color: #f8fafc; }
-        .color-dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
-        .service-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; letter-spacing: 0.3px; }
+        .service-thumb { width: 44px; height: 44px; border-radius: 8px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; border: 1px solid #e2e8f0; }
+        .service-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .service-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; }
         .materials-list { font-size: 12px; color: #64748b; line-height: 1.6; }
         .btn-manage { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; }
-        .btn-manage:hover { background: #f8fafc; border-color: #cbd5e1; }
-        .modal-header { border-bottom: 1px solid #e5e7eb; }
-        .modal-footer { border-top: 1px solid #e5e7eb; }
+        .btn-manage:hover { background: #f8fafc; }
         .form-label.small { font-size: 12px; color: #475569; font-weight: 500; }
         .section-title { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
         .material-row { background: #f8fafc; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
         .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; color: #1e40af; font-size: 12px; }
-        .color-preview-box { width: 100%; height: 38px; border-radius: 6px; border: 1px solid #e5e7eb; }
-
+        .image-upload-box { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; background: #f9fafb; }
+        .image-upload-box:hover { border-color: #3b82f6; background: #eff6ff; }
+        .image-preview { max-width: 140px; max-height: 140px; border-radius: 8px; }
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .services-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
         [data-theme="dark"] .services-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .services-table tbody tr:hover { background-color: #0f172a !important; }
         [data-theme="dark"] .service-name { color: #e2e8f0 !important; }
         [data-theme="dark"] .page-title, [data-theme="dark"] .section-title { color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .form-control::placeholder { color: #94a3b8 !important; }
         [data-theme="dark"] .btn-manage { background: #334155; border-color: #475569; color: #cbd5e1; }
-        [data-theme="dark"] .btn-manage:hover { background: #475569; }
         [data-theme="dark"] .material-row { background: #0f172a; }
         [data-theme="dark"] .info-box { background: #1e3a8a; border-color: #1e40af; color: #bfdbfe; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] .modal-header, [data-theme="dark"] .modal-footer { border-color: #334155 !important; }
-        [data-theme="dark"] .color-preview-box { border-color: #475569; }
+        [data-theme="dark"] .service-thumb { background: #334155; border-color: #475569; }
+        [data-theme="dark"] .image-upload-box { background: #334155; border-color: #475569; }
+
+        /* Force all outline buttons visible */
+        .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
+        .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
+        .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
+        .btn-outline-warning:hover { background: #f59e0b !important; color: white !important; }
+        .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
+        .btn-outline-primary:hover { background: #1e40af !important; color: white !important; }
+        .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
+        .btn-outline-success:hover { background: #10b981 !important; color: white !important; }
+        .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
+        .btn-outline-dark:hover { background: #1e293b !important; color: white !important; }
+        .btn-outline-info { color: #155e75 !important; border-color: #06b6d4 !important; background: #cffafe !important; font-weight: 600 !important; }
+        .btn-outline-info:hover { background: #06b6d4 !important; color: white !important; }
+        .btn-outline-danger { color: #991b1b !important; border-color: #ef4444 !important; background: #fee2e2 !important; font-weight: 600 !important; }
+        .btn-outline-danger:hover { background: #dc2626 !important; color: white !important; }
+        [data-theme="dark"] .btn-outline-secondary { color: #e2e8f0 !important; border-color: #475569 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-warning { color: #fbbf24 !important; border-color: #92400e !important; background: #422006 !important; }
+        [data-theme="dark"] .btn-outline-primary { color: #93c5fd !important; border-color: #1e40af !important; background: #1e3a8a !important; }
+        [data-theme="dark"] .btn-outline-success { color: #6ee7b7 !important; border-color: #065f46 !important; background: #064e3b !important; }
+        [data-theme="dark"] .btn-outline-dark { color: #f1f5f9 !important; border-color: #cbd5e1 !important; background: #334155 !important; }
+        [data-theme="dark"] .btn-outline-info { color: #67e8f9 !important; border-color: #0e7490 !important; background: #155e75 !important; }
+        [data-theme="dark"] .btn-outline-danger { color: #fca5a5 !important; border-color: #991b1b !important; background: #7f1d1d !important; }
     </style>
 </head>
 <body>
@@ -67,12 +79,14 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-            <h4 class="text-center mb-4">Hawi's Lovada</h4>
+        <div class="text-center mb-4">
+        <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+            </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/services.html" class="active">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
             <a href="/orders.html">📋 Orders</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/services.html" class="active">🧴 Services</a>            
             <a href="/replenishments.html">📥 Replenishments</a>
             <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
@@ -88,26 +102,13 @@
             </div>
 
             <div class="panel mb-4">
-                <div class="row g-2">
-                    <div class="col-md-5">
-                        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search services..." oninput="debouncedLoad()">
-                    </div>
-                </div>
+                <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search services..." oninput="debouncedLoad()">
             </div>
 
             <div class="panel p-0">
                 <table class="services-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 60px;">Color</th>
-                            <th>Service</th>
-                            <th>Materials Per Load</th>
-                            <th class="text-end" style="width: 130px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="servicesTable">
-                        <tr><td colspan="4" class="text-center text-muted py-4">Loading...</td></tr>
-                    </tbody>
+                    <thead><tr><th style="width: 80px;">Image</th><th>Service</th><th>Materials Per Load</th><th class="text-end" style="width: 130px;">Actions</th></tr></thead>
+                    <tbody id="servicesTable"><tr><td colspan="4" class="text-center text-muted py-4">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -126,64 +127,55 @@
             </div>
             <div class="modal-body">
                 <input type="hidden" id="serviceId">
-
+                <input type="hidden" id="sImageData">
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
-                        <label class="form-label small">Service Color</label>
-                        <input type="color" id="sColor" class="form-control form-control-color w-100" value="#4f46e5" style="height: 40px;" onchange="updateColorPreview()">
-                        <div class="color-preview-box mt-2" id="colorPreview" style="background: #4f46e5;"></div>
-                        <small class="text-muted">Used on the POS tile.</small>
+                        <label class="form-label small">Service Image</label>
+                        <div class="image-upload-box" onclick="document.getElementById('sImageFile').click()">
+                            <div id="imageUploadPrompt">
+                                <div style="font-size: 32px;">📷</div>
+                                <div class="small text-muted mt-2">Click to upload image</div>
+                                <div class="small text-muted">(JPG/PNG, under 2MB)</div>
+                            </div>
+                            <img id="imagePreview" class="image-preview" style="display: none;" />
+                        </div>
+                        <input type="file" id="sImageFile" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                        <button class="btn btn-sm btn-outline-secondary mt-2 w-100" type="button" onclick="clearImage()">Clear Image</button>
                     </div>
                     <div class="col-md-8">
                         <label class="form-label small">Service Name</label>
                         <input type="text" id="sName" class="form-control" placeholder="e.g., Wash Dry & Fold">
-                    </div>
-                </div>
-
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label small">Service Type</label>
+                        <label class="form-label small mt-3">Service Type</label>
                         <select id="sType" class="form-select" onchange="updateInfoBox()">
-                            <option>Per Load</option>
-                            <option>Per Kg</option>
-                            <option>Per Item</option>
-                            <option>Flat Fee</option>
+                            <option>Per Load</option><option>Per Kg</option><option>Per Item</option><option>Flat Fee</option>
                         </select>
                     </div>
+                </div>
+                <div class="row g-3 mb-3">
                     <div class="col-md-4">
                         <label class="form-label small">Minimum</label>
                         <div class="input-group">
                             <input type="number" id="sMinimum" class="form-control" value="1" step="0.1" oninput="updateInfoBox()">
                             <span class="input-group-text" id="unitLabelDisplay">kg</span>
                         </div>
-                        <small class="text-muted">Weight covered by one base price.</small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small">Service Price</label>
                         <input type="number" id="sPrice" class="form-control" placeholder="0.00" step="0.01" oninput="updateInfoBox()">
-                        <small class="text-muted">Base price for the minimum kg.</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Unit Label</label>
+                        <input type="text" id="sUnitLabel" class="form-control" value="kg" placeholder="kg / load / item" oninput="document.getElementById('unitLabelDisplay').innerText = this.value">
                     </div>
                 </div>
-
-                <div class="info-box mb-4" id="infoBox">
-                    ₱0.00 is the base charge for 1 kg. Each additional cart quantity adds another 1 kg base load.
-                </div>
-
+                <div class="info-box mb-4" id="infoBox">₱0.00 is the base charge for 1 kg.</div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <div class="section-title">Raw Materials</div>
-                        <small class="text-muted">Quantities are deducted from Products for every service load sold.</small>
+                        <small class="text-muted">Quantities deducted from Products for every service load sold.</small>
                     </div>
                     <button class="btn btn-sm btn-outline-primary" type="button" onclick="addMaterialRow()">+ Add Raw Material</button>
                 </div>
-
-                <div class="row g-2 px-2" style="font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 1px;">
-                    <div class="col-md-5">Name</div>
-                    <div class="col-md-3">Qty</div>
-                    <div class="col-md-3">Amount</div>
-                    <div class="col-md-1"></div>
-                </div>
-
                 <div id="materialsList"></div>
             </div>
             <div class="modal-footer">
@@ -204,24 +196,16 @@
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadServices(), 300); }
 
-    function updateColorPreview() {
-        document.getElementById('colorPreview').style.background = document.getElementById('sColor').value;
-    }
-
     function updateInfoBox() {
         const price = parseFloat(document.getElementById('sPrice').value) || 0;
         const min = parseFloat(document.getElementById('sMinimum').value) || 1;
+        const unit = document.getElementById('sUnitLabel').value || 'kg';
         const type = document.getElementById('sType').value;
         const box = document.getElementById('infoBox');
-        if (type === 'Per Kg') {
-            box.innerText = `₱${price.toFixed(2)} is charged per kg. Each kg adds another ₱${price.toFixed(2)} to the total.`;
-        } else if (type === 'Per Item') {
-            box.innerText = `₱${price.toFixed(2)} is charged per item. Quantity multiplies the price.`;
-        } else if (type === 'Flat Fee') {
-            box.innerText = `₱${price.toFixed(2)} is a flat fee regardless of quantity.`;
-        } else {
-            box.innerText = `₱${price.toFixed(2)} is the base charge for ${min} kg. Each additional cart quantity adds another ${min} kg base load.`;
-        }
+        if (type === 'Per Kg') box.innerText = `₱${price.toFixed(2)} per kg.`;
+        else if (type === 'Per Item') box.innerText = `₱${price.toFixed(2)} per item.`;
+        else if (type === 'Flat Fee') box.innerText = `₱${price.toFixed(2)} flat fee per load.`;
+        else box.innerText = `₱${price.toFixed(2)} is the base charge for ${min} ${unit}.`;
     }
 
     function loadProducts() {
@@ -241,65 +225,42 @@
                 if (!services) return;
                 const filtered = search ? services.filter(s => s.name.toLowerCase().includes(search)) : services;
                 const table = document.getElementById('servicesTable');
-                if (filtered.length === 0) {
-                    table.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No services yet. Click "+ Add New Service" to start.</td></tr>';
-                    return;
-                }
+                if (filtered.length === 0) { table.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No services yet.</td></tr>'; return; }
                 table.innerHTML = filtered.map(s => {
-                    const color = s.color || '#4f46e5';
+                    const thumb = s.image_data ? `<div class="service-thumb"><img src="${s.image_data}"></div>` : `<div class="service-thumb">🧺</div>`;
                     const materials = s.materials || [];
-                    const matHtml = materials.length === 0 
-                        ? '<span class="text-muted">No materials</span>'
-                        : materials.map(m => `<div>${m.product_name || 'Product'}: ${m.quantity} pc</div>`).join('');
-                    return `
-                        <tr>
-                            <td><span class="color-dot" style="background: ${color};"></span></td>
-                            <td>
-                                <div class="service-name">${s.name}</div>
-                                <div class="text-muted" style="font-size: 12px;">₱${parseFloat(s.price).toFixed(2)} / ${s.unit || 'kg'}</div>
-                            </td>
-                            <td><div class="materials-list">${matHtml}</div></td>
-                            <td class="text-end">
-                                <div class="dropdown">
-                                    <button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button>
-                                    <ul class="dropdown-menu dropdown-menu-end">
-                                        <li><a class="dropdown-item" href="#" onclick="editService(${s.id}); return false;">✏️ Edit</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                    `;
+                    const matHtml = materials.length === 0 ? '<span class="text-muted">No materials</span>' : materials.map(m => `<div>${m.product_name || 'Product'}: ${m.quantity} pc</div>`).join('');
+                    return `<tr><td>${thumb}</td><td><div class="service-name">${s.name}</div><div class="text-muted" style="font-size: 12px;">₱${parseFloat(s.price).toFixed(2)} / ${s.unit_label || s.unit || 'kg'}</div></td><td><div class="materials-list">${matHtml}</div></td><td class="text-end"><div class="dropdown"><button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="editService(${s.id}); return false;">✏️ Edit</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li></ul></div></td></tr>`;
                 }).join('');
             });
+    }
+
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) return alert('Image must be under 2MB');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            document.getElementById('sImageData').value = e.target.result;
+            document.getElementById('imagePreview').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+            document.getElementById('imageUploadPrompt').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearImage() {
+        document.getElementById('sImageData').value = '';
+        document.getElementById('sImageFile').value = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('imageUploadPrompt').style.display = 'block';
     }
 
     function addMaterialRow(productId = '', qty = 1, amount = 0) {
         const row = document.createElement('div');
         row.className = 'material-row';
-        const options = allProducts.map(p => 
-            `<option value="${p.id}" ${p.id == productId ? 'selected' : ''}>${p.name}${p.icon ? ' ' + p.icon : ''}</option>`
-        ).join('');
-        row.innerHTML = `
-            <div class="row g-2 align-items-center">
-                <div class="col-md-5">
-                    <select class="form-select material-product">
-                        <option value="">Choose product...</option>
-                        ${options}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="number" class="form-control material-qty" value="${qty}" min="1">
-                </div>
-                <div class="col-md-3">
-                    <input type="number" class="form-control material-amount" value="${amount}" step="0.01" placeholder="0.00">
-                </div>
-                <div class="col-md-1 text-end">
-                    <button class="btn btn-sm btn-outline-danger" type="button" onclick="this.closest('.material-row').remove()">✕</button>
-                </div>
-            </div>
-        `;
+        const options = allProducts.map(p => `<option value="${p.id}" ${p.id == productId ? 'selected' : ''}>${p.name}${p.icon ? ' ' + p.icon : ''}</option>`).join('');
+        row.innerHTML = `<div class="row g-2 align-items-center"><div class="col-md-5"><select class="form-select material-product"><option value="">Choose product...</option>${options}</select></div><div class="col-md-3"><input type="number" class="form-control material-qty" value="${qty}" min="1"></div><div class="col-md-3"><input type="number" class="form-control material-amount" value="${amount}" step="0.01" placeholder="0.00"></div><div class="col-md-1 text-end"><button class="btn btn-sm btn-outline-danger" type="button" onclick="this.closest('.material-row').remove()">✕</button></div></div>`;
         document.getElementById('materialsList').appendChild(row);
     }
 
@@ -308,13 +269,13 @@
     function openServiceModal() {
         document.getElementById('serviceModalTitle').innerText = 'Add New Service';
         document.getElementById('serviceId').value = '';
-        document.getElementById('sColor').value = '#4f46e5';
         document.getElementById('sName').value = '';
         document.getElementById('sType').value = 'Per Load';
         document.getElementById('sMinimum').value = '1';
         document.getElementById('sPrice').value = '';
+        document.getElementById('sUnitLabel').value = 'kg';
         document.getElementById('unitLabelDisplay').innerText = 'kg';
-        updateColorPreview();
+        clearImage();
         updateInfoBox();
         clearMaterials();
         addMaterialRow();
@@ -329,20 +290,22 @@
                 if (!s) return;
                 document.getElementById('serviceModalTitle').innerText = 'Edit Service';
                 document.getElementById('serviceId').value = s.id;
-                document.getElementById('sColor').value = s.color || '#4f46e5';
                 document.getElementById('sName').value = s.name;
                 document.getElementById('sType').value = s.service_type || 'Per Load';
                 document.getElementById('sMinimum').value = s.minimum || 1;
                 document.getElementById('sPrice').value = s.price;
+                document.getElementById('sUnitLabel').value = s.unit_label || 'kg';
                 document.getElementById('unitLabelDisplay').innerText = s.unit_label || 'kg';
-                updateColorPreview();
+                document.getElementById('sImageData').value = s.image_data || '';
+                if (s.image_data) {
+                    document.getElementById('imagePreview').src = s.image_data;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('imageUploadPrompt').style.display = 'none';
+                } else { clearImage(); }
                 updateInfoBox();
                 clearMaterials();
-                if (s.materials && s.materials.length > 0) {
-                    s.materials.forEach(m => addMaterialRow(m.product_id, m.quantity, m.amount));
-                } else {
-                    addMaterialRow();
-                }
+                if (s.materials && s.materials.length > 0) { s.materials.forEach(m => addMaterialRow(m.product_id, m.quantity, m.amount)); }
+                else { addMaterialRow(); }
                 new bootstrap.Modal(document.getElementById('serviceModal')).show();
             });
     }
@@ -354,45 +317,34 @@
             const pid = row.querySelector('.material-product').value;
             const qty = row.querySelector('.material-qty').value;
             const amt = row.querySelector('.material-amount').value;
-            if (pid && qty > 0) {
-                materials.push({ product_id: parseInt(pid), quantity: parseInt(qty), amount: parseFloat(amt) || 0 });
-            }
+            if (pid && qty > 0) materials.push({ product_id: parseInt(pid), quantity: parseInt(qty), amount: parseFloat(amt) || 0 });
         });
-
         const data = {
             name: document.getElementById('sName').value.trim(),
             price: document.getElementById('sPrice').value,
-            unit: document.getElementById('unitLabelDisplay').innerText,
-            unit_label: document.getElementById('unitLabelDisplay').innerText,
-            color: document.getElementById('sColor').value,
+            unit: document.getElementById('sUnitLabel').value,
+            unit_label: document.getElementById('sUnitLabel').value,
             service_type: document.getElementById('sType').value,
             minimum: document.getElementById('sMinimum').value,
+            image_data: document.getElementById('sImageData').value || null,
             materials: materials
         };
-
         if (!data.name) return alert('Service name is required.');
         if (!data.price) return alert('Service price is required.');
-
         const url = id ? `/api/services/${id}` : '/api/services';
         const method = id ? 'PUT' : 'POST';
-
-        fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify(data)
-        })
-        .then(res => res.json())
-        .then(res => {
-            if (res.error) return alert('Error: ' + res.error);
-            bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
-            loadServices();
-        });
+        fetch(url, { method: method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(res => {
+                if (res.error) return alert('Error: ' + res.error);
+                bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
+                loadServices();
+            });
     }
 
     function deleteService(id, name) {
         if (!confirm(`Delete service "${name}"?`)) return;
-        fetch('/api/services/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
-            .then(() => loadServices());
+        fetch('/api/services/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadServices());
     }
 
     function logout() {
@@ -404,6 +356,7 @@
 
     loadProducts().then(() => loadServices());
 </script>
+<script src="/role-guard.js"></script>
 <script src="/theme.js"></script>
 </body>
 </html>
