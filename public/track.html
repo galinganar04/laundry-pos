@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Track Your Order - Hawi's Lovada</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <meta name="theme-color" content="#1e3a8a">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); min-height: 100vh; font-family: 'Segoe UI', sans-serif; padding: 20px 12px; margin: 0; }
+        .track-wrap { max-width: 560px; margin: 0 auto; }
+        .track-card { background: white; border-radius: 16px; padding: 28px 22px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .logo-wrap { text-align: center; margin-bottom: 16px; }
+        .logo-wrap img { max-width: 130px; height: auto; }
+        h2 { text-align: center; color: #1e3a8a; margin: 0 0 4px 0; font-weight: 700; font-size: 22px; }
+        .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 22px; }
+        .form-label { font-size: 12px; color: #475569; font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; font-size: 16px; text-align: center; font-weight: 700; letter-spacing: 2px; }
+        .form-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .btn-track { background: #1e40af; color: white; border: none; padding: 14px; font-weight: 700; width: 100%; border-radius: 10px; margin-top: 14px; font-size: 16px; cursor: pointer; }
+        .btn-track:hover { background: #1e3a8a; }
+        .btn-track:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error { color: #dc2626; text-align: center; margin-top: 12px; font-size: 14px; display: none; background: #fee2e2; padding: 10px; border-radius: 8px; }
+        .back-link { display: block; text-align: center; margin-top: 16px; color: #64748b; font-size: 13px; text-decoration: none; }
+        .back-link:hover { color: #1e40af; text-decoration: underline; }
+
+        /* Result panel */
+        #resultPanel { display: none; margin-top: 24px; }
+        .info-card { background: #f8fafc; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #1e40af; }
+        .info-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
+        .info-row .label { color: #64748b; font-weight: 600; }
+        .info-row .value { color: #1e293b; font-weight: 700; }
+
+        /* Horizontal timeline */
+        .timeline-wrap { overflow-x: auto; padding: 20px 0; -webkit-overflow-scrolling: touch; }
+        .timeline-wrap::-webkit-scrollbar { height: 6px; }
+        .timeline-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .timeline { display: flex; align-items: flex-start; gap: 0; min-width: min-content; padding: 0 10px; }
+        .step { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; position: relative; min-width: 90px; }
+        .step-circle {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: #e2e8f0; color: #94a3b8;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 15px;
+            border: 3px solid #e2e8f0;
+            transition: all 0.3s;
+            z-index: 2;
+            position: relative;
+        }
+        .step.completed .step-circle { background: #10b981; color: white; border-color: #10b981; }
+        .step.current .step-circle { background: #1e40af; color: white; border-color: #1e40af; box-shadow: 0 0 0 6px rgba(30,64,175,0.15); animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(30,64,175,0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(30,64,175,0); }
+            100% { box-shadow: 0 0 0 0 rgba(30,64,175,0); }
+        }
+        .step-label { font-size: 11px; font-weight: 700; color: #94a3b8; text-align: center; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.5px; max-width: 90px; line-height: 1.3; }
+        .step.completed .step-label { color: #065f46; }
+        .step.current .step-label { color: #1e40af; }
+        .step-time { font-size: 10px; color: #94a3b8; margin-top: 2px; text-align: center; }
+        .connector { flex: 0 0 30px; height: 3px; background: #e2e8f0; margin-top: 19px; }
+        .connector.completed { background: #10b981; }
+
+        .current-status-banner {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white; padding: 16px; border-radius: 12px;
+            text-align: center; margin-bottom: 16px;
+        }
+        .current-status-banner .label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; font-weight: 700; }
+        .current-status-banner .status { font-size: 20px; font-weight: 800; margin-top: 4px; }
+
+        .items-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .items-table th { text-align: left; padding: 8px 4px; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #e2e8f0; }
+        .items-table td { padding: 8px 4px; border-bottom: 1px solid #f1f5f9; }
+        .items-table tr:last-child td { border-bottom: none; }
+        .items-table .right { text-align: right; }
+
+        @media (max-width: 500px) {
+            .track-card { padding: 22px 16px; }
+            h2 { font-size: 19px; }
+            .step { min-width: 78px; }
+            .step-circle { width: 34px; height: 34px; font-size: 13px; }
+            .step-label { font-size: 10px; max-width: 78px; }
+            .connector { flex: 0 0 22px; margin-top: 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="track-wrap">
+        <div class="track-card">
+            <div class="logo-wrap"><img src="/logo.png" alt="Hawi's Lovada" onerror="this.style.display='none'"></div>
+            <h2>Track Your Order</h2>
+            <p class="subtitle">Enter your receipt number to see live status</p>
+
+            <form onsubmit="trackOrder(event)">
+                <div class="mb-3">
+                    <label class="form-label">Order / Receipt Number</label>
+                    <input type="number" id="orderId" class="form-control" placeholder="e.g. 123" required inputmode="numeric">
+                </div>
+                <button type="submit" class="btn-track" id="trackBtn">🔍 Track Order</button>
+                <div class="error" id="errorMsg"></div>
+            </form>
+
+            <div id="resultPanel">
+                <div class="current-status-banner">
+                    <div class="label">Current Status</div>
+                    <div class="status" id="currentStatus">—</div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-row"><span class="label">Order #</span><span class="value" id="infoOrderId">—</span></div>
+                    <div class="info-row"><span class="label">Customer</span><span class="value" id="infoCustomer">—</span></div>
+                    <div class="info-row"><span class="label">Total</span><span class="value" id="infoTotal">—</span></div>
+                    <div class="info-row"><span class="label">Payment</span><span class="value" id="infoPayment">—</span></div>
+                    <div class="info-row" id="infoPickupRow" style="display:none;"><span class="label">Pickup/Delivery</span><span class="value" id="infoPickup">—</span></div>
+                </div>
+
+                <div style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Progress</div>
+                <div class="timeline-wrap">
+                    <div class="timeline" id="timeline"></div>
+                </div>
+
+                <div style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-top: 12px; margin-bottom: 8px;">Items</div>
+                <table class="items-table" id="itemsTable"></table>
+            </div>
+
+            <a href="/login.html" class="back-link">← Back to Login</a>
+        </div>
+    </div>
+
+<script>
+    const stepIcons = {
+        'Received': '1',
+        'Washing': '2',
+        'Drying': '3',
+        'Folding': '4',
+        'Spin & Dry': '2',
+        'Done (Ready to Pickup)': '✓',
+        'Out for Delivery': '🚚',
+        'Delivered': '✓',
+        'Ready': '✓',
+        'Picked Up': '✓'
+    };
+
+    function trackOrder(e) {
+        e.preventDefault();
+        const orderId = document.getElementById('orderId').value.trim();
+        const errorMsg = document.getElementById('errorMsg');
+        const btn = document.getElementById('trackBtn');
+        errorMsg.style.display = 'none';
+
+        if (!orderId) {
+            errorMsg.innerText = 'Please enter your order number.';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        btn.innerText = 'Searching...';
+        btn.disabled = true;
+
+        fetch('/api/track/' + orderId)
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = '🔍 Track Order';
+                btn.disabled = false;
+                if (data.error) {
+                    errorMsg.innerText = data.error;
+                    errorMsg.style.display = 'block';
+                    document.getElementById('resultPanel').style.display = 'none';
+                    return;
+                }
+                renderResult(data);
+            })
+            .catch(() => {
+                btn.innerText = '🔍 Track Order';
+                btn.disabled = false;
+                errorMsg.innerText = 'Connection error. Please try again.';
+                errorMsg.style.display = 'block';
+            });
+    }
+
+    function renderResult(order) {
+        document.getElementById('currentStatus').innerText = order.status || 'Received';
+        document.getElementById('infoOrderId').innerText = '#' + order.orderId;
+        document.getElementById('infoCustomer').innerText = order.customer || '—';
+        document.getElementById('infoTotal').innerText = '₱' + parseFloat(order.total).toFixed(2);
+        document.getElementById('infoPayment').innerText = order.paymentStatus || '—';
+
+        if (order.pickupDelivery) {
+            document.getElementById('infoPickupRow').style.display = 'flex';
+            document.getElementById('infoPickup').innerText = order.riderName ? 'Rider: ' + order.riderName : 'Yes';
+        } else {
+            document.getElementById('infoPickupRow').style.display = 'none';
+        }
+
+        // Timeline
+        const timeline = document.getElementById('timeline');
+        const flow = order.serviceFlow || ['Received'];
+        const currentStep = order.currentStep || 0;
+        const history = order.statusHistory || [];
+        let html = '';
+        flow.forEach((step, idx) => {
+            if (idx > 0) {
+                const connClass = idx <= currentStep ? 'completed' : '';
+                html += `<div class="connector ${connClass}"></div>`;
+            }
+            let cls = '';
+            if (idx < currentStep) cls = 'completed';
+            else if (idx === currentStep) cls = 'current';
+            const icon = cls === 'completed' ? '✓' : (stepIcons[step] || (idx + 1));
+            const histEntry = history.find(h => h.status === step);
+            const timeLabel = histEntry ? new Date(histEntry.at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+            html += `
+                <div class="step ${cls}">
+                    <div class="step-circle">${icon}</div>
+                    <div class="step-label">${step}</div>
+                    ${timeLabel ? `<div class="step-time">${timeLabel}</div>` : ''}
+                </div>
+            `;
+        });
+        timeline.innerHTML = html;
+
+        // Items table
+        const itemsTable = document.getElementById('itemsTable');
+        const items = order.items || [];
+        itemsTable.innerHTML = `
+            <thead><tr><th>Item</th><th style="text-align:center;">Qty</th><th class="right">Amount</th></tr></thead>
+            <tbody>
+                ${items.map(i => `<tr><td>${i.service_name}</td><td style="text-align:center;">${i.quantity}</td><td class="right">₱${(parseFloat(i.price) * i.quantity).toFixed(2)}</td></tr>`).join('')}
+                <tr style="font-weight: 800; background: #f8fafc;"><td colspan="2">Total</td><td class="right">₱${parseFloat(order.total).toFixed(2)}</td></tr>
+            </tbody>
+        `;
+
+        document.getElementById('resultPanel').style.display = 'block';
+        document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+</script>
+</body>
+</html>

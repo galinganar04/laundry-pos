@@ -35,14 +35,18 @@
         }
         .orders-table tbody td { padding: 16px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 15px; background: white; }
         .orders-table tbody tr:hover td { background-color: #f8fafc; }
-        .status-badge { font-size: 13px; padding: 6px 14px; font-weight: 700; border-radius: 14px; white-space: nowrap; }
+        .status-badge { font-size: 12px; padding: 6px 12px; font-weight: 700; border-radius: 14px; white-space: nowrap; display: inline-block; }
         .status-Received { background-color: #fef3c7; color: #92400e; }
         .status-Washing { background-color: #dbeafe; color: #1e40af; }
         .status-Drying { background-color: #ede9fe; color: #6b21a8; }
+        .status-Folding { background-color: #fce7f3; color: #9d174d; }
+        .status-SpinDry { background-color: #cffafe; color: #155e75; }
         .status-Ready { background-color: #d1fae5; color: #065f46; }
-        .status-PickedUp { background-color: #f1f5f9; color: #475569; }
+        .status-OutForDelivery { background-color: #fde68a; color: #78350f; }
+        .status-Delivered { background-color: #dcfce7; color: #14532d; }
         .action-btn { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid; cursor: pointer; white-space: nowrap; font-weight: 600; }
         .btn-status { background: #1e40af; color: white; border-color: #1e40af; }
+        .btn-status:hover { background: #1e3a8a; }
         .btn-pay { background: #10b981; color: white; border-color: #10b981; }
         .btn-unpay { background: white; color: #92400e; border-color: #f59e0b; }
         .btn-print { background: white; color: #1e40af; border-color: #bfdbfe; }
@@ -54,6 +58,8 @@
         .date-cell { color: #64748b; font-size: 13px; }
         .total-cell { font-weight: 700; color: #1e293b; font-size: 15px; }
         .payment-badge { font-size: 13px; padding: 5px 12px; font-weight: 700; border-radius: 12px; }
+        .flow-indicator { font-size: 11px; color: #64748b; margin-top: 4px; }
+        .pickup-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; background: #fef3c7; color: #92400e; font-weight: 700; margin-left: 4px; }
         .batch-bar {
             position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
             background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px;
@@ -82,8 +88,6 @@
         [data-theme="dark"] .btn-print { background: #334155; color: #60a5fa; border-color: #475569; }
         [data-theme="dark"] .btn-del { background: #334155; color: #f87171; border-color: #7f1d1d; }
         [data-theme="dark"] .btn-unpay { background: #334155; color: #fbbf24; border-color: #92400e; }
-        [data-theme="dark"] .orders-scroll-box::-webkit-scrollbar-track { background: #1e293b; }
-        [data-theme="dark"] .orders-scroll-box::-webkit-scrollbar-thumb { background: #475569; }
 
         .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
         .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
@@ -149,7 +153,7 @@
                         <button class="btn filter-btn btn-outline-primary" onclick="setFilter('washing')">🌀 Washing</button>
                         <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('drying')">💨 Drying</button>
                         <button class="btn filter-btn btn-outline-success" onclick="setFilter('ready')">✅ Ready</button>
-                        <button class="btn filter-btn btn-outline-dark" onclick="setFilter('pickedup')">📦 Picked Up</button>
+                        <button class="btn filter-btn btn-outline-dark" onclick="setFilter('pickedup')">📦 Done</button>
                     </div>
                 </div>
                 <div class="orders-scroll-box">
@@ -162,7 +166,7 @@
                                 <th>Customer</th>
                                 <th class="text-end" style="width: 130px;">Total</th>
                                 <th style="width: 120px;">Payment</th>
-                                <th style="width: 140px;">Status</th>
+                                <th style="width: 180px;">Status</th>
                                 <th class="text-end" style="width: 320px;">Actions</th>
                             </tr>
                         </thead>
@@ -176,16 +180,6 @@
 
 <div class="batch-bar" id="batchBar">
     <span class="count"><span id="selectedCount">0</span> selected</span>
-    <div class="dropdown">
-        <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown">Change Status</button>
-        <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#" onclick="batchStatus('Received'); return false;">📥 Received</a></li>
-            <li><a class="dropdown-item" href="#" onclick="batchStatus('Washing'); return false;">🌀 Washing</a></li>
-            <li><a class="dropdown-item" href="#" onclick="batchStatus('Drying'); return false;">💨 Drying</a></li>
-            <li><a class="dropdown-item" href="#" onclick="batchStatus('Ready'); return false;">✅ Ready</a></li>
-            <li><a class="dropdown-item" href="#" onclick="batchStatus('Picked Up'); return false;">📦 Picked Up</a></li>
-        </ul>
-    </div>
     <button class="btn btn-sm btn-success" onclick="batchPay()">💰 Mark Paid</button>
     <button class="btn btn-sm btn-warning" onclick="batchUnpay()">⏳ Mark Unpaid</button>
     <button class="btn btn-sm btn-danger" id="batchDeleteBtn" onclick="batchDelete()">🗑 Delete</button>
@@ -200,7 +194,6 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    const statusList = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
     let currentFilter = 'all';
     let currentPeriod = 'today';
     let searchTimeout;
@@ -209,17 +202,40 @@
         if (status === 'Received') return 'status-Received';
         if (status === 'Washing') return 'status-Washing';
         if (status === 'Drying') return 'status-Drying';
+        if (status === 'Folding') return 'status-Folding';
+        if (status === 'Spin & Dry') return 'status-SpinDry';
+        if (status === 'Done (Ready to Pickup)') return 'status-Ready';
+        if (status === 'Out for Delivery') return 'status-OutForDelivery';
+        if (status === 'Delivered') return 'status-Delivered';
         if (status === 'Ready') return 'status-Ready';
-        if (status === 'Picked Up') return 'status-PickedUp';
+        if (status === 'Picked Up') return 'status-Delivered';
         return 'bg-secondary';
     }
 
-    function nextStatusButton(order) {
-        const currentStatus = order.status || 'Received';
-        const currentIdx = statusList.indexOf(currentStatus);
-        if (currentIdx === statusList.length - 1) return `<span class="text-muted small">Complete</span>`;
-        const nextStatus = statusList[currentIdx + 1];
-        return `<button class="action-btn btn-status" onclick="changeStatus(${order.id}, '${nextStatus}')">→ ${nextStatus}</button>`;
+    function nextStepButton(order) {
+        const flow = order.service_flow || ['Received'];
+        const currentStep = order.current_step || 0;
+        const nextStep = currentStep + 1;
+
+        if (nextStep >= flow.length) {
+            return `<span class="text-muted small">✓ Complete</span>`;
+        }
+
+        const nextStatus = flow[nextStep];
+        let extra = '';
+        if (nextStatus === 'Out for Delivery') {
+            extra = `onclick="advanceWithRider(${order.id}, '${nextStatus.replace(/'/g, "\\'")}')"`;
+        } else {
+            extra = `onclick="advanceOrder(${order.id})"`;
+        }
+        return `<button class="action-btn btn-status" ${extra}>→ ${nextStatus}</button>`;
+    }
+
+    function flowProgress(order) {
+        const flow = order.service_flow || [];
+        if (flow.length <= 1) return '';
+        const current = order.current_step || 0;
+        return `<div class="flow-indicator">Step ${current + 1} of ${flow.length}</div>`;
     }
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
@@ -313,25 +329,72 @@
                     const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">↺ Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">✓ Paid</button>`;
                     const status = o.status || 'Received';
                     const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">🗑</button>` : '';
-                    return `<tr><td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td><td><span class="order-id">#${o.id}</span></td><td><span class="date-cell">${date}</span></td><td><span class="customer-name">${o.customer}</span></td><td class="text-end"><span class="total-cell">₱${parseFloat(o.total).toFixed(2)}</span></td><td><span class="badge ${payBadge} payment-badge">${o.payment_status}</span></td><td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td><td class="text-end"><div class="d-inline-flex align-items-center gap-2"><div class="dropdown d-inline"><button class="action-btn btn-print dropdown-toggle" data-bs-toggle="dropdown">🖨️</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '58'); return false;">Print 58mm</a></li><li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '80'); return false;">Print 80mm</a></li></ul></div>${nextStatusButton(o)}${payBtn}${deleteBtnHtml}</div></td></tr>`;
+                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚 Pickup</span>` : '';
+                    return `<tr>
+                        <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
+                        <td><span class="order-id">#${o.id}</span></td>
+                        <td><span class="date-cell">${date}</span></td>
+                        <td><span class="customer-name">${o.customer}</span>${pickupIcon}</td>
+                        <td class="text-end"><span class="total-cell">₱${parseFloat(o.total).toFixed(2)}</span></td>
+                        <td><span class="badge ${payBadge} payment-badge">${o.payment_status}</span></td>
+                        <td>
+                            <span class="status-badge ${statusBadgeClass(status)}">${status}</span>
+                            ${flowProgress(o)}
+                        </td>
+                        <td class="text-end">
+                            <div class="d-inline-flex align-items-center gap-2">
+                                <div class="dropdown d-inline">
+                                    <button class="action-btn btn-print dropdown-toggle" data-bs-toggle="dropdown">🖨️</button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '58'); return false;">Print 58mm</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="reprintReceipt(${o.id}, '80'); return false;">Print 80mm</a></li>
+                                    </ul>
+                                </div>
+                                ${nextStepButton(o)}
+                                ${payBtn}
+                                ${deleteBtnHtml}
+                            </div>
+                        </td>
+                    </tr>`;
                 }).join('');
                 document.getElementById('selectAll').checked = false;
                 updateBatchBar();
             });
     }
 
-    function changeStatus(id, newStatus) { fetch('/api/orders/' + id + '/status', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ status: newStatus }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); }); }
+    function advanceOrder(id) {
+        fetch('/api/orders/' + id + '/next-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) return alert('Error: ' + data.error);
+            loadOrders();
+        });
+    }
+
+    function advanceWithRider(id, nextStatus) {
+        const rider = prompt('Rider name (optional — leave blank to skip):', '');
+        fetch('/api/orders/' + id + '/next-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ riderName: rider || null })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) return alert('Error: ' + data.error);
+            loadOrders();
+        });
+    }
+
     function markPaid(id) { fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function markUnpaid(id) { fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function deleteOrder(id) {
         if (userRole === 'cashier') return alert('Cashiers cannot delete orders.');
         if (!confirm('Delete order #' + id + '?\n\n⚠️ Sale will STILL count in your reports.')) return;
         fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
-    }
-    function batchStatus(status) {
-        const ids = getSelectedIds();
-        if (ids.length === 0 || !confirm(`Change status of ${ids.length} order(s) to "${status}"?`)) return;
-        fetch('/api/orders/batch/status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids, status }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
     function batchPay() {
         const ids = getSelectedIds();
@@ -394,6 +457,7 @@
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
+                <div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/track.html</div>
                 <div class="center big bold customer-name">${customerName}</div>
                 <div class="divider-solid"></div>
                 <div class="footer">Thank you for your business!</div>
@@ -466,7 +530,6 @@
         window.location.href = '/login.html';
     }
 
-    // Hide batch delete button for cashiers
     if (userRole === 'cashier') {
         const deleteBtn = document.getElementById('batchDeleteBtn');
         if (deleteBtn) deleteBtn.style.display = 'none';
