@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hawi's Lovada - Orders</title>
     <link rel="icon" type="image/png" href="/logo.png">
     <link rel="manifest" href="/manifest.json">
@@ -69,6 +70,19 @@
         .batch-bar.show { display: flex; }
         .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
 
+        /* Mobile-friendly */
+        @media (max-width: 767px) {
+            html, body { height: auto !important; overflow: visible !important; }
+            .sidebar { display: none !important; }
+            .orders-scroll-box { max-height: none; }
+            .page-title { font-size: 18px; }
+            .orders-table thead th { font-size: 11px; padding: 10px 6px; }
+            .orders-table tbody td { padding: 10px 6px; font-size: 13px; }
+            .filter-btn { font-size: 11px; padding: 5px 10px; }
+            .status-badge { font-size: 10px; padding: 4px 8px; }
+            .action-btn { font-size: 12px; padding: 6px 8px; }
+        }
+
         [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
@@ -126,7 +140,13 @@
         </div>
 
         <div class="col-md-10 p-4">
-            <h3 class="page-title">Orders</h3>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 class="page-title mb-0">Orders</h3>
+                <a href="/" class="btn btn-primary btn-sm">← Back to POS</a>
+            </div>
+
+            <div id="debugInfo" style="display:none; background:#fee2e2; color:#991b1b; padding:10px; border-radius:8px; margin-bottom:12px; font-size:12px; font-family:monospace;"></div>
+
             <div class="panel mb-4">
                 <div class="row g-2">
                     <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search customer name or order #" oninput="debouncedLoad()"></div>
@@ -140,10 +160,10 @@
                 <div class="p-3 border-bottom">
                     <div class="mb-2">
                         <small class="text-muted fw-bold me-2">PERIOD:</small>
-                        <button class="btn filter-btn period-btn active" data-period="today" onclick="setPeriod('today', this)">📅 Today</button>
+                        <button class="btn filter-btn period-btn" data-period="today" onclick="setPeriod('today', this)">📅 Today</button>
                         <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">📆 This Week</button>
                         <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">🗓️ This Month</button>
-                        <button class="btn filter-btn period-btn" data-period="all" onclick="setPeriod('all', this)">📊 All</button>
+                        <button class="btn filter-btn period-btn active" data-period="all" onclick="setPeriod('all', this)">📊 All</button>
                     </div>
                     <div>
                         <small class="text-muted fw-bold me-2">STATUS:</small>
@@ -162,12 +182,12 @@
                             <tr>
                                 <th style="width: 50px;"><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
                                 <th style="width: 70px;">#</th>
-                                <th style="width: 150px;">Date</th>
+                                <th style="width: 130px;">Date</th>
                                 <th>Customer</th>
-                                <th class="text-end" style="width: 130px;">Total</th>
-                                <th style="width: 120px;">Payment</th>
-                                <th style="width: 180px;">Status</th>
-                                <th class="text-end" style="width: 320px;">Actions</th>
+                                <th class="text-end" style="width: 110px;">Total</th>
+                                <th style="width: 100px;">Payment</th>
+                                <th style="width: 150px;">Status</th>
+                                <th class="text-end" style="width: 260px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
@@ -190,14 +210,18 @@
 <script>
     const authToken = localStorage.getItem('authToken');
     const userRole = localStorage.getItem('userRole') || 'staff';
+    const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     if (!authToken) { window.location.href = '/login.html'; }
 
-    const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-</script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+    function showDebug(msg) {
+        const box = document.getElementById('debugInfo');
+        box.style.display = 'block';
+        box.innerText += '\n' + msg;
+    }
+
     let currentFilter = 'all';
-    let currentPeriod = 'today';
+    let currentPeriod = 'all';
     let searchTimeout;
 
     function toTitleCase(str) {
@@ -205,7 +229,6 @@
             word ? word.charAt(0).toUpperCase() + word.slice(1) : ''
         ).join('');
     }
-
     function getFirstNameUpper(str) {
         const parts = (str || '').trim().split(/\s+/);
         return parts[0] ? parts[0].toUpperCase() : '';
@@ -229,29 +252,19 @@
         const flow = order.service_flow || ['Received'];
         const currentStep = order.current_step || 0;
         const nextStep = currentStep + 1;
-
-        if (nextStep >= flow.length) return `<span class="text-muted small">✓ Complete</span>`;
-
+        if (nextStep >= flow.length) return `<span class="text-muted small">✓</span>`;
         const nextStatus = flow[nextStep];
         let extra = '';
         if (nextStatus === 'Out for Delivery') {
-            extra = `onclick="advanceWithRider(${order.id}, '${nextStatus.replace(/'/g, "\\'")}')"`;
+            extra = `onclick="advanceWithRider(${order.id})"`;
         } else {
             extra = `onclick="advanceOrder(${order.id})"`;
         }
         return `<button class="action-btn btn-status" ${extra}>→ ${nextStatus}</button>`;
     }
 
-    function flowProgress(order) {
-        const flow = order.service_flow || [];
-        if (flow.length <= 1) return '';
-        const current = order.current_step || 0;
-        return `<div class="flow-indicator">Step ${current + 1} of ${flow.length}</div>`;
-    }
-
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
     function setFilter(f) { currentFilter = f; loadOrders(); }
-
     function setPeriod(period, btn) {
         currentPeriod = period;
         document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -282,9 +295,9 @@
         document.getElementById('dateFrom').value = '';
         document.getElementById('dateTo').value = '';
         currentFilter = 'all';
-        currentPeriod = 'today';
+        currentPeriod = 'all';
         document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.period-btn[data-period="today"]').classList.add('active');
+        document.querySelector('.period-btn[data-period="all"]').classList.add('active');
         loadOrders();
     }
 
@@ -324,6 +337,8 @@
         if (dateFrom) url += '&dateFrom=' + dateFrom;
         if (dateTo) url += '&dateTo=' + dateTo;
 
+        console.log('Fetching:', url);
+
         fetch(url, { headers: { 'x-auth-token': authToken } })
             .then(res => {
                 if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -331,16 +346,17 @@
             })
             .then(orders => {
                 if (!orders) return;
+                console.log('Received orders:', orders.length);
                 const table = document.getElementById('ordersTable');
                 if (orders.length === 0) { table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No orders found.</td></tr>'; updateBatchBar(); return; }
                 table.innerHTML = orders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
                     const payBadge = isPaid ? 'bg-success' : 'bg-warning text-dark';
-                    const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">↺ Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">✓ Paid</button>`;
+                    const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">↺</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">✓</button>`;
                     const status = o.status || 'Received';
                     const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">🗑</button>` : '';
-                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚 Pickup</span>` : '';
+                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚</span>` : '';
                     return `<tr>
                         <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
                         <td><span class="order-id">#${o.id}</span></td>
@@ -348,12 +364,9 @@
                         <td><span class="customer-name">${o.customer}</span>${pickupIcon}</td>
                         <td class="text-end"><span class="total-cell">₱${parseFloat(o.total).toFixed(2)}</span></td>
                         <td><span class="badge ${payBadge} payment-badge">${o.payment_status}</span></td>
-                        <td>
-                            <span class="status-badge ${statusBadgeClass(status)}">${status}</span>
-                            ${flowProgress(o)}
-                        </td>
+                        <td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
                         <td class="text-end">
-                            <div class="d-inline-flex align-items-center gap-2">
+                            <div class="d-inline-flex align-items-center gap-1">
                                 <div class="dropdown d-inline">
                                     <button class="action-btn btn-print dropdown-toggle" data-bs-toggle="dropdown">🖨️</button>
                                     <ul class="dropdown-menu dropdown-menu-end">
@@ -370,6 +383,10 @@
                 }).join('');
                 document.getElementById('selectAll').checked = false;
                 updateBatchBar();
+            })
+            .catch(err => {
+                console.error('Load orders error:', err);
+                showDebug('ERROR: ' + err.message);
             });
     }
 
@@ -380,31 +397,26 @@
             body: JSON.stringify({})
         })
         .then(res => res.json())
-        .then(data => {
-            if (data.error) return alert('Error: ' + data.error);
-            loadOrders();
-        });
+        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); })
+        .catch(err => alert('Error: ' + err.message));
     }
 
-    function advanceWithRider(id, nextStatus) {
-        const rider = prompt('Rider name (optional — leave blank to skip):', '');
+    function advanceWithRider(id) {
+        const rider = prompt('Rider name (optional):', '');
         fetch('/api/orders/' + id + '/next-status', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
             body: JSON.stringify({ riderName: rider || null })
         })
         .then(res => res.json())
-        .then(data => {
-            if (data.error) return alert('Error: ' + data.error);
-            loadOrders();
-        });
+        .then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
 
     function markPaid(id) { fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function markUnpaid(id) { fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function deleteOrder(id) {
         if (userRole === 'cashier') return alert('Cashiers cannot delete orders.');
-        if (!confirm('Delete order #' + id + '?\n\n⚠️ Sale will STILL count in your reports.')) return;
+        if (!confirm('Delete order #' + id + '?')) return;
         fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
     }
     function batchPay() {
@@ -421,12 +433,15 @@
         if (userRole === 'cashier') return alert('Cashiers cannot delete orders.');
         const ids = getSelectedIds();
         if (ids.length === 0) return;
-        if (!confirm(`⚠️ DELETE ${ids.length} order(s)?\n\nSales STILL count in your reports.`)) return;
+        if (!confirm(`DELETE ${ids.length} order(s)?`)) return;
         fetch('/api/orders/batch/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
 
     function reprintReceipt(orderId, size) {
-        fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
+        fetch('/api/orders/' + orderId + '/details', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); })
+            .catch(err => alert('Error: ' + err.message));
     }
 
     // ===== LINE HELPERS =====
@@ -616,11 +631,7 @@
                 .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
                 .info { font-size: ${fontSize}px; margin: 2px 0; }
                 .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
-                @media print {
-                    .print-btn { display: none; }
-                    body { padding: 2mm; }
-                    * { color: #000 !important; background: #fff !important; }
-                }
+                @media print { .print-btn { display: none; } body { padding: 2mm; } * { color: #000 !important; background: #fff !important; } }
             </style></head><body>
                 ${customerCopyHtml}
                 ${shopCopyHtml}
