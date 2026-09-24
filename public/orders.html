@@ -198,6 +198,17 @@
     let currentPeriod = 'today';
     let searchTimeout;
 
+    function toTitleCase(str) {
+        return (str || '').trim().toLowerCase().replace(/\s+/g, ' ').split(' ').map(word =>
+            word ? word.charAt(0).toUpperCase() + word.slice(1) : ''
+        ).join(' ');
+    }
+
+    function getFirstNameUpper(str) {
+        const parts = (str || '').trim().split(/\s+/);
+        return parts[0] ? parts[0].toUpperCase() : '';
+    }
+
     function statusBadgeClass(status) {
         if (status === 'Received') return 'status-Received';
         if (status === 'Washing') return 'status-Washing';
@@ -217,9 +228,7 @@
         const currentStep = order.current_step || 0;
         const nextStep = currentStep + 1;
 
-        if (nextStep >= flow.length) {
-            return `<span class="text-muted small">✓ Complete</span>`;
-        }
+        if (nextStep >= flow.length) return `<span class="text-muted small">✓ Complete</span>`;
 
         const nextStatus = flow[nextStep];
         let extra = '';
@@ -419,6 +428,10 @@
     }
 
     function renderReceipt(order, size) {
+        const rawName = order.customer || 'Walk-In Customer';
+        const customerFullName = toTitleCase(rawName);
+        const shopFirstName = getFirstNameUpper(rawName);
+
         const isPaid = order.payment_status === 'Paid';
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
         const payNote = isPaid ? '' : 'Please pay upon pickup.';
@@ -426,7 +439,6 @@
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const logoSrc = window.location.origin + '/logo.png';
         const cur = '₱';
-        const customerName = (order.customer || 'Walk-In Customer').toUpperCase();
 
         const itemsCustomerHtml = order.items.map(item => {
             const nameTrunc = item.service_name.length > (size === '58' ? 16 : 28) ? item.service_name.substring(0, size === '58' ? 15 : 27) + '.' : item.service_name;
@@ -448,7 +460,7 @@
                 <div class="divider-solid"></div>
                 <div class="info">Order #: <span class="bold">${order.id}</span></div>
                 <div class="info">Date: ${formattedDate}</div>
-                <div class="info">Customer: ${order.customer}</div>
+                <div class="info">Customer: ${customerFullName}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
                 <div class="divider"></div>
@@ -457,8 +469,8 @@
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
-                <div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/track.html</div>
-                <div class="center big bold customer-name">${customerName}</div>
+                <div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div>
+                <div class="center big bold customer-name">${customerFullName}</div>
                 <div class="divider-solid"></div>
                 <div class="footer">Thank you for your business!</div>
             </div>
@@ -470,7 +482,7 @@
                 <div class="logo"><img src="${logoSrc}" alt="Hawi's Lovada"></div>
                 <div class="center big bold">HAWI'S LOVADA</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
-                <div class="center big bold customer-name">${customerName}</div>
+                <div class="center big bold customer-name">${shopFirstName}</div>
                 <div class="divider-solid"></div>
                 <div class="info">Order #: <span class="bold">${order.id}</span></div>
                 <div class="info">Date: ${formattedDate}</div>

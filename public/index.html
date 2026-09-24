@@ -222,7 +222,7 @@
 
                 <div class="mb-3">
                     <label class="form-label">👤 Customer Name</label>
-                    <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
+                    <input type="text" id="customerName" class="form-control" placeholder="Enter customer name..." list="customerList" autocomplete="off">
                     <datalist id="customerList"></datalist>
                 </div>
 
@@ -263,7 +263,6 @@
     fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json()).then(data => { if (data) shopSettings = data; });
 
-    // Load pickup service info (hidden service with pickup/delivery in the name)
     let pickupServiceInfo = null;
     fetch('/api/pickup-service', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
@@ -279,6 +278,22 @@
     let cart = [], total = 0, lastOrder = null;
     let orderType = 'walkin';
 
+    function toTitleCase(str) {
+        return (str || '').trim().toLowerCase().replace(/\s+/g, ' ').split(' ').map(word =>
+            word ? word.charAt(0).toUpperCase() + word.slice(1) : ''
+        ).join(' ');
+    }
+
+    function getFirstNameUpper(str) {
+        const parts = (str || '').trim().split(/\s+/);
+        return parts[0] ? parts[0].toUpperCase() : '';
+    }
+
+    window.addEventListener('load', () => {
+        const custInput = document.getElementById('customerName');
+        if (custInput) setTimeout(() => custInput.focus(), 500);
+    });
+
     function setOrderType(type) {
         orderType = type;
         const btnWalkIn = document.getElementById('btnWalkIn');
@@ -293,17 +308,16 @@
             btnPickup.classList.remove('pickup-active');
             infoBox.classList.remove('active');
             document.getElementById('customerPhone').value = '';
-            customerInput.value = 'Walk-In Customer';
             document.getElementById('phoneHint').style.color = '#92400e';
             document.getElementById('phoneHint').innerText = '11 digits, starts with 09';
             cart = cart.filter(item => !item.isPickupFee);
             updateCartUI();
+            setTimeout(() => customerInput.focus(), 100);
         } else {
             btnWalkIn.classList.remove('active');
             btnPickup.classList.add('active');
             btnPickup.classList.add('pickup-active');
             infoBox.classList.add('active');
-            if (customerInput.value === 'Walk-In Customer') customerInput.value = '';
             if (pickupServiceInfo && !cart.some(item => item.isPickupFee)) {
                 cart.push({
                     name: 'Pickup/Delivery Fee',
@@ -442,14 +456,14 @@
     function checkout() {
         if (cart.length === 0) return alert("Cart is empty.");
 
-        const customer = document.getElementById('customerName').value.trim();
+        let customer = document.getElementById('customerName').value.trim();
         const paymentStatus = document.getElementById('paymentStatus').value;
         const customerPhone = document.getElementById('customerPhone').value.trim();
         const cashierName = localStorage.getItem('userName') || 'Unknown';
         const isPickup = orderType === 'pickup';
 
         if (isPickup) {
-            if (!customer || customer === 'Walk-In Customer') {
+            if (!customer) {
                 document.getElementById('customerName').focus();
                 return alert('⚠️ Customer name is required for Pickup & Delivery');
             }
@@ -458,15 +472,17 @@
                 return alert('⚠️ Cellphone number is required (11 digits, starts with 09)\nExample: 09171234567');
             }
         } else {
-            if (!customer) document.getElementById('customerName').value = 'Walk-In Customer';
+            if (!customer) customer = 'Walk-In Customer';
         }
 
-        const finalCustomer = document.getElementById('customerName').value.trim();
+        const formattedCustomer = toTitleCase(customer);
+
         const btn = document.getElementById('checkoutBtn');
         btn.innerText = 'Processing...'; btn.disabled = true;
 
         const receiptData = {
-            customer: finalCustomer, total,
+            customer: formattedCustomer,
+            total,
             items: JSON.parse(JSON.stringify(cart)),
             date: new Date().toLocaleString(),
             paymentStatus,
@@ -478,7 +494,11 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
             body: JSON.stringify({
-                customer: finalCustomer, total, cartItems: cart, paymentStatus, cashierName,
+                customer: formattedCustomer,
+                total,
+                cartItems: cart,
+                paymentStatus,
+                cashierName,
                 pickupDelivery: isPickup,
                 customerPhone: isPickup ? customerPhone : null
             })
@@ -493,6 +513,7 @@
             cart = [];
             updateCartUI();
             setOrderType('walkin');
+            document.getElementById('customerName').value = '';
             document.querySelectorAll('.qty-badge').forEach(b => { b.innerText = '0'; b.style.display = 'none'; });
             document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
             btn.innerText = '✅ Checkout'; btn.disabled = false;
@@ -504,6 +525,11 @@
 
     function printReceipt(size) {
         if (!lastOrder) return alert("No recent order to print.");
+
+        const rawName = lastOrder.customer || 'Walk-In Customer';
+        const customerFullName = toTitleCase(rawName);
+        const shopFirstName = getFirstNameUpper(rawName);
+
         const isPaid = String(lastOrder.paymentStatus).toLowerCase() === 'paid';
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
         const payNote = isPaid ? '' : 'Please pay upon pickup.';
@@ -511,7 +537,6 @@
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const logoSrc = window.location.origin + '/logo.png';
         const cur = shopSettings.currency || '₱';
-        const customerName = (lastOrder.customer || 'Walk-In Customer').toUpperCase();
 
         const itemsCustomerHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
@@ -533,7 +558,7 @@
                 <div class="divider-solid"></div>
                 <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
                 <div class="info">Date: ${lastOrder.date}</div>
-                <div class="info">Customer: ${lastOrder.customer}</div>
+                <div class="info">Customer: ${customerFullName}</div>
                 ${pickupNote}
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
@@ -543,7 +568,7 @@
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
                 <div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div>
-                <div class="center big bold customer-name">${customerName}</div>
+                <div class="center big bold customer-name">${customerFullName}</div>
                 <div class="divider-solid"></div>
                 <div class="footer">Thank you for your business!</div>
             </div>
@@ -555,7 +580,7 @@
                 <div class="logo"><img src="${logoSrc}" alt="${shopSettings.shop_name}"></div>
                 <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
-                <div class="center big bold customer-name">${customerName}</div>
+                <div class="center big bold customer-name">${shopFirstName}</div>
                 <div class="divider-solid"></div>
                 <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
                 <div class="info">Date: ${lastOrder.date}</div>
@@ -617,8 +642,8 @@
     }
 
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js').then(reg => { reg.update(); }).catch(() => {});
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+            for (let registration of registrations) { registration.unregister(); }
         });
     }
 </script>
