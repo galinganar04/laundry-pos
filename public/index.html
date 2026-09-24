@@ -19,22 +19,15 @@
 
         .topbar {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            color: white;
-            padding: 10px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            color: white; padding: 10px 16px;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 12px; position: sticky; top: 0; z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         .topbar .logo-img { height: 38px; width: auto; background: rgba(255,255,255,0.15); border-radius: 6px; padding: 4px; }
         .topbar .user-info { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
         .topbar .user-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .topbar .icon-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 10px; border-radius: 8px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
-        .topbar .icon-btn:hover { background: rgba(255,255,255,0.25); color: white; }
 
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
@@ -100,11 +93,42 @@
         .btn-print-80:hover { background: #0e7490; }
         .print-buttons { display: none; }
 
-        .service-card.pickup-card { border: 2px dashed #f59e0b; background: #fffbeb; }
-        .service-card.pickup-card .service-thumb { background: #fef3c7; }
-        .service-card.pickup-card .service-thumb .overlay { background: linear-gradient(180deg, transparent 0%, rgba(146,64,14,0.9) 100%); }
+        /* ===== ORDER TYPE TOGGLE ===== */
+        .order-type-toggle {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 14px;
+            border: 1.5px solid #e2e8f0;
+        }
+        .order-type-toggle button {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 10px 8px;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .order-type-toggle button.active {
+            background: #1e40af;
+            color: white;
+            box-shadow: 0 2px 8px rgba(30,64,175,0.25);
+        }
+        .order-type-toggle button.pickup-active {
+            background: #f59e0b;
+            color: white;
+            box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+        }
 
-        .pickup-section {
+        /* Pickup info box */
+        .pickup-info {
             background: #fffbeb;
             border: 2px solid #fcd34d;
             border-radius: 10px;
@@ -112,19 +136,18 @@
             margin-bottom: 12px;
             display: none;
         }
-        .pickup-section.active { display: block; }
-        .pickup-section .title {
+        .pickup-info.active { display: block; }
+        .pickup-info .heading {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             color: #92400e;
             font-weight: 800;
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 10px;
         }
-        .pickup-section .form-label { color: #92400e; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
@@ -141,10 +164,11 @@
         [data-theme="dark"] .section-label { color: #64748b; }
         [data-theme="dark"] .section-label::after { background: #334155; }
         [data-theme="dark"] .cart-panel h5 { border-color: #334155; }
-        [data-theme="dark"] .pickup-section { background: #422006 !important; border-color: #92400e !important; }
-        [data-theme="dark"] .pickup-section .title,
-        [data-theme="dark"] .pickup-section .form-label { color: #fbbf24 !important; }
-        [data-theme="dark"] .service-card.pickup-card { background: #422006 !important; border-color: #f59e0b !important; }
+        [data-theme="dark"] .order-type-toggle { background: #334155; border-color: #475569; }
+        [data-theme="dark"] .order-type-toggle button { color: #94a3b8; }
+        [data-theme="dark"] .pickup-info { background: #422006 !important; border-color: #f59e0b !important; }
+        [data-theme="dark"] .pickup-info .heading { color: #fbbf24 !important; }
+        [data-theme="dark"] .pickup-info .form-label { color: #fbbf24 !important; }
 
         @media (max-width: 767px) {
             .desktop-sidebar { display: none !important; }
@@ -228,19 +252,27 @@
                     <p class="cart-empty">Cart is empty.</p>
                 </div>
 
-                <div class="pickup-section" id="pickupSection">
-                    <div class="title">
-                        <span>🚚</span> Pickup &amp; Delivery
+                <!-- ORDER TYPE TOGGLE -->
+                <div class="order-type-toggle">
+                    <button id="btnWalkIn" class="active" onclick="setOrderType('walkin')">👤 Walk-In</button>
+                    <button id="btnPickup" onclick="setOrderType('pickup')">🚚 Pickup/Delivery</button>
+                </div>
+
+                <!-- PICKUP INFO (only shown when Pickup is selected) -->
+                <div class="pickup-info" id="pickupInfo">
+                    <div class="heading">
+                        <span>🚚</span> Pickup &amp; Delivery Details
                     </div>
                     <div class="mb-2">
                         <label class="form-label">📱 Cellphone Number *</label>
                         <input type="tel" id="customerPhone" class="form-control" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" autocomplete="tel" oninput="validatePhone()">
-                        <small id="phoneHint" style="font-size: 11px; color: #92400e;">11 digits, starts with 09</small>
+                        <small id="phoneHint" style="font-size: 11px; color: #92400e; display: block; margin-top: 4px;">11 digits, starts with 09</small>
                     </div>
                 </div>
 
+                <!-- CUSTOMER NAME -->
                 <div class="mb-3">
-                    <label class="form-label">👤 Customer</label>
+                    <label class="form-label">👤 Customer Name</label>
                     <input type="text" id="customerName" class="form-control" value="Walk-In Customer" list="customerList" autocomplete="off">
                     <datalist id="customerList"></datalist>
                 </div>
@@ -289,13 +321,58 @@
         });
 
     let cart = [], total = 0, lastOrder = null;
-    let pickupMode = false;
+    let orderType = 'walkin'; // 'walkin' or 'pickup'
 
-    function isPickupService(name) {
-        const n = (name || '').toLowerCase().replace(/[\s\-_]/g, '');
-        return n.includes('pickup') || n.includes('delivery') || n.includes('pickupdelivery');
+    // ===== ORDER TYPE TOGGLE =====
+    function setOrderType(type) {
+        orderType = type;
+        const btnWalkIn = document.getElementById('btnWalkIn');
+        const btnPickup = document.getElementById('btnPickup');
+        const infoBox = document.getElementById('pickupInfo');
+        const customerInput = document.getElementById('customerName');
+
+        if (type === 'walkin') {
+            btnWalkIn.classList.add('active');
+            btnWalkIn.classList.remove('pickup-active');
+            btnPickup.classList.remove('active');
+            btnPickup.classList.remove('pickup-active');
+            infoBox.classList.remove('active');
+            document.getElementById('customerPhone').value = '';
+            customerInput.value = 'Walk-In Customer';
+            document.getElementById('phoneHint').style.color = '#92400e';
+            document.getElementById('phoneHint').innerText = '11 digits, starts with 09';
+        } else {
+            btnWalkIn.classList.remove('active');
+            btnPickup.classList.add('active');
+            btnPickup.classList.add('pickup-active');
+            infoBox.classList.add('active');
+            // Clear walk-in default so they must type a real name
+            if (customerInput.value === 'Walk-In Customer') {
+                customerInput.value = '';
+            }
+            setTimeout(() => customerInput.focus(), 100);
+        }
     }
 
+    function validatePhone() {
+        const phone = document.getElementById('customerPhone').value.trim();
+        const hint = document.getElementById('phoneHint');
+        if (phone.length === 0) {
+            hint.style.color = '#92400e';
+            hint.innerText = '11 digits, starts with 09';
+            return false;
+        }
+        if (!/^09\d{9}$/.test(phone)) {
+            hint.style.color = '#dc2626';
+            hint.innerText = '⚠️ Invalid — must be 11 digits and start with 09';
+            return false;
+        }
+        hint.style.color = '#059669';
+        hint.innerText = '✅ Valid number';
+        return true;
+    }
+
+    // ===== LOAD SERVICES =====
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
         .then(response => {
             if (response.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -308,18 +385,17 @@
             services.forEach(service => {
                 const color = service.color || '#1e40af';
                 const unit = service.unit_label || service.unit || 'kg';
-                const isPickup = isPickupService(service.name);
                 let inner;
                 if (service.image_data) {
                     inner = `<div class="service-thumb"><img src="${service.image_data}"><div class="overlay"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
                 } else {
                     inner = `<div class="service-thumb" style="background: ${color};"><div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 8px; text-align: center;"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
                 }
-                const cardClass = isPickup ? 'service-card pickup-card' : 'service-card';
-                container.innerHTML += `<div class="col-6 col-md-4 mb-3"><div class="${cardClass}" id="svc-${service.id}" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service', ${service.id})">${inner}</div></div>`;
+                container.innerHTML += `<div class="col-6 col-md-4 mb-3"><div class="card service-card" id="svc-${service.id}" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service', ${service.id})">${inner}</div></div>`;
             });
         });
 
+    // ===== LOAD ADD-ONS =====
     fetch('/api/products', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(products => {
@@ -409,56 +485,19 @@
         }
         countSpan.innerText = itemCount + ' items';
         totalSpan.innerText = '₱' + total.toFixed(2);
-
-        const hasPickup = cart.some(item => isPickupService(item.name));
-        if (hasPickup !== pickupMode) {
-            pickupMode = hasPickup;
-            updatePickupMode();
-        }
-    }
-
-    function updatePickupMode() {
-        const section = document.getElementById('pickupSection');
-        const customerInput = document.getElementById('customerName');
-        if (pickupMode) {
-            section.classList.add('active');
-            if (customerInput.value === 'Walk-In Customer') {
-                customerInput.value = '';
-            }
-        } else {
-            section.classList.remove('active');
-            document.getElementById('customerPhone').value = '';
-            document.getElementById('phoneHint').style.color = '#92400e';
-            document.getElementById('phoneHint').innerText = '11 digits, starts with 09';
-        }
-    }
-
-    function validatePhone() {
-        const phone = document.getElementById('customerPhone').value.trim();
-        const hint = document.getElementById('phoneHint');
-        if (phone.length === 0) {
-            hint.style.color = '#92400e';
-            hint.innerText = '11 digits, starts with 09';
-            return false;
-        }
-        if (!/^09\d{9}$/.test(phone)) {
-            hint.style.color = '#dc2626';
-            hint.innerText = '⚠️ Invalid — must be 11 digits and start with 09';
-            return false;
-        }
-        hint.style.color = '#059669';
-        hint.innerText = '✅ Valid number';
-        return true;
     }
 
     function checkout() {
         if (cart.length === 0) return alert("Cart is empty.");
+
         const customer = document.getElementById('customerName').value.trim();
         const paymentStatus = document.getElementById('paymentStatus').value;
         const customerPhone = document.getElementById('customerPhone').value.trim();
         const cashierName = localStorage.getItem('userName') || 'Unknown';
+        const isPickup = orderType === 'pickup';
 
-        if (pickupMode) {
+        // ===== VALIDATION =====
+        if (isPickup) {
             if (!customer || customer === 'Walk-In Customer') {
                 document.getElementById('customerName').focus();
                 return alert('⚠️ Customer name is required for Pickup & Delivery');
@@ -482,8 +521,8 @@
             items: JSON.parse(JSON.stringify(cart)),
             date: new Date().toLocaleString(),
             paymentStatus,
-            pickupDelivery: pickupMode,
-            customerPhone: pickupMode ? customerPhone : null
+            pickupDelivery: isPickup,
+            customerPhone: isPickup ? customerPhone : null
         };
 
         fetch('/api/checkout', {
@@ -491,8 +530,8 @@
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
             body: JSON.stringify({
                 customer: finalCustomer, total, cartItems: cart, paymentStatus, cashierName,
-                pickupDelivery: pickupMode,
-                customerPhone: pickupMode ? customerPhone : null
+                pickupDelivery: isPickup,
+                customerPhone: isPickup ? customerPhone : null
             })
         })
         .then(res => res.json())
@@ -503,11 +542,8 @@
             receiptData.serviceFlow = data.serviceFlow;
             lastOrder = receiptData;
             cart = [];
-            pickupMode = false;
             updateCartUI();
-            document.getElementById('pickupSection').classList.remove('active');
-            document.getElementById('customerPhone').value = '';
-            document.getElementById('customerName').value = 'Walk-In Customer';
+            setOrderType('walkin');
             document.querySelectorAll('.qty-badge').forEach(b => { b.innerText = '0'; b.style.display = 'none'; });
             document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
             btn.innerText = '✅ Checkout'; btn.disabled = false;
