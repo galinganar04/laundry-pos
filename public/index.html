@@ -258,6 +258,7 @@
     document.getElementById('currentUserDesktop').innerText = userName;
 
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: '₱' };
     fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
@@ -266,7 +267,7 @@
     let pickupServiceInfo = null;
     fetch('/api/pickup-service', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
-        .then(data => { if (!data.error) pickupServiceInfo = data; else console.warn('Pickup service not configured:', data.error); })
+        .then(data => { if (!data.error) pickupServiceInfo = data; })
         .catch(() => {});
 
     fetch('/api/customers', { headers: { 'x-auth-token': authToken } })
@@ -523,9 +524,164 @@
         .catch(() => { alert("Error saving order."); btn.innerText = '✅ Checkout'; btn.disabled = false; });
     }
 
+    // ===== LINE HELPERS =====
+    // 32 chars for 58mm typical font; 48 chars for 80mm
+    function dividerLine(size) {
+        return (size === '58' ? '─'.repeat(31) : '─'.repeat(47));
+    }
+    function doubleDividerLine(size) {
+        return (size === '58' ? '═'.repeat(31) : '═'.repeat(47));
+    }
+    function padRight(str, len) {
+        str = String(str || '');
+        if (str.length >= len) return str.substring(0, len);
+        return str + ' '.repeat(len - str.length);
+    }
+    function padLeft(str, len) {
+        str = String(str || '');
+        if (str.length >= len) return str.substring(0, len);
+        return ' '.repeat(len - str.length) + str;
+    }
+    function center(str, len) {
+        str = String(str || '');
+        if (str.length >= len) return str.substring(0, len);
+        const totalPad = len - str.length;
+        const leftPad = Math.floor(totalPad / 2);
+        const rightPad = totalPad - leftPad;
+        return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
+    }
+    function formatMoney(n) {
+        return '₱' + parseFloat(n || 0).toFixed(2);
+    }
+
+    // ===== BUILD PLAIN-TEXT RECEIPT FOR RawBT (MOBILE) =====
+    function buildReceiptText(size) {
+        const width = size === '58' ? 32 : 48;
+        const order = lastOrder;
+        const rawName = order.customer || 'Walk-In Customer';
+        const customerFullName = toTitleCase(rawName);
+        const shopFirstName = getFirstNameUpper(rawName);
+        const isPaid = String(order.paymentStatus).toLowerCase() === 'paid';
+        const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
+
+        // Short date: "Sept 24, 4:30PM"
+        const d = new Date();
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        let hrs = d.getHours();
+        const mins = String(d.getMinutes()).padStart(2, '0');
+        const ampm = hrs >= 12 ? 'PM' : 'AM';
+        hrs = hrs % 12 || 12;
+        const shortDate = months[d.getMonth()] + ' ' + d.getDate() + ', ' + hrs + ':' + mins + ampm;
+
+        let lines = [];
+
+        // ============ CUSTOMER COPY ============
+        lines.push(doubleDividerLine(size));
+        lines.push(center("HAWI'S LOVADA", width));
+        lines.push(center("Clean. Fresh. Wash with Love.", width));
+        lines.push(doubleDividerLine(size));
+        lines.push('#' + order.orderId + ' ● ' + shortDate);
+        lines.push(customerFullName);
+        lines.push(dividerLine(size));
+
+        // Items
+        order.items.forEach(item => {
+            const nameMax = width - 14;
+            const name = item.name.length > nameMax ? item.name.substring(0, nameMax - 1) + '.' : item.name;
+            const qtyPart = ' x' + item.qty;
+            const amtPart = formatMoney(item.price * item.qty);
+            const nameQty = name + qtyPart;
+            lines.push(padRight(nameQty, width - amtPart.length) + amtPart);
+        });
+
+        lines.push(dividerLine(size));
+        const totalLabel = 'TOTAL';
+        const totalValue = formatMoney(order.total);
+        lines.push(padRight(totalLabel, width - totalValue.length) + totalValue);
+        lines.push(dividerLine(size));
+        lines.push(center(statusLabel, width));
+
+        if (order.pickupDelivery) {
+            lines.push(dividerLine(size));
+            lines.push('🚚 PICKUP & DELIVERY');
+            lines.push('📱 ' + (order.customerPhone || ''));
+        }
+
+        lines.push(dividerLine(size));
+        lines.push('Track: laundry-pos-7lwy');
+        lines.push('.onrender.com/login.html');
+        lines.push(dividerLine(size));
+        lines.push(center('Thank you! Come again!', width));
+        lines.push('');
+        lines.push(center('-------- CUT HERE --------', width));
+        lines.push('');
+        lines.push('');
+        lines.push('');
+
+        // ============ SHOP COPY ============
+        lines.push(doubleDividerLine(size));
+        lines.push(center("HAWI'S LOVADA", width));
+        lines.push(center("Clean. Fresh. Wash with Love.", width));
+        lines.push(doubleDividerLine(size));
+        lines.push('');
+        lines.push(center(shopFirstName, width));
+        lines.push('');
+        lines.push('#' + order.orderId + ' ● ' + shortDate);
+        lines.push(dividerLine(size));
+
+        // Items (no prices)
+        order.items.forEach(item => {
+            const nameMax = width - 6;
+            const name = item.name.length > nameMax ? item.name.substring(0, nameMax - 1) + '.' : item.name;
+            lines.push(name + ' x' + item.qty);
+        });
+
+        lines.push(dividerLine(size));
+        lines.push(center(statusLabel, width));
+
+        if (order.pickupDelivery) {
+            lines.push(dividerLine(size));
+            lines.push('🚚 ' + (order.customerPhone || ''));
+        }
+
+        lines.push(dividerLine(size));
+        lines.push(center('Thank you!', width));
+
+        return lines.join('\n');
+    }
+
+    // ===== PRINT RECEIPT (Auto-detects phone vs PC) =====
     function printReceipt(size) {
         if (!lastOrder) return alert("No recent order to print.");
 
+        if (isPhone) {
+            // MOBILE: send to RawBT
+            const receiptText = buildReceiptText(size);
+            // RawBT accepts base64 encoded data via URL scheme
+            const encoded = btoa(unescape(encodeURIComponent(receiptText)));
+            const rawbtUrl = 'rawbt:base64,' + encoded;
+
+            // Try opening RawBT
+            const a = document.createElement('a');
+            a.href = rawbtUrl;
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Fallback message
+            setTimeout(() => {
+                alert('If RawBT did not open, please install RawBT from Play Store and set it as the default app for rawbt: links.');
+            }, 500);
+            return;
+        }
+
+        // DESKTOP: keep existing HTML window.print approach
+        printReceiptDesktop(size);
+    }
+
+    // ===== DESKTOP HTML PRINT (unchanged logic, updated layout) =====
+    function printReceiptDesktop(size) {
         const rawName = lastOrder.customer || 'Walk-In Customer';
         const customerFullName = toTitleCase(rawName);
         const shopFirstName = getFirstNameUpper(rawName);
@@ -535,63 +691,58 @@
         const payNote = isPaid ? '' : 'Please pay upon pickup.';
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
-        const logoSrc = window.location.origin + '/logo.png';
         const cur = shopSettings.currency || '₱';
 
         const itemsCustomerHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
-            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td><td style="text-align:right;">${cur}${(item.price * item.qty).toFixed(2)}</td></tr>`;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.qty}</td><td style="text-align:right;">${cur}${(item.price * item.qty).toFixed(2)}</td></tr>`;
         }).join('');
 
         const itemsShopHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 20 : 32) ? item.name.substring(0, size === '58' ? 19 : 31) + '.' : item.name;
-            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td></tr>`;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.qty}</td></tr>`;
         }).join('');
 
-        const pickupNote = lastOrder.pickupDelivery ? `<div class="center bold" style="border:2px solid #000; padding:4px; margin:6px 0;">🚚 PICKUP &amp; DELIVERY</div><div class="center">📱 ${lastOrder.customerPhone || ''}</div>` : '';
+        const pickupNote = lastOrder.pickupDelivery ? `<div class="divider"></div><div class="center bold">🚚 PICKUP &amp; DELIVERY</div><div class="center">📱 ${lastOrder.customerPhone || ''}</div>` : '';
 
         const customerCopyHtml = `
             <div class="receipt-copy">
-                <div class="logo"><img src="${logoSrc}" alt="${shopSettings.shop_name}"></div>
                 <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
                 <div class="divider-solid"></div>
-                <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
-                <div class="info">Date: ${lastOrder.date}</div>
-                <div class="info">Customer: ${customerFullName}</div>
-                ${pickupNote}
+                <div class="info">#${lastOrder.orderId} ● ${lastOrder.date}</div>
+                <div class="info">${customerFullName}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
+                <div class="divider"></div>
                 <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${lastOrder.total.toFixed(2)}</td></tr></table>
                 <div class="divider"></div>
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
+                ${pickupNote}
                 <div class="divider"></div>
                 <div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div>
-                <div class="center big bold customer-name">${customerFullName}</div>
                 <div class="divider-solid"></div>
-                <div class="footer">Thank you for your business!</div>
+                <div class="footer">Thank you! Come again!</div>
+                <div class="center" style="margin-top: 12px;">-------- CUT HERE --------</div>
+                <div style="height: 30px;"></div>
             </div>
         `;
 
         const shopCopyHtml = `
             <div class="receipt-copy shop-copy">
-                <div class="copy-label">SHOP COPY</div>
-                <div class="logo"><img src="${logoSrc}" alt="${shopSettings.shop_name}"></div>
                 <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
-                <div class="center big bold customer-name">${shopFirstName}</div>
                 <div class="divider-solid"></div>
-                <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
-                <div class="info">Date: ${lastOrder.date}</div>
-                ${pickupNote}
+                <div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div>
+                <div class="info" style="text-align: left;">#${lastOrder.orderId} ● ${lastOrder.date}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
                 <div class="divider"></div>
                 <div class="status">${statusLabel}</div>
-                ${payNote ? `<div class="center">${payNote}</div>` : ''}
-                <div class="divider-solid"></div>
-                <div class="footer">Thank you for your business!</div>
+                ${pickupNote}
+                <div class="divider"></div>
+                <div class="footer">Thank you!</div>
             </div>
         `;
 
@@ -601,15 +752,11 @@
                 body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; }
                 .receipt-copy { padding-bottom: 10px; }
                 .receipt-copy.shop-copy { border-top: 2px dashed #000; padding-top: 12px; margin-top: 10px; }
-                .copy-label { text-align: center; font-weight: 900; background: #000; color: #fff; padding: 4px; margin-bottom: 8px; font-size: ${fontSize + 1}px; letter-spacing: 2px; }
                 .center { text-align: center; }
                 .bold { font-weight: 900; }
                 .big { font-size: ${size === '58' ? 14 : 16}px; }
-                .customer-name { margin-top: 2px; margin-bottom: 4px; }
                 .divider { border-top: 1px dashed #000; margin: 4px 0; }
                 .divider-solid { border-top: 2px solid #000; margin: 6px 0; }
-                .logo { text-align: center; margin-bottom: 3px; }
-                .logo img { max-width: ${size === '58' ? '60px' : '80px'}; height: auto; filter: grayscale(100%); }
                 table { width: 100%; border-collapse: collapse; }
                 .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
                 .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; color: #000; background: #fff; }
