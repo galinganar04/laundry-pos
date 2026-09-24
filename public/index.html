@@ -100,12 +100,10 @@
         .btn-print-80:hover { background: #0e7490; }
         .print-buttons { display: none; }
 
-        /* Pickup card highlighted */
         .service-card.pickup-card { border: 2px dashed #f59e0b; background: #fffbeb; }
         .service-card.pickup-card .service-thumb { background: #fef3c7; }
         .service-card.pickup-card .service-thumb .overlay { background: linear-gradient(180deg, transparent 0%, rgba(146,64,14,0.9) 100%); }
 
-        /* Pickup section in cart */
         .pickup-section {
             background: #fffbeb;
             border: 2px solid #fcd34d;
@@ -230,7 +228,6 @@
                     <p class="cart-empty">Cart is empty.</p>
                 </div>
 
-                <!-- PICKUP & DELIVERY SECTION (appears when pickup card is added) -->
                 <div class="pickup-section" id="pickupSection">
                     <div class="title">
                         <span>🚚</span> Pickup &amp; Delivery
@@ -292,12 +289,11 @@
         });
 
     let cart = [], total = 0, lastOrder = null;
-    let pickupMode = false; // Track if pickup service is in cart
+    let pickupMode = false;
 
-    // ===== HELPER: Detect if item is a pickup/delivery service =====
     function isPickupService(name) {
-        const n = (name || '').toLowerCase().replace(/[\s-]/g, '');
-        return n.includes('pickup') || n.includes('delivery');
+        const n = (name || '').toLowerCase().replace(/[\s\-_]/g, '');
+        return n.includes('pickup') || n.includes('delivery') || n.includes('pickupdelivery');
     }
 
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
@@ -414,7 +410,6 @@
         countSpan.innerText = itemCount + ' items';
         totalSpan.innerText = '₱' + total.toFixed(2);
 
-        // ===== AUTO-DETECT PICKUP MODE =====
         const hasPickup = cart.some(item => isPickupService(item.name));
         if (hasPickup !== pickupMode) {
             pickupMode = hasPickup;
@@ -427,11 +422,9 @@
         const customerInput = document.getElementById('customerName');
         if (pickupMode) {
             section.classList.add('active');
-            // If customer is still "Walk-In Customer", clear it so they type a real name
             if (customerInput.value === 'Walk-In Customer') {
                 customerInput.value = '';
             }
-            customerInput.focus();
         } else {
             section.classList.remove('active');
             document.getElementById('customerPhone').value = '';
@@ -465,20 +458,16 @@
         const customerPhone = document.getElementById('customerPhone').value.trim();
         const cashierName = localStorage.getItem('userName') || 'Unknown';
 
-        // ===== VALIDATION =====
         if (pickupMode) {
-            // Name must not be empty or "Walk-In Customer"
             if (!customer || customer === 'Walk-In Customer') {
                 document.getElementById('customerName').focus();
                 return alert('⚠️ Customer name is required for Pickup & Delivery');
             }
-            // Phone must be 11 digits, starts with 09
             if (!/^09\d{9}$/.test(customerPhone)) {
                 document.getElementById('customerPhone').focus();
                 return alert('⚠️ Cellphone number is required (11 digits, starts with 09)\nExample: 09171234567');
             }
         } else {
-            // Walk-in: name defaults to Walk-In Customer if empty
             if (!customer) {
                 document.getElementById('customerName').value = 'Walk-In Customer';
             }
@@ -489,8 +478,7 @@
         btn.innerText = 'Processing...'; btn.disabled = true;
 
         const receiptData = {
-            customer: finalCustomer,
-            total,
+            customer: finalCustomer, total,
             items: JSON.parse(JSON.stringify(cart)),
             date: new Date().toLocaleString(),
             paymentStatus,
@@ -502,11 +490,7 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
             body: JSON.stringify({
-                customer: finalCustomer,
-                total,
-                cartItems: cart,
-                paymentStatus,
-                cashierName,
+                customer: finalCustomer, total, cartItems: cart, paymentStatus, cashierName,
                 pickupDelivery: pickupMode,
                 customerPhone: pickupMode ? customerPhone : null
             })
@@ -649,7 +633,9 @@
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+            navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                reg.update();
+            }).catch(() => {});
         });
     }
 </script>

@@ -47,7 +47,6 @@
             margin-bottom: 22px;
         }
 
-        /* ===== TOP TOGGLE (Employee / Customer) ===== */
         .mode-toggle {
             display: flex;
             background: #f1f5f9;
@@ -146,7 +145,6 @@
         }
         .signup-banner a { color: #1e40af; font-weight: 700; text-decoration: underline; }
 
-        /* ===== CUSTOMER TRACKING ===== */
         .track-header {
             text-align: center;
             margin-bottom: 18px;
@@ -191,7 +189,6 @@
             text-align: center;
         }
 
-        /* Result */
         #trackResult { display: none; margin-top: 16px; }
         .result-status-banner {
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
@@ -208,7 +205,6 @@
         .result-info-row .lbl { color: #64748b; font-weight: 600; }
         .result-info-row .val { color: #1e293b; font-weight: 700; }
 
-        /* Horizontal timeline */
         .timeline-wrap { overflow-x: auto; padding: 14px 0 6px; -webkit-overflow-scrolling: touch; }
         .timeline-wrap::-webkit-scrollbar { height: 5px; }
         .timeline-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
@@ -266,13 +262,11 @@
             <h2>Hawi's Lovada</h2>
             <p class="tagline">Clean. Fresh. Wash with Love.</p>
 
-            <!-- MODE TOGGLE -->
             <div class="mode-toggle">
                 <button id="tabEmployee" class="active" onclick="switchMode('employee')">👤 Employee</button>
                 <button id="tabCustomer" onclick="switchMode('customer')">📦 Customer</button>
             </div>
 
-            <!-- EMPLOYEE LOGIN -->
             <div id="employeePanel">
                 <div id="signupBanner" class="signup-banner" style="display: none;">
                     🎉 No users yet. <a href="/signup.html">Create the owner account →</a>
@@ -294,7 +288,6 @@
                 <a href="/forgot.html" class="small-link">Forgot your password?</a>
             </div>
 
-            <!-- CUSTOMER TRACKING -->
             <div id="customerPanel" style="display: none;">
                 <div class="track-header">
                     <div class="icon">📦</div>
@@ -342,7 +335,6 @@
 <script>
     if (localStorage.getItem('authToken')) { window.location.href = '/'; }
 
-    // Load signup banner
     fetch('/api/auth/signup-status')
         .then(res => res.json())
         .then(data => {
@@ -350,7 +342,6 @@
         })
         .catch(() => {});
 
-    // ===== MODE SWITCH =====
     function switchMode(mode) {
         const employee = document.getElementById('employeePanel');
         const customer = document.getElementById('customerPanel');
@@ -372,7 +363,6 @@
         }
     }
 
-    // ===== EMPLOYEE LOGIN =====
     function login(e) {
         e.preventDefault();
         const username = document.getElementById('username').value.trim();
@@ -412,7 +402,6 @@
         });
     }
 
-    // ===== CUSTOMER TRACKING =====
     const stepIcons = {
         'Received': '1', 'Washing': '2', 'Drying': '3', 'Folding': '4',
         'Spin & Dry': '2', 'Done (Ready to Pickup)': '✓',
@@ -511,7 +500,9 @@
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+            navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                reg.update();
+            }).catch(() => {});
         });
     }
 </script>
