@@ -21,17 +21,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 16px;
+            padding: 20px 16px;
         }
-        .login-wrap { width: 100%; max-width: 400px; }
+        .login-wrap { width: 100%; max-width: 420px; }
         .login-card {
             background: white;
             border-radius: 16px;
-            padding: 32px 24px;
+            padding: 28px 24px;
             box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
-        .logo-wrap { text-align: center; margin-bottom: 16px; }
-        .logo-wrap img { max-width: 140px; height: auto; }
+        .logo-wrap { text-align: center; margin-bottom: 14px; }
+        .logo-wrap img { max-width: 130px; height: auto; }
         h2 {
             text-align: center;
             color: #1e3a8a;
@@ -44,12 +44,48 @@
             color: #dc2626;
             font-style: italic;
             font-size: 13px;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
         }
-        .form-label {
+
+        /* ===== TOP TOGGLE (Employee / Customer) ===== */
+        .mode-toggle {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 22px;
+            border: 1px solid #e2e8f0;
+        }
+        .mode-toggle button {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 12px 10px;
+            border-radius: 9px;
             font-size: 13px;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .mode-toggle button.active {
+            background: #1e40af;
+            color: white;
+            box-shadow: 0 4px 12px rgba(30,64,175,0.25);
+        }
+        .mode-toggle button:not(.active):hover {
+            background: #e2e8f0;
+            color: #1e40af;
+        }
+
+        .form-label {
+            font-size: 12px;
             color: #475569;
-            font-weight: 600;
+            font-weight: 700;
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -58,7 +94,7 @@
             border: 1.5px solid #e2e8f0;
             border-radius: 10px;
             padding: 14px 16px;
-            font-size: 16px;
+            font-size: 15px;
             transition: all 0.15s;
         }
         .form-control:focus {
@@ -110,52 +146,114 @@
         }
         .signup-banner a { color: #1e40af; font-weight: 700; text-decoration: underline; }
 
-        /* Track Your Order section */
-        .track-divider {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 22px 0 14px;
-            color: #94a3b8;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 700;
+        /* ===== CUSTOMER TRACKING ===== */
+        .track-header {
+            text-align: center;
+            margin-bottom: 18px;
         }
-        .track-divider::before,
-        .track-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
+        .track-header .icon {
+            font-size: 36px;
+            margin-bottom: 6px;
         }
-        .btn-track-customer {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            background: #f0f9ff;
+        .track-header h3 {
             color: #1e40af;
-            border: 2px solid #bfdbfe;
-            padding: 14px;
-            border-radius: 10px;
-            font-weight: 700;
-            font-size: 14px;
-            text-decoration: none;
-            transition: all 0.15s;
+            font-size: 17px;
+            font-weight: 800;
+            margin: 0 0 4px;
         }
-        .btn-track-customer:hover {
+        .track-header p {
+            color: #64748b;
+            font-size: 12px;
+            margin: 0;
+        }
+        .btn-track {
             background: #1e40af;
             color: white;
-            border-color: #1e40af;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(30,64,175,0.2);
+            border: none;
+            padding: 14px;
+            font-weight: 700;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 16px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .btn-track:hover { background: #1e3a8a; }
+        .btn-track:disabled { opacity: 0.6; cursor: not-allowed; }
+        .track-error {
+            color: #dc2626;
+            font-size: 13px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fee2e2;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
         }
 
+        /* Result */
+        #trackResult { display: none; margin-top: 16px; }
+        .result-status-banner {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .result-status-banner .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; font-weight: 700; }
+        .result-status-banner .val { font-size: 20px; font-weight: 800; margin-top: 2px; }
+        .result-info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #f1f5f9; }
+        .result-info-row:last-of-type { border-bottom: none; }
+        .result-info-row .lbl { color: #64748b; font-weight: 600; }
+        .result-info-row .val { color: #1e293b; font-weight: 700; }
+
+        /* Horizontal timeline */
+        .timeline-wrap { overflow-x: auto; padding: 14px 0 6px; -webkit-overflow-scrolling: touch; }
+        .timeline-wrap::-webkit-scrollbar { height: 5px; }
+        .timeline-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .timeline { display: flex; align-items: flex-start; min-width: min-content; padding: 0 4px; }
+        .step { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; min-width: 74px; }
+        .step-circle {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: #e2e8f0; color: #94a3b8;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 12px;
+            border: 2px solid #e2e8f0;
+            z-index: 2;
+        }
+        .step.completed .step-circle { background: #10b981; color: white; border-color: #10b981; }
+        .step.current .step-circle { background: #1e40af; color: white; border-color: #1e40af; box-shadow: 0 0 0 5px rgba(30,64,175,0.15); animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(30,64,175,0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(30,64,175,0); }
+            100% { box-shadow: 0 0 0 0 rgba(30,64,175,0); }
+        }
+        .step-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-align: center; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.3px; max-width: 74px; line-height: 1.2; }
+        .step.completed .step-label { color: #065f46; }
+        .step.current .step-label { color: #1e40af; }
+        .connector { flex: 0 0 22px; height: 3px; background: #e2e8f0; margin-top: 15px; }
+        .connector.completed { background: #10b981; }
+
+        .switch-link {
+            text-align: center;
+            margin-top: 16px;
+            font-size: 13px;
+            color: #64748b;
+        }
+        .switch-link a {
+            color: #1e40af;
+            font-weight: 700;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .switch-link a:hover { text-decoration: underline; }
+
         @media (max-width: 400px) {
-            .login-card { padding: 24px 18px; }
-            .logo-wrap img { max-width: 110px; }
+            .login-card { padding: 22px 18px; }
+            .logo-wrap img { max-width: 105px; }
             h2 { font-size: 20px; }
+            .mode-toggle button { font-size: 12px; padding: 10px 6px; }
         }
     </style>
 </head>
@@ -168,36 +266,83 @@
             <h2>Hawi's Lovada</h2>
             <p class="tagline">Clean. Fresh. Wash with Love.</p>
 
-            <div id="signupBanner" class="signup-banner" style="display: none;">
-                🎉 No users yet. <a href="/signup.html">Create the owner account →</a>
+            <!-- MODE TOGGLE -->
+            <div class="mode-toggle">
+                <button id="tabEmployee" class="active" onclick="switchMode('employee')">👤 Employee</button>
+                <button id="tabCustomer" onclick="switchMode('customer')">📦 Customer</button>
             </div>
 
-            <form onsubmit="login(event)">
-                <div class="mb-3">
-                    <label class="form-label">Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter username" autofocus required autocomplete="username" autocapitalize="none">
+            <!-- EMPLOYEE LOGIN -->
+            <div id="employeePanel">
+                <div id="signupBanner" class="signup-banner" style="display: none;">
+                    🎉 No users yet. <a href="/signup.html">Create the owner account →</a>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label">Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter password" required autocomplete="current-password">
+
+                <form onsubmit="login(event)">
+                    <div class="mb-3">
+                        <label class="form-label">Username</label>
+                        <input type="text" id="username" class="form-control" placeholder="Enter username" autocomplete="username" autocapitalize="none">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="password" class="form-control" placeholder="Enter password" autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn-login" id="loginBtn">🔓 Log In</button>
+                    <div class="error" id="errorMsg"></div>
+                </form>
+
+                <a href="/forgot.html" class="small-link">Forgot your password?</a>
+            </div>
+
+            <!-- CUSTOMER TRACKING -->
+            <div id="customerPanel" style="display: none;">
+                <div class="track-header">
+                    <div class="icon">📦</div>
+                    <h3>Track Your Order</h3>
+                    <p>Enter your name and receipt number to see your laundry status</p>
                 </div>
-                <button type="submit" class="btn-login" id="loginBtn">🔓 Log In</button>
-                <div class="error" id="errorMsg"></div>
-            </form>
 
-            <a href="/forgot.html" class="small-link">Forgot your password?</a>
+                <form onsubmit="trackOrder(event)">
+                    <div class="mb-3">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" id="trackName" class="form-control" placeholder="e.g. Juan Dela Cruz" autocomplete="name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Order / Receipt Number</label>
+                        <input type="number" id="trackOrderId" class="form-control" placeholder="e.g. 123" inputmode="numeric">
+                    </div>
+                    <button type="submit" class="btn-track" id="trackBtn">🔍 Check Status</button>
+                    <div class="track-error" id="trackError"></div>
+                </form>
 
-            <!-- Track Your Order (Customer Area) -->
-            <div class="track-divider">Customer Area</div>
-            <a href="/track.html" class="btn-track-customer">
-                📦 Track Your Order →
-            </a>
+                <div id="trackResult">
+                    <div class="result-status-banner">
+                        <div class="lbl">Current Status</div>
+                        <div class="val" id="resultStatus">—</div>
+                    </div>
+                    <div class="result-info-row"><span class="lbl">Order #</span><span class="val" id="resultOrderId">—</span></div>
+                    <div class="result-info-row"><span class="lbl">Customer</span><span class="val" id="resultCustomer">—</span></div>
+                    <div class="result-info-row"><span class="lbl">Total</span><span class="val" id="resultTotal">—</span></div>
+                    <div class="result-info-row"><span class="lbl">Payment</span><span class="val" id="resultPayment">—</span></div>
+                    <div class="result-info-row" id="resultPickupRow" style="display:none;"><span class="lbl">Rider</span><span class="val" id="resultRider">—</span></div>
+
+                    <div style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 4px;">Progress</div>
+                    <div class="timeline-wrap">
+                        <div class="timeline" id="timeline"></div>
+                    </div>
+                </div>
+
+                <div class="switch-link">
+                    Are you an employee? <a onclick="switchMode('employee')">Log in here →</a>
+                </div>
+            </div>
         </div>
     </div>
 
 <script>
     if (localStorage.getItem('authToken')) { window.location.href = '/'; }
 
+    // Load signup banner
     fetch('/api/auth/signup-status')
         .then(res => res.json())
         .then(data => {
@@ -205,6 +350,29 @@
         })
         .catch(() => {});
 
+    // ===== MODE SWITCH =====
+    function switchMode(mode) {
+        const employee = document.getElementById('employeePanel');
+        const customer = document.getElementById('customerPanel');
+        const tabEmployee = document.getElementById('tabEmployee');
+        const tabCustomer = document.getElementById('tabCustomer');
+
+        if (mode === 'employee') {
+            employee.style.display = 'block';
+            customer.style.display = 'none';
+            tabEmployee.classList.add('active');
+            tabCustomer.classList.remove('active');
+            setTimeout(() => document.getElementById('username').focus(), 100);
+        } else {
+            employee.style.display = 'none';
+            customer.style.display = 'block';
+            tabEmployee.classList.remove('active');
+            tabCustomer.classList.add('active');
+            setTimeout(() => document.getElementById('trackName').focus(), 100);
+        }
+    }
+
+    // ===== EMPLOYEE LOGIN =====
     function login(e) {
         e.preventDefault();
         const username = document.getElementById('username').value.trim();
@@ -242,6 +410,103 @@
             btn.innerText = '🔓 Log In';
             btn.disabled = false;
         });
+    }
+
+    // ===== CUSTOMER TRACKING =====
+    const stepIcons = {
+        'Received': '1', 'Washing': '2', 'Drying': '3', 'Folding': '4',
+        'Spin & Dry': '2', 'Done (Ready to Pickup)': '✓',
+        'Out for Delivery': '🚚', 'Delivered': '✓', 'Ready': '✓', 'Picked Up': '✓'
+    };
+
+    function trackOrder(e) {
+        e.preventDefault();
+        const name = document.getElementById('trackName').value.trim();
+        const orderId = document.getElementById('trackOrderId').value.trim();
+        const errorBox = document.getElementById('trackError');
+        const btn = document.getElementById('trackBtn');
+        errorBox.style.display = 'none';
+
+        if (!name) {
+            errorBox.innerText = 'Please enter your name.';
+            errorBox.style.display = 'block';
+            return;
+        }
+        if (!orderId) {
+            errorBox.innerText = 'Please enter your order number.';
+            errorBox.style.display = 'block';
+            return;
+        }
+
+        btn.innerText = 'Checking...';
+        btn.disabled = true;
+
+        fetch('/api/track/' + orderId)
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = '🔍 Check Status';
+                btn.disabled = false;
+                if (data.error) {
+                    errorBox.innerText = data.error;
+                    errorBox.style.display = 'block';
+                    document.getElementById('trackResult').style.display = 'none';
+                    return;
+                }
+                const dbName = (data.customer || '').toLowerCase().trim();
+                const inputName = name.toLowerCase().trim();
+                if (!dbName.includes(inputName) && !inputName.includes(dbName)) {
+                    errorBox.innerText = '⚠️ Order number found, but the name does not match our records.';
+                    errorBox.style.display = 'block';
+                    document.getElementById('trackResult').style.display = 'none';
+                    return;
+                }
+                renderResult(data);
+            })
+            .catch(() => {
+                btn.innerText = '🔍 Check Status';
+                btn.disabled = false;
+                errorBox.innerText = 'Connection error. Please try again.';
+                errorBox.style.display = 'block';
+            });
+    }
+
+    function renderResult(order) {
+        document.getElementById('resultStatus').innerText = order.status || 'Received';
+        document.getElementById('resultOrderId').innerText = '#' + order.orderId;
+        document.getElementById('resultCustomer').innerText = order.customer || '—';
+        document.getElementById('resultTotal').innerText = '₱' + parseFloat(order.total).toFixed(2);
+        document.getElementById('resultPayment').innerText = order.paymentStatus || '—';
+
+        if (order.pickupDelivery && order.riderName) {
+            document.getElementById('resultPickupRow').style.display = 'flex';
+            document.getElementById('resultRider').innerText = order.riderName;
+        } else {
+            document.getElementById('resultPickupRow').style.display = 'none';
+        }
+
+        const timeline = document.getElementById('timeline');
+        const flow = order.serviceFlow || ['Received'];
+        const currentStep = order.currentStep || 0;
+        let html = '';
+        flow.forEach((step, idx) => {
+            if (idx > 0) {
+                const connClass = idx <= currentStep ? 'completed' : '';
+                html += `<div class="connector ${connClass}"></div>`;
+            }
+            let cls = '';
+            if (idx < currentStep) cls = 'completed';
+            else if (idx === currentStep) cls = 'current';
+            const icon = cls === 'completed' ? '✓' : (stepIcons[step] || (idx + 1));
+            html += `
+                <div class="step ${cls}">
+                    <div class="step-circle">${icon}</div>
+                    <div class="step-label">${step}</div>
+                </div>
+            `;
+        });
+        timeline.innerHTML = html;
+
+        document.getElementById('trackResult').style.display = 'block';
     }
 
     if ('serviceWorker' in navigator) {
