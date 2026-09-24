@@ -13,6 +13,33 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = 'shop1234';
 const sessions = new Map();
 
+// ===== SERVICE FLOW LOGIC =====
+function buildServiceFlow(cartItems, hasPickupDelivery) {
+    const names = cartItems.map(i => (i.name || '').toLowerCase());
+    const hasWash = names.some(n => n.includes('wash'));
+    const hasDry = names.some(n => n.includes('dry'));
+    const hasFold = names.some(n => n.includes('fold'));
+
+    const flow = ['Received'];
+
+    if (hasDry && !hasWash && !hasFold) {
+        flow.push('Spin & Dry');
+    } else {
+        if (hasWash) flow.push('Washing');
+        if (hasDry) flow.push('Drying');
+        if (hasFold) flow.push('Folding');
+    }
+
+    flow.push('Done (Ready to Pickup)');
+
+    if (hasPickupDelivery) {
+        flow.push('Out for Delivery');
+        flow.push('Delivered');
+    }
+
+    return flow;
+}
+
 const mailer = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -322,9 +349,33 @@ app.delete('/api/services/:id', requireAuth, async (req, res) => {
 
 // ===== CHECKOUT =====
 app.post('/api/checkout', requireAuth, async (req, res) => {
-    const { customer, total, cartItems, paymentStatus, cashierName } = req.body;
-    try { const orderId = await db.saveOrder(customer, total, cartItems, paymentStatus, cashierName); res.json({ message: "Order saved successfully!", orderId }); }
-    catch (err) { res.status(500).json({ error: err.message }); }
+    const { customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone } = req.body;
+    try {
+        if (!cartItems || cartItems.length === 0) {
+            return res.status(400).json({ error: 'Cart is empty' });
+        }
+
+        // Validate pickup & delivery requirements
+        if (pickupDelivery) {
+            if (!customer || customer.trim() === '' || customer === 'Walk-In Customer') {
+                return res.status(400).json({ error: 'Customer name is required for Pickup & Delivery' });
+            }
+            if (!customerPhone || customerPhone.trim() === '') {
+                return res.status(400).json({ error: 'Cellphone number is required for Pickup & Delivery' });
+            }
+        }
+
+        const serviceFlow = buildServiceFlow(cartItems, pickupDelivery);
+        const orderId = await db.saveOrder(customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone, serviceFlow);
+
+        res.json({
+            message: "Order saved successfully!",
+            orderId,
+            serviceFlow
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // ===== ORDERS =====
@@ -352,7 +403,7 @@ app.put('/api/orders/:id/unpay', requireAuth, async (req, res) => {
 });
 app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
     const { status } = req.body;
-    const validStatuses = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
+    const validStatuses = ['Received', 'Washing', 'Drying', 'Folding', 'Spin & Dry', 'Done (Ready to Pickup)', 'Out for Delivery', 'Delivered', 'Ready', 'Picked Up'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     try { await db.updateOrderStatus(req.params.id, status); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -360,9 +411,74 @@ app.delete('/api/orders/:id', requireAuth, async (req, res) => {
     try { await db.deleteOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ===== AUTO-ADVANCE ORDER STATUS =====
+app.post('/api/orders/:id/next-status', requireAuth, async (req, res) => {
+    try {
+        const { riderName } = req.body;
+        const order = await db.getOrderById(req.params.id);
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+
+        const flow = order.service_flow || ['Received'];
+        const nextStep = (order.current_step || 0) + 1;
+
+        if (nextStep >= flow.length) {
+            return res.status(400).json({ error: 'Order is already at final status' });
+        }
+
+        const newStatus = flow[nextStep];
+        const history = [...(order.status_history || []), {
+            status: newStatus,
+            at: new Date().toISOString()
+        }];
+
+        await db.updateOrderStatus(
+            req.params.id,
+            newStatus,
+            nextStep,
+            JSON.stringify(history),
+            newStatus === 'Out for Delivery' ? (riderName || null) : null
+        );
+
+        res.json({ success: true, newStatus, currentStep: nextStep, serviceFlow: flow });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ===== PUBLIC TRACK (no auth) =====
+app.get('/api/track/:orderId', async (req, res) => {
+    try {
+        const order = await db.getOrderById(req.params.orderId);
+        if (!order) return res.status(404).json({ error: 'Order not found. Please check your receipt number.' });
+
+        const itemsResult = await db.pool.query(
+            "SELECT service_name, quantity, price FROM order_items WHERE order_id = $1",
+            [req.params.orderId]
+        );
+
+        res.json({
+            orderId: order.id,
+            customer: order.customer,
+            total: parseFloat(order.total),
+            status: order.status,
+            serviceFlow: order.service_flow || [],
+            currentStep: order.current_step || 0,
+            statusHistory: order.status_history || [],
+            pickupDelivery: order.pickup_delivery,
+            customerPhone: order.customer_phone,
+            riderName: order.rider_name,
+            createdAt: order.date,
+            paymentStatus: order.payment_status,
+            items: itemsResult.rows
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.post('/api/orders/batch/status', requireAuth, async (req, res) => {
     const { ids, status } = req.body;
-    const validStatuses = ['Received', 'Washing', 'Drying', 'Ready', 'Picked Up'];
+    const validStatuses = ['Received', 'Washing', 'Drying', 'Folding', 'Spin & Dry', 'Done (Ready to Pickup)', 'Out for Delivery', 'Delivered', 'Ready', 'Picked Up'];
     if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
     try { for (const id of ids) await db.updateOrderStatus(id, status); res.json({ success: true, count: ids.length }); }
@@ -597,7 +713,8 @@ app.put('/api/expenses/:id', requireAuth, async (req, res) => {
 app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
     try { await db.deleteExpense(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
-// ===== VERIFY SECURITY ANSWER (for password change flow) =====
+
+// ===== VERIFY SECURITY ANSWER =====
 app.post('/api/users/me/verify-answer', requireAuth, async (req, res) => {
     try {
         const token = req.headers['x-auth-token'];
@@ -631,7 +748,6 @@ app.put('/api/users/me/change-password-verified', requireAuth, async (req, res) 
         const hash = await bcrypt.hash(new_password, 10);
         await db.updateUserPassword(session.userId, hash);
 
-        // Optional: update security question too
         if (update_security && security_question && security_answer) {
             const ans_hash = await bcrypt.hash(security_answer.toLowerCase().trim(), 10);
             await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3",
@@ -643,4 +759,5 @@ app.put('/api/users/me/change-password-verified', requireAuth, async (req, res) 
         res.status(500).json({ success: false, error: err.message });
     }
 });
+
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

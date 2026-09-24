@@ -22,6 +22,7 @@
         .service-thumb { width: 44px; height: 44px; border-radius: 8px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; border: 1px solid #e2e8f0; }
         .service-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .service-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; }
+        .type-badge { font-size: 10px; padding: 3px 8px; border-radius: 12px; background: #dbeafe; color: #1e40af; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .materials-list { font-size: 12px; color: #64748b; line-height: 1.6; }
         .btn-manage { background: white; border: 1px solid #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 6px; font-size: 13px; font-weight: 500; }
         .btn-manage:hover { background: #f8fafc; }
@@ -50,7 +51,6 @@
         [data-theme="dark"] .service-thumb { background: #334155; border-color: #475569; }
         [data-theme="dark"] .image-upload-box { background: #334155; border-color: #475569; }
 
-        /* Force all outline buttons visible */
         .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
         .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
         .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
@@ -107,8 +107,8 @@
 
             <div class="panel p-0">
                 <table class="services-table">
-                    <thead><tr><th style="width: 80px;">Image</th><th>Service</th><th>Materials Per Load</th><th class="text-end" style="width: 130px;">Actions</th></tr></thead>
-                    <tbody id="servicesTable"><tr><td colspan="4" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                    <thead><tr><th style="width: 80px;">Image</th><th>Service</th><th style="width: 160px;">Flow Type</th><th>Materials Per Load</th><th class="text-end" style="width: 130px;">Actions</th></tr></thead>
+                    <tbody id="servicesTable"><tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -145,10 +145,15 @@
                     <div class="col-md-8">
                         <label class="form-label small">Service Name</label>
                         <input type="text" id="sName" class="form-control" placeholder="e.g., Wash Dry & Fold">
-                        <label class="form-label small mt-3">Service Type</label>
+                        <label class="form-label small mt-3">Service Flow Type</label>
                         <select id="sType" class="form-select" onchange="updateInfoBox()">
-                            <option>Per Load</option><option>Per Kg</option><option>Per Item</option><option>Flat Fee</option>
+                            <option value="wash_dry_fold">Wash + Dry + Fold</option>
+                            <option value="wash_dry">Wash + Dry</option>
+                            <option value="wash_only">Wash Only</option>
+                            <option value="dry_only">Dry Only (Spin &amp; Dry)</option>
+                            <option value="fold_only">Fold Only</option>
                         </select>
+                        <small class="text-muted">Determines the order status workflow (Washing → Drying → Folding, etc.)</small>
                     </div>
                 </div>
                 <div class="row g-3 mb-3">
@@ -168,7 +173,7 @@
                         <input type="text" id="sUnitLabel" class="form-control" value="kg" placeholder="kg / load / item" oninput="document.getElementById('unitLabelDisplay').innerText = this.value">
                     </div>
                 </div>
-                <div class="info-box mb-4" id="infoBox">₱0.00 is the base charge for 1 kg.</div>
+                <div class="info-box mb-4" id="infoBox">₱0.00 — base for 1 kg.</div>
                 <div class="d-flex justify-content-between align-items-center mb-2">
                     <div>
                         <div class="section-title">Raw Materials</div>
@@ -196,16 +201,23 @@
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadServices(), 300); }
 
+    const flowLabels = {
+        wash_dry_fold: 'Wash + Dry + Fold',
+        wash_dry: 'Wash + Dry',
+        wash_only: 'Wash Only',
+        dry_only: 'Dry Only',
+        fold_only: 'Fold Only',
+        'Per Load': 'Wash + Dry + Fold'
+    };
+
     function updateInfoBox() {
         const price = parseFloat(document.getElementById('sPrice').value) || 0;
         const min = parseFloat(document.getElementById('sMinimum').value) || 1;
         const unit = document.getElementById('sUnitLabel').value || 'kg';
         const type = document.getElementById('sType').value;
         const box = document.getElementById('infoBox');
-        if (type === 'Per Kg') box.innerText = `₱${price.toFixed(2)} per kg.`;
-        else if (type === 'Per Item') box.innerText = `₱${price.toFixed(2)} per item.`;
-        else if (type === 'Flat Fee') box.innerText = `₱${price.toFixed(2)} flat fee per load.`;
-        else box.innerText = `₱${price.toFixed(2)} is the base charge for ${min} ${unit}.`;
+        const label = flowLabels[type] || type;
+        box.innerText = `₱${price.toFixed(2)} — ${label} — base for ${min} ${unit}.`;
     }
 
     function loadProducts() {
@@ -225,12 +237,13 @@
                 if (!services) return;
                 const filtered = search ? services.filter(s => s.name.toLowerCase().includes(search)) : services;
                 const table = document.getElementById('servicesTable');
-                if (filtered.length === 0) { table.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No services yet.</td></tr>'; return; }
+                if (filtered.length === 0) { table.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No services yet.</td></tr>'; return; }
                 table.innerHTML = filtered.map(s => {
                     const thumb = s.image_data ? `<div class="service-thumb"><img src="${s.image_data}"></div>` : `<div class="service-thumb">🧺</div>`;
                     const materials = s.materials || [];
                     const matHtml = materials.length === 0 ? '<span class="text-muted">No materials</span>' : materials.map(m => `<div>${m.product_name || 'Product'}: ${m.quantity} pc</div>`).join('');
-                    return `<tr><td>${thumb}</td><td><div class="service-name">${s.name}</div><div class="text-muted" style="font-size: 12px;">₱${parseFloat(s.price).toFixed(2)} / ${s.unit_label || s.unit || 'kg'}</div></td><td><div class="materials-list">${matHtml}</div></td><td class="text-end"><div class="dropdown"><button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="editService(${s.id}); return false;">✏️ Edit</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li></ul></div></td></tr>`;
+                    const flowLabel = flowLabels[s.service_type] || s.service_type || 'Wash + Dry + Fold';
+                    return `<tr><td>${thumb}</td><td><div class="service-name">${s.name}</div><div class="text-muted" style="font-size: 12px;">₱${parseFloat(s.price).toFixed(2)} / ${s.unit_label || s.unit || 'kg'}</div></td><td><span class="type-badge">${flowLabel}</span></td><td><div class="materials-list">${matHtml}</div></td><td class="text-end"><div class="dropdown"><button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="editService(${s.id}); return false;">✏️ Edit</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li></ul></div></td></tr>`;
                 }).join('');
             });
     }
@@ -270,7 +283,7 @@
         document.getElementById('serviceModalTitle').innerText = 'Add New Service';
         document.getElementById('serviceId').value = '';
         document.getElementById('sName').value = '';
-        document.getElementById('sType').value = 'Per Load';
+        document.getElementById('sType').value = 'wash_dry_fold';
         document.getElementById('sMinimum').value = '1';
         document.getElementById('sPrice').value = '';
         document.getElementById('sUnitLabel').value = 'kg';
@@ -291,7 +304,7 @@
                 document.getElementById('serviceModalTitle').innerText = 'Edit Service';
                 document.getElementById('serviceId').value = s.id;
                 document.getElementById('sName').value = s.name;
-                document.getElementById('sType').value = s.service_type || 'Per Load';
+                document.getElementById('sType').value = s.service_type || 'wash_dry_fold';
                 document.getElementById('sMinimum').value = s.minimum || 1;
                 document.getElementById('sPrice').value = s.price;
                 document.getElementById('sUnitLabel').value = s.unit_label || 'kg';

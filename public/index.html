@@ -17,7 +17,6 @@
         html, body { margin: 0; padding: 0; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
 
-        /* TOP BAR (mobile) */
         .topbar {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             color: white;
@@ -31,298 +30,76 @@
             z-index: 100;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
-        .topbar .logo-img {
-            height: 38px;
-            width: auto;
-            background: rgba(255,255,255,0.15);
-            border-radius: 6px;
-            padding: 4px;
-        }
-        .topbar .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .topbar .user-badge {
-            background: rgba(255,255,255,0.2);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            max-width: 120px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .topbar .icon-btn {
-            background: rgba(255,255,255,0.15);
-            border: none;
-            color: white;
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .topbar .logo-img { height: 38px; width: auto; background: rgba(255,255,255,0.15); border-radius: 6px; padding: 4px; }
+        .topbar .user-info { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
+        .topbar .user-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .topbar .icon-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 10px; border-radius: 8px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
         .topbar .icon-btn:hover { background: rgba(255,255,255,0.25); color: white; }
 
-        /* DESKTOP SIDEBAR */
-        .sidebar {
-            background-color: #1e293b;
-            color: white;
-            min-height: 100vh;
-            padding-top: 20px;
-        }
-        .sidebar a {
-            color: #cbd5e1;
-            text-decoration: none;
-            padding: 12px 20px;
-            display: block;
-            font-size: 14px;
-            border-radius: 6px;
-            margin: 2px 10px;
-        }
+        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
 
-        /* MAIN CONTENT */
         .main-content { padding: 16px; }
         .page-title { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 14px; }
-        .section-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #94a3b8;
-            font-weight: 700;
-            margin: 20px 0 10px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .section-label::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e2e8f0;
-        }
+        .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 700; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px; }
+        .section-label::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
 
-        .search-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 15px;
-            background: white;
-            margin-bottom: 12px;
-        }
+        .search-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 15px; background: white; margin-bottom: 12px; }
         .search-input:focus { outline: none; border-color: #3b82f6; }
 
-        /* SERVICE CARDS */
-        .service-card {
-            cursor: pointer;
-            border: none;
-            border-radius: 12px;
-            background: white;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-            transition: 0.2s;
-        }
+        .service-card { cursor: pointer; border: none; border-radius: 12px; background: white; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: 0.2s; }
         .service-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
         .service-card.selected { outline: 3px solid #10b981; outline-offset: -3px; }
-        .service-thumb {
-            height: 110px;
-            width: 100%;
-            position: relative;
-            background: #0f172a;
-        }
-        .service-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            padding: 4px;
-        }
-        .service-thumb .overlay {
-            position: absolute;
-            left: 0; right: 0; bottom: 0;
-            padding: 8px;
-            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%);
-            color: white;
-            text-align: center;
-        }
+        .service-thumb { height: 110px; width: 100%; position: relative; background: #0f172a; }
+        .service-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+        .service-thumb .overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%); color: white; text-align: center; }
         .service-thumb .name { font-weight: 800; font-size: 12px; text-transform: uppercase; }
         .service-thumb .price { font-weight: 800; font-size: 13px; margin-top: 2px; }
-        .service-card .qty-badge {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            background: #10b981;
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 20px;
-            display: none;
-        }
+        .service-card .qty-badge { position: absolute; top: 6px; right: 6px; background: #10b981; color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: none; }
         .service-card.selected .qty-badge { display: block; }
 
-        /* ADD-ON CARDS */
-        .addon-card {
-            cursor: pointer;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            background: white;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-            transition: 0.2s;
-            position: relative;
-        }
+        .addon-card { cursor: pointer; border: 1px solid #e5e7eb; border-radius: 10px; background: white; padding: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; transition: 0.2s; position: relative; }
         .addon-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
         .addon-card.selected { border-color: #10b981; border-width: 2px; }
-        .addon-thumb {
-            width: 48px; height: 48px;
-            border-radius: 8px;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
+        .addon-thumb { width: 48px; height: 48px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; flex-shrink: 0; }
         .addon-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .addon-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; }
         .addon-meta { font-size: 11px; color: #94a3b8; }
         .addon-price { font-weight: 700; color: #1e40af; font-size: 14px; }
-        .addon-card .qty-badge {
-            background: #10b981;
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 20px;
-            display: none;
-        }
+        .addon-card .qty-badge { background: #10b981; color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: none; }
         .addon-card.selected .qty-badge { display: inline-block; }
 
-        /* CART PANEL */
-        .cart-panel {
-            background: white;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-            margin-top: 8px;
-        }
-        .cart-panel h5 {
-            font-size: 15px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid #e2e8f0;
-        }
+        .cart-panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-top: 8px; }
+        .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
         .cart-empty { color: #94a3b8; text-align: center; font-size: 13px; padding: 12px 0; }
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 13px;
-        }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
         .cart-item:last-child { border-bottom: none; }
         .cart-item-info { flex: 1; min-width: 0; }
         .cart-item-name { font-weight: 600; color: #1e293b; font-size: 13px; }
         .cart-item-sub { font-size: 11px; color: #94a3b8; }
         .qty-controls { display: flex; align-items: center; gap: 6px; }
-        .qty-btn {
-            border: 1px solid #e2e8f0;
-            background: white;
-            width: 30px; height: 30px;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            color: #475569;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
+        .qty-btn { border: 1px solid #e2e8f0; background: white; width: 30px; height: 30px; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; color: #475569; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .qty-btn:hover { background: #f1f5f9; }
         .cart-item-price { font-weight: 700; color: #1e40af; min-width: 70px; text-align: right; flex-shrink: 0; }
 
-        .form-label {
-            font-size: 12px;
-            color: #475569;
-            font-weight: 600;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .form-control, .form-select {
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 12px 14px;
-            font-size: 15px;
-            width: 100%;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-        }
+        .form-label { font-size: 12px; color: #475569; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control, .form-select { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 15px; width: 100%; }
+        .form-control:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 
-        .cart-total-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 0;
-            font-weight: 700;
-            font-size: 18px;
-            color: #1e293b;
-            border-top: 2px solid #e2e8f0;
-            margin-top: 8px;
-        }
+        .cart-total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; font-weight: 700; font-size: 18px; color: #1e293b; border-top: 2px solid #e2e8f0; margin-top: 8px; }
 
-        .btn-checkout {
-            background: #1e40af;
-            color: white;
-            width: 100%;
-            padding: 16px;
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 8px;
-        }
+        .btn-checkout { background: #1e40af; color: white; width: 100%; padding: 16px; font-weight: 700; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; margin-top: 8px; }
         .btn-checkout:hover { background: #1e3a8a; color: white; }
         .btn-checkout:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .btn-print {
-            background: #10b981;
-            color: white;
-            width: 100%;
-            padding: 14px;
-            font-weight: 700;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            margin-top: 8px;
-            cursor: pointer;
-        }
+        .btn-print { background: #10b981; color: white; width: 100%; padding: 14px; font-weight: 700; border: none; border-radius: 10px; font-size: 14px; margin-top: 8px; cursor: pointer; }
         .btn-print:hover { background: #059669; color: white; }
         .btn-print-80 { background: #0891b2; }
         .btn-print-80:hover { background: #0e7490; }
         .print-buttons { display: none; }
 
-        /* DARK MODE */
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
@@ -339,47 +116,17 @@
         [data-theme="dark"] .section-label::after { background: #334155; }
         [data-theme="dark"] .cart-panel h5 { border-color: #334155; }
 
-        /* RESPONSIVE */
         @media (max-width: 767px) {
             .desktop-sidebar { display: none !important; }
-
-            /* Remove all scroll blockers */
-            html, body {
-                height: auto !important;
-                overflow-x: hidden !important;
-                overflow-y: auto !important;
-            }
-            .container-fluid, .row {
-                overflow: visible !important;
-                height: auto !important;
-            }
-
+            html, body { height: auto !important; overflow-x: hidden !important; overflow-y: auto !important; }
+            .container-fluid, .row { overflow: visible !important; height: auto !important; }
             .main-content { padding: 12px; }
-
-            /* Full-width stacking for mobile */
-            .col-md-7, .col-md-3, .col-md-2 {
-                width: 100% !important;
-                max-width: 100% !important;
-                flex: 0 0 100% !important;
-                padding-left: 10px !important;
-                padding-right: 10px !important;
-            }
-
+            .col-md-7, .col-md-3, .col-md-2 { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; padding-left: 10px !important; padding-right: 10px !important; }
             .desktop-cart-col { margin-top: 6px; }
-
-            .cart-panel {
-                position: static !important;
-                margin-top: 12px;
-                height: auto !important;
-                max-height: none !important;
-                overflow: visible !important;
-            }
-
+            .cart-panel { position: static !important; margin-top: 12px; height: auto !important; max-height: none !important; overflow: visible !important; }
             .service-thumb { height: 100px; }
             .service-thumb .name { font-size: 11px; }
             .service-thumb .price { font-size: 12px; }
-
-            /* Bigger touch targets */
             .btn-checkout { padding: 18px; font-size: 17px; }
             .btn-print { padding: 16px; font-size: 15px; }
             .qty-btn { width: 34px; height: 34px; font-size: 17px; }
@@ -399,7 +146,6 @@
 </head>
 <body>
 
-<!-- TOP BAR (mobile) -->
 <div class="topbar d-md-none">
     <img src="/logo.png" alt="Hawi's Lovada" class="logo-img" onerror="this.style.display='none'">
     <div class="user-info">
@@ -411,7 +157,6 @@
 
 <div class="container-fluid">
     <div class="row">
-        <!-- DESKTOP SIDEBAR -->
         <div class="col-md-2 sidebar desktop-sidebar d-none d-md-block">
             <div class="text-center mb-4">
                 <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'">
@@ -429,7 +174,6 @@
             <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
-        <!-- SERVICES + ADD-ONS -->
         <div class="col-md-7 main-content">
             <div class="d-none d-md-flex justify-content-between align-items-center mb-3">
                 <h3 class="page-title mb-0">Point of Sale</h3>
@@ -447,7 +191,6 @@
             <div class="row" id="addonsContainer"></div>
         </div>
 
-        <!-- CART (mobile: below; desktop: right sticky column) -->
         <div class="col-md-3 main-content desktop-cart-col">
             <div class="cart-panel">
                 <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
@@ -467,6 +210,18 @@
                         <option value="Paid">💵 Pay Now</option>
                         <option value="Pending">⏳ Pay Later</option>
                     </select>
+                </div>
+
+                <div class="mb-3" style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px;">
+                    <label class="form-label" style="display:flex; align-items:center; gap:8px; cursor:pointer; text-transform:none; letter-spacing:0; color:#1e40af; margin:0;">
+                        <input type="checkbox" id="pickupDelivery" onchange="togglePickupDelivery()" style="width:18px; height:18px; accent-color:#1e40af;">
+                        <span style="font-weight:700;">🚚 Pickup &amp; Delivery</span>
+                    </label>
+                    <div id="pickupFields" style="display:none; margin-top:12px;">
+                        <label class="form-label" style="color:#1e40af;">📱 Cellphone Number *</label>
+                        <input type="tel" id="customerPhone" class="form-control" placeholder="0917-000-0000" autocomplete="tel">
+                        <small style="font-size:11px; color:#1e40af;">Required for pickup &amp; delivery orders</small>
+                    </div>
                 </div>
 
                 <div class="cart-total-row">
@@ -506,7 +261,6 @@
 
     let cart = [], total = 0, lastOrder = null;
 
-    // Load Services
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
         .then(response => {
             if (response.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -529,7 +283,6 @@
             });
         });
 
-    // Load Add-ons
     fetch('/api/products', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(products => {
@@ -542,13 +295,18 @@
             });
         });
 
-    // Search filter
     document.getElementById('searchBox').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
         document.querySelectorAll('#servicesContainer > div, #addonsContainer > div').forEach(el => {
             el.style.display = el.innerText.toLowerCase().includes(term) ? '' : 'none';
         });
     });
+
+    function togglePickupDelivery() {
+        const checked = document.getElementById('pickupDelivery').checked;
+        document.getElementById('pickupFields').style.display = checked ? 'block' : 'none';
+        if (!checked) document.getElementById('customerPhone').value = '';
+    }
 
     function addToCart(name, price, unit, type, id) {
         const existingItem = cart.find(item => item.name === name);
@@ -566,7 +324,6 @@
             }
         }
 
-        // On mobile: smoothly scroll to cart so the user sees the next steps
         if (isMobile) {
             setTimeout(() => {
                 document.querySelector('.cart-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -625,26 +382,45 @@
 
     function checkout() {
         if (cart.length === 0) return alert("Cart is empty.");
-        const customer = document.getElementById('customerName').value;
+        const customer = document.getElementById('customerName').value.trim();
         const paymentStatus = document.getElementById('paymentStatus').value;
+        const pickupDelivery = document.getElementById('pickupDelivery').checked;
+        const customerPhone = document.getElementById('customerPhone').value.trim();
         const cashierName = localStorage.getItem('userName') || 'Unknown';
+
+        if (pickupDelivery) {
+            if (!customer || customer === 'Walk-In Customer') {
+                return alert('⚠️ Customer name is required for Pickup & Delivery');
+            }
+            if (!customerPhone) {
+                return alert('⚠️ Cellphone number is required for Pickup & Delivery');
+            }
+        }
+
         const btn = document.getElementById('checkoutBtn');
         btn.innerText = 'Processing...'; btn.disabled = true;
 
-        const receiptData = { customer, total, items: JSON.parse(JSON.stringify(cart)), date: new Date().toLocaleString(), paymentStatus };
+        const receiptData = { customer, total, items: JSON.parse(JSON.stringify(cart)), date: new Date().toLocaleString(), paymentStatus, pickupDelivery, customerPhone };
+
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ customer, total, cartItems: cart, paymentStatus, cashierName })
+            body: JSON.stringify({ customer, total, cartItems: cart, paymentStatus, cashierName, pickupDelivery, customerPhone })
         })
         .then(res => res.json())
         .then(data => {
             if (data.error) { alert('Error: ' + data.error); btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
             alert(data.message + ' (Cashier: ' + cashierName + ')');
             receiptData.orderId = data.orderId;
+            receiptData.serviceFlow = data.serviceFlow;
             lastOrder = receiptData;
             cart = [];
             updateCartUI();
+
+            document.getElementById('pickupDelivery').checked = false;
+            document.getElementById('pickupFields').style.display = 'none';
+            document.getElementById('customerPhone').value = '';
+
             document.querySelectorAll('.qty-badge').forEach(b => { b.innerText = '0'; b.style.display = 'none'; });
             document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
             btn.innerText = '✅ Checkout'; btn.disabled = false;
@@ -675,6 +451,8 @@
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">${item.qty}</td></tr>`;
         }).join('');
 
+        const pickupNote = lastOrder.pickupDelivery ? `<div class="center bold" style="border:2px solid #000; padding:4px; margin:6px 0;">🚚 PICKUP &amp; DELIVERY</div><div class="center">${lastOrder.customerPhone || ''}</div>` : '';
+
         const customerCopyHtml = `
             <div class="receipt-copy">
                 <div class="logo"><img src="${logoSrc}" alt="${shopSettings.shop_name}"></div>
@@ -684,6 +462,7 @@
                 <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
                 <div class="info">Date: ${lastOrder.date}</div>
                 <div class="info">Customer: ${lastOrder.customer}</div>
+                ${pickupNote}
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
                 <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${lastOrder.total.toFixed(2)}</td></tr></table>
@@ -691,6 +470,7 @@
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
                 <div class="divider"></div>
+                <div class="center" style="font-size:${fontSize-1}px;">Track your order: ${window.location.origin}/track.html</div>
                 <div class="center big bold customer-name">${customerName}</div>
                 <div class="divider-solid"></div>
                 <div class="footer">Thank you for your business!</div>
@@ -707,6 +487,7 @@
                 <div class="divider-solid"></div>
                 <div class="info">Order #: <span class="bold">${lastOrder.orderId}</span></div>
                 <div class="info">Date: ${lastOrder.date}</div>
+                ${pickupNote}
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
                 <div class="divider"></div>
