@@ -50,6 +50,18 @@ async function initDatabase() {
             last_login TIMESTAMPTZ
         );`);
 
+        // ===== NEW: Order status flow columns =====
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS service_flow JSONB;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS current_step INTEGER DEFAULT 0;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_delivery BOOLEAN DEFAULT FALSE;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_phone TEXT;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS rider_name TEXT;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_history JSONB DEFAULT '[]'::jsonb;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMPTZ DEFAULT NOW();`);
+
+        // Backfill existing services with a service_type if missing
+        await pool.query(`UPDATE services SET service_type = 'wash_dry_fold' WHERE service_type IS NULL OR service_type = 'Per Load';`);
+
         const defaults = [
             ['shop_name', "Hawi's Lovada"], ['tagline', 'Clean. Fresh. Wash with Love.'],
             ['tin', ''], ['address', ''], ['phone', ''], ['email', ''], ['facebook', ''],
@@ -124,11 +136,20 @@ async function deleteService(id) {
     await pool.query("DELETE FROM services WHERE id = $1", [id]);
 }
 
-async function saveOrder(customer, total, cartItems, paymentStatus, cashierName) {
+async function saveOrder(customer, total, cartItems, paymentStatus, cashierName, pickupDelivery = false, customerPhone = null, serviceFlow = ['Received']) {
     const date = new Date().toISOString();
     const status = paymentStatus || 'Pending';
-    const orderResult = await pool.query("INSERT INTO orders (date, customer, total, payment_status, cashier_name) VALUES ($1, $2, $3, $4, $5) RETURNING id",
-        [date, customer, total, status, cashierName || 'Admin']);
+    const orderResult = await pool.query(
+        `INSERT INTO orders (date, customer, total, payment_status, cashier_name, status, service_flow, current_step, pickup_delivery, customer_phone, status_history, status_updated_at)
+         VALUES ($1, $2, $3, $4, $5, 'Received', $6, 0, $7, $8, $9, NOW()) RETURNING id`,
+        [
+            date, customer, total, status, cashierName || 'Admin',
+            JSON.stringify(serviceFlow),
+            pickupDelivery || false,
+            customerPhone || null,
+            JSON.stringify([{ status: 'Received', at: new Date().toISOString(), by: cashierName || 'Admin' }])
+        ]
+    );
     const orderId = orderResult.rows[0].id;
     for (const item of cartItems) {
         await pool.query("INSERT INTO order_items (order_id, service_name, quantity, price) VALUES ($1, $2, $3, $4)",
@@ -158,8 +179,8 @@ async function getOrders(filter, search, dateFrom, dateTo) {
     else if (filter === 'received') conditions.push("status = 'Received'");
     else if (filter === 'washing') conditions.push("status = 'Washing'");
     else if (filter === 'drying') conditions.push("status = 'Drying'");
-    else if (filter === 'ready') conditions.push("status = 'Ready'");
-    else if (filter === 'pickedup') conditions.push("status = 'Picked Up'");
+    else if (filter === 'ready') conditions.push("status = 'Done (Ready to Pickup)'");
+    else if (filter === 'pickedup') conditions.push("status IN ('Delivered', 'Picked Up')");
     if (search) {
         params.push('%' + search + '%');
         params.push(search);
@@ -167,11 +188,16 @@ async function getOrders(filter, search, dateFrom, dateTo) {
     }
     if (dateFrom) { params.push(dateFrom); conditions.push(`date::timestamptz >= $${params.length}::timestamptz`); }
     if (dateTo) { params.push(dateTo + ' 23:59:59'); conditions.push(`date::timestamptz <= $${params.length}::timestamptz`); }
-    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name FROM orders";
+    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name FROM orders";
     if (conditions.length > 0) query += " WHERE " + conditions.join(" AND ");
     query += " ORDER BY id DESC LIMIT 500";
     const result = await pool.query(query, params);
     return result.rows;
+}
+
+async function getOrderById(id) {
+    const result = await pool.query("SELECT * FROM orders WHERE id = $1", [id]);
+    return result.rows[0];
 }
 
 async function markAsPaid(id) { await pool.query("UPDATE orders SET payment_status = 'Paid' WHERE id = $1", [id]); }
@@ -201,7 +227,12 @@ async function deleteOrder(id) {
     await pool.query("DELETE FROM orders WHERE id = $1", [id]);
 }
 
-async function updateOrderStatus(id, status) { await pool.query("UPDATE orders SET status = $1 WHERE id = $2", [status, id]); }
+async function updateOrderStatus(id, status, step = null, history = null, riderName = null) {
+    await pool.query(
+        `UPDATE orders SET status = $1, current_step = COALESCE($2, current_step), status_history = COALESCE($3, status_history), rider_name = COALESCE($4, rider_name), status_updated_at = NOW() WHERE id = $5`,
+        [status, step, history, riderName, id]
+    );
+}
 
 async function getCustomers(search) {
     let query = "SELECT * FROM customers";
@@ -469,7 +500,7 @@ async function updateUserRole(id, role) {
 }
 
 module.exports = {
-    pool, getServices, addService, updateService, deleteService, saveOrder, getOrders,
+    pool, getServices, addService, updateService, deleteService, saveOrder, getOrders, getOrderById,
     markAsPaid, markAsUnpaid, deleteOrder, updateOrderStatus,
     getCustomers, getCustomer, addCustomer, updateCustomer, deleteCustomer, getCustomerOrders,
     getReportSummary, getReportDaily, getReportTopServices, getReportTopCustomers,
