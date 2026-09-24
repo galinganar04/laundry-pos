@@ -13,9 +13,8 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = 'shop1234';
 const sessions = new Map();
 
-// ===== SERVICE FLOW LOGIC =====
 function buildServiceFlow(cartItems, hasPickupDelivery) {
-    const names = cartItems.map(i => (i.name || '').toLowerCase());
+    const names = cartItems.filter(i => !i.isPickupFee).map(i => (i.name || '').toLowerCase());
     const hasWash = names.some(n => n.includes('wash'));
     const hasDry = names.some(n => n.includes('dry'));
     const hasFold = names.some(n => n.includes('fold'));
@@ -42,25 +41,14 @@ function buildServiceFlow(cartItems, hasPickupDelivery) {
 
 const mailer = nodemailer.createTransport({
     service: 'gmail',
-    auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_APP_PASSWORD
-    }
+    auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD }
 });
 
 async function sendEmail(to, subject, htmlBody) {
     try {
-        await mailer.sendMail({
-            from: `"Hawi's Lovada" <${process.env.GMAIL_USER}>`,
-            to: to,
-            subject: subject,
-            html: htmlBody
-        });
+        await mailer.sendMail({ from: `"Hawi's Lovada" <${process.env.GMAIL_USER}>`, to, subject, html: htmlBody });
         return true;
-    } catch (err) {
-        console.error('Email error:', err.message);
-        return false;
-    }
+    } catch (err) { console.error('Email error:', err.message); return false; }
 }
 
 app.use(cors());
@@ -74,16 +62,13 @@ function requireAuth(req, res, next) {
     else res.status(401).json({ error: 'Not authenticated' });
 }
 
-// ===== LEGACY SINGLE-PASSWORD LOGIN =====
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
         const token = Date.now() + '-' + Math.random().toString(36).substring(2, 15);
         sessions.set(token, { createdAt: Date.now() });
-        res.json({ success: true, token: token });
-    } else {
-        res.status(401).json({ success: false, error: 'Wrong password' });
-    }
+        res.json({ success: true, token });
+    } else res.status(401).json({ success: false, error: 'Wrong password' });
 });
 
 app.post('/api/logout', (req, res) => {
@@ -92,7 +77,6 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
-// ===== USER AUTH =====
 app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
     if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
@@ -104,10 +88,8 @@ app.post('/api/auth/login', async (req, res) => {
         const token = Date.now() + '-' + crypto.randomBytes(16).toString('hex');
         sessions.set(token, { userId: user.id, username: user.username, role: user.role, createdAt: Date.now() });
         await db.updateLastLogin(user.id);
-        res.json({ success: true, token: token, user: { id: user.id, username: user.username, role: user.role, full_name: user.full_name } });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        res.json({ success: true, token, user: { id: user.id, username: user.username, role: user.role, full_name: user.full_name } });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/auth/signup', async (req, res) => {
@@ -122,19 +104,13 @@ app.post('/api/auth/signup', async (req, res) => {
         const password_hash = await bcrypt.hash(password, 10);
         const security_answer_hash = security_answer ? await bcrypt.hash(security_answer.toLowerCase().trim(), 10) : null;
         const id = await db.createUser({ username, password_hash, email, full_name, role: 'owner', security_question, security_answer_hash });
-        res.json({ success: true, id: id, message: 'Owner account created. You can now log in.' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        res.json({ success: true, id, message: 'Owner account created. You can now log in.' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.get('/api/auth/signup-status', async (req, res) => {
-    try {
-        const count = await db.getUserCount();
-        res.json({ open: count === 0 });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    try { const count = await db.getUserCount(); res.json({ open: count === 0 }); }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/auth/forgot', async (req, res) => {
@@ -148,26 +124,11 @@ app.post('/api/auth/forgot', async (req, res) => {
         await db.setResetToken(user.id, token, expires);
         const baseUrl = req.protocol + '://' + req.get('host');
         const resetLink = `${baseUrl}/reset.html?token=${token}`;
-        const html = `
-            <div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;">
-                <h2 style="color: #1e40af;">Hawi's Lovada — Password Reset</h2>
-                <p>Hi ${user.full_name || user.username},</p>
-                <p>Someone (hopefully you) requested a password reset for your account.</p>
-                <p>Click the button below to set a new password. This link expires in 1 hour.</p>
-                <p style="text-align: center; margin: 30px 0;">
-                    <a href="${resetLink}" style="background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reset My Password</a>
-                </p>
-                <p style="font-size: 12px; color: #666;">Or copy this link: <br>${resetLink}</p>
-                <hr>
-                <p style="font-size: 12px; color: #999;">If you didn't request this, ignore this email.</p>
-            </div>
-        `;
+        const html = `<div style="font-family: Arial, sans-serif; max-width: 500px; margin: auto; padding: 20px;"><h2 style="color: #1e40af;">Hawi's Lovada — Password Reset</h2><p>Hi ${user.full_name || user.username},</p><p>Click below to set a new password. Expires in 1 hour.</p><p style="text-align: center; margin: 30px 0;"><a href="${resetLink}" style="background: #1e40af; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Reset My Password</a></p><p style="font-size: 12px; color: #666;">Or copy: <br>${resetLink}</p><hr><p style="font-size: 12px; color: #999;">If you didn't request this, ignore this email.</p></div>`;
         const sent = await sendEmail(user.email, "Hawi's Lovada — Password Reset", html);
         if (!sent) return res.status(500).json({ error: 'Failed to send email. Please try again later.' });
         res.json({ success: true, message: 'Reset link sent. Check your email.' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/auth/reset', async (req, res) => {
@@ -181,9 +142,7 @@ app.post('/api/auth/reset', async (req, res) => {
         await db.updateUserPassword(user.id, password_hash);
         await db.clearResetToken(user.id);
         res.json({ success: true, message: 'Password updated. You can now log in.' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/auth/recover-by-question', async (req, res) => {
@@ -198,12 +157,9 @@ app.post('/api/auth/recover-by-question', async (req, res) => {
         const password_hash = await bcrypt.hash(new_password, 10);
         await db.updateUserPassword(user.id, password_hash);
         res.json({ success: true, message: 'Password updated. You can now log in.' });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ===== MY PROFILE =====
 app.get('/api/users/me', requireAuth, async (req, res) => {
     try {
         const token = req.headers['x-auth-token'];
@@ -211,8 +167,7 @@ app.get('/api/users/me', requireAuth, async (req, res) => {
         if (!session || !session.userId) return res.status(401).json({ error: 'Session expired' });
         const user = await db.getUserById(session.userId);
         if (!user) return res.status(404).json({ error: 'User not found' });
-        delete user.password_hash;
-        delete user.security_answer_hash;
+        delete user.password_hash; delete user.security_answer_hash;
         res.json(user);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -262,10 +217,8 @@ app.put('/api/users/me/security', requireAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ===== USER MANAGEMENT =====
 app.get('/api/users', requireAuth, async (req, res) => {
-    try { res.json(await db.getAllUsers()); }
-    catch (err) { res.status(500).json({ error: err.message }); }
+    try { res.json(await db.getAllUsers()); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/users', requireAuth, async (req, res) => {
@@ -279,16 +232,13 @@ app.post('/api/users', requireAuth, async (req, res) => {
         const creator = await db.getUserById(session.userId);
         if (role === 'owner') return res.status(403).json({ error: 'Cannot create another owner' });
         if (role === 'admin' && creator.role !== 'owner') return res.status(403).json({ error: 'Only owner can create admins' });
-
         const existing = await db.getUserByUsername(username);
         if (existing) return res.status(400).json({ error: 'Username already exists' });
         const password_hash = await bcrypt.hash(password, 10);
         const security_answer_hash = security_answer ? await bcrypt.hash(security_answer.toLowerCase().trim(), 10) : null;
         const id = await db.createUser({ username, password_hash, email, full_name, role, security_question, security_answer_hash });
         res.json({ success: true, id });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/users/:id/role', requireAuth, async (req, res) => {
@@ -332,16 +282,27 @@ app.delete('/api/users/:id', requireAuth, async (req, res) => {
 app.get('/api/services', requireAuth, async (req, res) => {
     try { res.json(await db.getServices()); } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
+app.get('/api/pickup-service', requireAuth, async (req, res) => {
+    try {
+        const service = await db.getPickupService();
+        if (!service) return res.status(404).json({ error: 'No pickup/delivery service configured.' });
+        res.json({ id: service.id, name: service.name, price: parseFloat(service.price), unit: service.unit_label || service.unit || 'kg' });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/services', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: "Service name is required" });
     try { const id = await db.addService(req.body); res.json({ message: "Service added", id }); }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 app.put('/api/services/:id', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: "Service name is required" });
     try { await db.updateService(req.params.id, req.body); res.json({ success: true }); }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 app.delete('/api/services/:id', requireAuth, async (req, res) => {
     try { await db.deleteService(req.params.id); res.json({ success: true }); }
     catch (err) { res.status(500).json({ error: err.message }); }
@@ -351,31 +312,19 @@ app.delete('/api/services/:id', requireAuth, async (req, res) => {
 app.post('/api/checkout', requireAuth, async (req, res) => {
     const { customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone } = req.body;
     try {
-        if (!cartItems || cartItems.length === 0) {
-            return res.status(400).json({ error: 'Cart is empty' });
-        }
-
-        // Validate pickup & delivery requirements
+        if (!cartItems || cartItems.length === 0) return res.status(400).json({ error: 'Cart is empty' });
         if (pickupDelivery) {
             if (!customer || customer.trim() === '' || customer === 'Walk-In Customer') {
                 return res.status(400).json({ error: 'Customer name is required for Pickup & Delivery' });
             }
-            if (!customerPhone || customerPhone.trim() === '') {
-                return res.status(400).json({ error: 'Cellphone number is required for Pickup & Delivery' });
+            if (!customerPhone || !/^09\d{9}$/.test(customerPhone)) {
+                return res.status(400).json({ error: 'Cellphone number required (11 digits, starts with 09)' });
             }
         }
-
         const serviceFlow = buildServiceFlow(cartItems, pickupDelivery);
         const orderId = await db.saveOrder(customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone, serviceFlow);
-
-        res.json({
-            message: "Order saved successfully!",
-            orderId,
-            serviceFlow
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+        res.json({ message: "Order saved successfully!", orderId, serviceFlow });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== ORDERS =====
@@ -385,6 +334,7 @@ app.get('/api/orders', requireAuth, async (req, res) => {
         res.json(await db.getOrders(filter, search, dateFrom, dateTo));
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 app.get('/api/orders/:id/details', requireAuth, async (req, res) => {
     try {
         const orderResult = await db.pool.query("SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name FROM orders WHERE id = $1", [req.params.id]);
@@ -395,6 +345,7 @@ app.get('/api/orders/:id/details', requireAuth, async (req, res) => {
         res.json(order);
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
+
 app.put('/api/orders/:id/pay', requireAuth, async (req, res) => {
     try { await db.markAsPaid(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -411,75 +362,38 @@ app.delete('/api/orders/:id', requireAuth, async (req, res) => {
     try { await db.deleteOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ===== AUTO-ADVANCE ORDER STATUS =====
 app.post('/api/orders/:id/next-status', requireAuth, async (req, res) => {
     try {
         const { riderName } = req.body;
         const order = await db.getOrderById(req.params.id);
         if (!order) return res.status(404).json({ error: 'Order not found' });
-
         const flow = order.service_flow || ['Received'];
         const nextStep = (order.current_step || 0) + 1;
-
-        if (nextStep >= flow.length) {
-            return res.status(400).json({ error: 'Order is already at final status' });
-        }
-
+        if (nextStep >= flow.length) return res.status(400).json({ error: 'Order is already at final status' });
         const newStatus = flow[nextStep];
-        const history = [...(order.status_history || []), {
-            status: newStatus,
-            at: new Date().toISOString()
-        }];
-
-        await db.updateOrderStatus(
-            req.params.id,
-            newStatus,
-            nextStep,
-            JSON.stringify(history),
-            newStatus === 'Out for Delivery' ? (riderName || null) : null
-        );
-
+        const history = [...(order.status_history || []), { status: newStatus, at: new Date().toISOString() }];
+        await db.updateOrderStatus(req.params.id, newStatus, nextStep, JSON.stringify(history), newStatus === 'Out for Delivery' ? (riderName || null) : null);
         res.json({ success: true, newStatus, currentStep: nextStep, serviceFlow: flow });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ===== PUBLIC TRACK (no auth) =====
 app.get('/api/track/:orderId', async (req, res) => {
     try {
         const order = await db.getOrderById(req.params.orderId);
         if (!order) return res.status(404).json({ error: 'Order not found. Please check your receipt number.' });
-
-        const itemsResult = await db.pool.query(
-            "SELECT service_name, quantity, price FROM order_items WHERE order_id = $1",
-            [req.params.orderId]
-        );
-
+        const itemsResult = await db.pool.query("SELECT service_name, quantity, price FROM order_items WHERE order_id = $1", [req.params.orderId]);
         res.json({
-            orderId: order.id,
-            customer: order.customer,
-            total: parseFloat(order.total),
-            status: order.status,
-            serviceFlow: order.service_flow || [],
-            currentStep: order.current_step || 0,
-            statusHistory: order.status_history || [],
-            pickupDelivery: order.pickup_delivery,
-            customerPhone: order.customer_phone,
-            riderName: order.rider_name,
-            createdAt: order.date,
-            paymentStatus: order.payment_status,
-            items: itemsResult.rows
+            orderId: order.id, customer: order.customer, total: parseFloat(order.total),
+            status: order.status, serviceFlow: order.service_flow || [], currentStep: order.current_step || 0,
+            statusHistory: order.status_history || [], pickupDelivery: order.pickup_delivery,
+            customerPhone: order.customer_phone, riderName: order.rider_name,
+            createdAt: order.date, paymentStatus: order.payment_status, items: itemsResult.rows
         });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/orders/batch/status', requireAuth, async (req, res) => {
     const { ids, status } = req.body;
-    const validStatuses = ['Received', 'Washing', 'Drying', 'Folding', 'Spin & Dry', 'Done (Ready to Pickup)', 'Out for Delivery', 'Delivered', 'Ready', 'Picked Up'];
-    if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
     try { for (const id of ids) await db.updateOrderStatus(id, status); res.json({ success: true, count: ids.length }); }
     catch (err) { res.status(500).json({ error: err.message }); }
@@ -603,7 +517,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     try { await db.updateSettings(req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ===== CASHIERS (PIN) =====
+// ===== CASHIERS =====
 app.get('/api/cashiers', requireAuth, async (req, res) => {
     try { res.json(await db.getCashiers()); } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -625,8 +539,7 @@ app.post('/api/cashiers/verify', async (req, res) => {
     const { pin } = req.body;
     try {
         const cashier = await db.findCashierByPin(pin);
-        if (cashier) res.json({ success: true, cashier });
-        else res.status(401).json({ success: false, error: 'Invalid PIN' });
+        if (cashier) res.json({ success: true, cashier }); else res.status(401).json({ success: false, error: 'Invalid PIN' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/cashiers/admin-verify', async (req, res) => {
@@ -635,23 +548,17 @@ app.post('/api/cashiers/admin-verify', async (req, res) => {
     try {
         const user = await db.getUserByUsername(username);
         if (!user) return res.status(401).json({ success: false, error: 'Invalid username or password' });
-        if (user.role !== 'owner' && user.role !== 'admin') {
-            return res.status(403).json({ success: false, error: 'Only owner or admin can use this option' });
-        }
+        if (user.role !== 'owner' && user.role !== 'admin') return res.status(403).json({ success: false, error: 'Only owner or admin can use this option' });
         const ok = await bcrypt.compare(password, user.password_hash);
         if (!ok) return res.status(401).json({ success: false, error: 'Invalid username or password' });
         res.json({ success: true, cashier: { id: user.id, name: user.full_name || user.username } });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
+    } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
 // ===== PRODUCTS =====
 app.get('/api/products', requireAuth, async (req, res) => {
-    try {
-        const { search = '', category = '' } = req.query;
-        res.json(await db.getProducts(search, category));
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const { search = '', category = '' } = req.query; res.json(await db.getProducts(search, category)); }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.get('/api/products/categories', requireAuth, async (req, res) => {
     try { res.json(await db.getProductCategories()); } catch (err) { res.status(500).json({ error: err.message }); }
@@ -688,16 +595,12 @@ app.get('/api/expenses', requireAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.get('/api/expenses/ledger', requireAuth, async (req, res) => {
-    try {
-        const { search = '', dateFrom = '', dateTo = '' } = req.query;
-        res.json(await db.getUnifiedLedger(dateFrom, dateTo, search));
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const { search = '', dateFrom = '', dateTo = '' } = req.query; res.json(await db.getUnifiedLedger(dateFrom, dateTo, search)); }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.get('/api/expenses/stats', requireAuth, async (req, res) => {
-    try {
-        const { dateFrom = '', dateTo = '' } = req.query;
-        res.json(await db.getLedgerStats(dateFrom, dateTo));
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const { dateFrom = '', dateTo = '' } = req.query; res.json(await db.getLedgerStats(dateFrom, dateTo)); }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.get('/api/expenses/categories', requireAuth, async (req, res) => {
     try { res.json(await db.getExpenseCategories()); } catch (err) { res.status(500).json({ error: err.message }); }
@@ -714,7 +617,6 @@ app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
     try { await db.deleteExpense(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// ===== VERIFY SECURITY ANSWER =====
 app.post('/api/users/me/verify-answer', requireAuth, async (req, res) => {
     try {
         const token = req.headers['x-auth-token'];
@@ -727,12 +629,9 @@ app.post('/api/users/me/verify-answer', requireAuth, async (req, res) => {
         const ok = await bcrypt.compare(answer.toLowerCase().trim(), user.security_answer_hash);
         if (!ok) return res.status(401).json({ success: false, error: 'Wrong answer' });
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
+    } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
-// ===== CHANGE OWN PASSWORD (verified via security answer) =====
 app.put('/api/users/me/change-password-verified', requireAuth, async (req, res) => {
     try {
         const token = req.headers['x-auth-token'];
@@ -747,17 +646,13 @@ app.put('/api/users/me/change-password-verified', requireAuth, async (req, res) 
         if (!ok) return res.status(401).json({ success: false, error: 'Wrong answer' });
         const hash = await bcrypt.hash(new_password, 10);
         await db.updateUserPassword(session.userId, hash);
-
         if (update_security && security_question && security_answer) {
             const ans_hash = await bcrypt.hash(security_answer.toLowerCase().trim(), 10);
             await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3",
                 [security_question, ans_hash, session.userId]);
         }
-
         res.json({ success: true });
-    } catch (err) {
-        res.status(500).json({ success: false, error: err.message });
-    }
+    } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

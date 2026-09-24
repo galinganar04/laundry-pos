@@ -25,6 +25,7 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS minimum NUMERIC DEFAULT 1;`);
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS unit_label TEXT DEFAULT 'kg';`);
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS image_data TEXT;`);
+        await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS hidden BOOLEAN DEFAULT FALSE;`);
         await pool.query(`CREATE TABLE IF NOT EXISTS service_materials (id SERIAL PRIMARY KEY, service_id INTEGER REFERENCES services(id) ON DELETE CASCADE, product_id INTEGER REFERENCES products(id), quantity INTEGER DEFAULT 1, amount NUMERIC DEFAULT 0);`);
         await pool.query(`CREATE TABLE IF NOT EXISTS expenses (id SERIAL PRIMARY KEY, date TIMESTAMPTZ DEFAULT NOW(), category TEXT NOT NULL, description TEXT, amount NUMERIC NOT NULL, supplier TEXT, notes TEXT, si_or_number TEXT, account TEXT DEFAULT 'Operating Expense');`);
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS si_or_number TEXT;`);
@@ -34,7 +35,7 @@ async function initDatabase() {
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_orders (id SERIAL PRIMARY KEY, original_id INTEGER, date TEXT NOT NULL, customer TEXT NOT NULL, total NUMERIC NOT NULL, payment_status TEXT NOT NULL, status TEXT, cashier_name TEXT, archived_at TIMESTAMPTZ DEFAULT NOW());`);
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_order_items (id SERIAL PRIMARY KEY, archived_order_id INTEGER REFERENCES archived_orders(id), service_name TEXT, quantity INTEGER, price NUMERIC);`);
 
-        // Users table for login system
+        // Users table
         await pool.query(`CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
@@ -50,7 +51,7 @@ async function initDatabase() {
             last_login TIMESTAMPTZ
         );`);
 
-        // ===== NEW: Order status flow columns =====
+        // Order status flow columns
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS service_flow JSONB;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS current_step INTEGER DEFAULT 0;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_delivery BOOLEAN DEFAULT FALSE;`);
@@ -94,13 +95,20 @@ async function getServices() {
     return services;
 }
 
+async function getPickupService() {
+    const result = await pool.query(
+        "SELECT * FROM services WHERE status = 'Available' AND (LOWER(name) LIKE '%pickup%' OR LOWER(name) LIKE '%delivery%') LIMIT 1"
+    );
+    return result.rows[0] || null;
+}
+
 async function addService(data) {
     const result = await pool.query(
-        `INSERT INTO services (name, price, unit, status, color, service_type, minimum, unit_label, image_data)
-         VALUES ($1, $2, $3, 'Available', $4, $5, $6, $7, $8) RETURNING id`,
+        `INSERT INTO services (name, price, unit, status, color, service_type, minimum, unit_label, image_data, hidden)
+         VALUES ($1, $2, $3, 'Available', $4, $5, $6, $7, $8, $9) RETURNING id`,
         [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg', data.color || '#4f46e5',
          data.service_type || 'Per Load', parseFloat(data.minimum) || 1, data.unit_label || 'kg',
-         data.image_data || null]);
+         data.image_data || null, data.hidden || false]);
     const serviceId = result.rows[0].id;
     if (Array.isArray(data.materials)) {
         for (const m of data.materials) {
@@ -116,10 +124,10 @@ async function addService(data) {
 async function updateService(id, data) {
     await pool.query(
         `UPDATE services SET name = $1, price = $2, unit = $3, color = $4, service_type = $5, 
-         minimum = $6, unit_label = $7, image_data = $8 WHERE id = $9`,
+         minimum = $6, unit_label = $7, image_data = $8, hidden = $9 WHERE id = $10`,
         [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg', data.color || '#4f46e5',
          data.service_type || 'Per Load', parseFloat(data.minimum) || 1, data.unit_label || 'kg',
-         data.image_data || null, id]);
+         data.image_data || null, data.hidden || false, id]);
     await pool.query("DELETE FROM service_materials WHERE service_id = $1", [id]);
     if (Array.isArray(data.materials)) {
         for (const m of data.materials) {
@@ -157,7 +165,7 @@ async function saveOrder(customer, total, cartItems, paymentStatus, cashierName,
         if (item.type === 'addon') {
             await pool.query("UPDATE products SET stock = GREATEST(stock - $1, 0) WHERE name = $2", [item.qty, item.name]);
         }
-        if (item.type === 'service') {
+        if (item.type === 'service' && !item.isPickupFee) {
             const svc = await pool.query("SELECT id FROM services WHERE name = $1", [item.name]);
             if (svc.rows.length > 0) {
                 const mats = await pool.query("SELECT product_id, quantity FROM service_materials WHERE service_id = $1", [svc.rows[0].id]);
@@ -434,32 +442,12 @@ async function getLedgerStats(dateFrom, dateTo) {
     return { total, count, highest: parseFloat(row.highest) || 0, average: count > 0 ? total / count : 0 };
 }
 
-// ====== USERS (Login System) ======
-async function getUserByUsername(username) {
-    const result = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
-    return result.rows[0];
-}
-
-async function getUserByEmail(email) {
-    const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);
-    return result.rows[0];
-}
-
-async function getUserById(id) {
-    const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-    return result.rows[0];
-}
-
-async function getAllUsers() {
-    const result = await pool.query("SELECT id, username, email, full_name, role, created_at, last_login FROM users ORDER BY id ASC");
-    return result.rows;
-}
-
-async function getUserCount() {
-    const result = await pool.query("SELECT COUNT(*) AS count FROM users");
-    return parseInt(result.rows[0].count);
-}
-
+// ====== USERS ======
+async function getUserByUsername(username) { const result = await pool.query("SELECT * FROM users WHERE username = $1", [username]); return result.rows[0]; }
+async function getUserByEmail(email) { const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]); return result.rows[0]; }
+async function getUserById(id) { const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]); return result.rows[0]; }
+async function getAllUsers() { const result = await pool.query("SELECT id, username, email, full_name, role, created_at, last_login FROM users ORDER BY id ASC"); return result.rows; }
+async function getUserCount() { const result = await pool.query("SELECT COUNT(*) AS count FROM users"); return parseInt(result.rows[0].count); }
 async function createUser(data) {
     const result = await pool.query(
         `INSERT INTO users (username, password_hash, email, full_name, role, security_question, security_answer_hash)
@@ -469,38 +457,16 @@ async function createUser(data) {
     );
     return result.rows[0].id;
 }
-
-async function updateUserPassword(id, password_hash) {
-    await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [password_hash, id]);
-}
-
-async function updateLastLogin(id) {
-    await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [id]);
-}
-
-async function setResetToken(id, token, expires) {
-    await pool.query("UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3", [token, expires, id]);
-}
-
-async function getUserByResetToken(token) {
-    const result = await pool.query("SELECT * FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()", [token]);
-    return result.rows[0];
-}
-
-async function clearResetToken(id) {
-    await pool.query("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = $1", [id]);
-}
-
-async function deleteUser(id) {
-    await pool.query("DELETE FROM users WHERE id = $1", [id]);
-}
-
-async function updateUserRole(id, role) {
-    await pool.query("UPDATE users SET role = $1 WHERE id = $2", [role, id]);
-}
+async function updateUserPassword(id, password_hash) { await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [password_hash, id]); }
+async function updateLastLogin(id) { await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [id]); }
+async function setResetToken(id, token, expires) { await pool.query("UPDATE users SET reset_token = $1, reset_token_expires = $2 WHERE id = $3", [token, expires, id]); }
+async function getUserByResetToken(token) { const result = await pool.query("SELECT * FROM users WHERE reset_token = $1 AND reset_token_expires > NOW()", [token]); return result.rows[0]; }
+async function clearResetToken(id) { await pool.query("UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = $1", [id]); }
+async function deleteUser(id) { await pool.query("DELETE FROM users WHERE id = $1", [id]); }
+async function updateUserRole(id, role) { await pool.query("UPDATE users SET role = $1 WHERE id = $2", [role, id]); }
 
 module.exports = {
-    pool, getServices, addService, updateService, deleteService, saveOrder, getOrders, getOrderById,
+    pool, getServices, addService, updateService, deleteService, getPickupService, saveOrder, getOrders, getOrderById,
     markAsPaid, markAsUnpaid, deleteOrder, updateOrderStatus,
     getCustomers, getCustomer, addCustomer, updateCustomer, deleteCustomer, getCustomerOrders,
     getReportSummary, getReportDaily, getReportTopServices, getReportTopCustomers,
