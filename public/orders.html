@@ -18,22 +18,13 @@
         .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
         .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .btn-primary { background: #1e40af; border-color: #1e40af; }
-        .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
         .filter-btn { margin-right: 6px; margin-bottom: 6px; font-size: 13px; padding: 6px 14px; border-radius: 20px; font-weight: 600; }
         .period-btn.active { background: #1e40af !important; color: white !important; border-color: #1e40af !important; }
 
         .orders-scroll-box { max-height: calc(100vh - 340px); overflow-y: auto; overflow-x: hidden; border-radius: 10px; }
-
         .orders-table { width: 100%; border-collapse: collapse; }
-        .orders-table thead th {
-            font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase;
-            color: #0f172a; font-weight: 700; padding: 16px 14px;
-            border-bottom: 2px solid #cbd5e1; background: #f1f5f9;
-            position: sticky; top: 0; z-index: 2;
-        }
+        .orders-table thead th { font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; color: #0f172a; font-weight: 700; padding: 16px 14px; border-bottom: 2px solid #cbd5e1; background: #f1f5f9; position: sticky; top: 0; z-index: 2; }
         .orders-table tbody td { padding: 16px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 15px; background: white; }
-        .orders-table tbody tr:hover td { background-color: #f8fafc; }
-
         .status-badge { font-size: 12px; padding: 6px 12px; font-weight: 700; border-radius: 14px; white-space: nowrap; display: inline-block; }
         .status-Received { background-color: #fef3c7; color: #92400e; }
         .status-Washing { background-color: #dbeafe; color: #1e40af; }
@@ -43,14 +34,12 @@
         .status-Ready { background-color: #d1fae5; color: #065f46; }
         .status-OutForDelivery { background-color: #fde68a; color: #78350f; }
         .status-Delivered { background-color: #dcfce7; color: #14532d; }
-
         .action-btn { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid; cursor: pointer; white-space: nowrap; font-weight: 600; }
         .btn-status { background: #1e40af; color: white; border-color: #1e40af; }
         .btn-pay { background: #10b981; color: white; border-color: #10b981; }
         .btn-unpay { background: white; color: #92400e; border-color: #f59e0b; }
         .btn-print { background: white; color: #1e40af; border-color: #bfdbfe; }
         .btn-del { background: white; color: #dc2626; border-color: #fecaca; }
-
         .order-checkbox { cursor: pointer; transform: scale(1.5); }
         .row-selected td { background-color: #eff6ff !important; }
         .customer-name { font-weight: 700; color: #1e293b; font-size: 15px; }
@@ -59,121 +48,30 @@
         .total-cell { font-weight: 700; color: #1e293b; font-size: 15px; }
         .payment-badge { font-size: 13px; padding: 5px 12px; font-weight: 700; border-radius: 12px; }
         .pickup-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; background: #fef3c7; color: #92400e; font-weight: 700; margin-left: 4px; }
-
-        .batch-bar {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: none; z-index: 1000;
-            align-items: center; gap: 10px; flex-wrap: wrap;
-        }
+        .batch-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: none; z-index: 1000; align-items: center; gap: 10px; flex-wrap: wrap; }
         .batch-bar.show { display: flex; }
         .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
 
-        /* ==================== MOBILE VIEW: CARD LAYOUT ==================== */
+        /* MOBILE: cards */
         @media (max-width: 767px) {
             html, body { height: auto !important; overflow: visible !important; }
             .sidebar { display: none !important; }
             .orders-scroll-box { max-height: none; overflow: visible; }
             .page-title { font-size: 18px; }
-
-            /* Hide the desktop table header */
             .orders-table thead { display: none; }
-
-            /* Make table render as stacked cards */
-            .orders-table, .orders-table tbody, .orders-table tr, .orders-table td {
-                display: block;
-                width: 100%;
-            }
-
-            .orders-table tbody tr {
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-                margin-bottom: 12px;
-                padding: 12px;
-                border: 1px solid #e2e8f0;
-                position: relative;
-            }
-
-            .orders-table tbody td {
-                padding: 4px 0;
-                border: none;
-                background: transparent !important;
-                text-align: left !important;
-            }
-
-            /* Row 1: Checkbox - inline at left of the card */
-            .orders-table tbody td:nth-child(1) {
-                position: absolute;
-                top: 12px;
-                right: 12px;
-                width: auto;
-            }
-
-            /* Row 2: Order # - bold header at top of card */
-            .orders-table tbody td:nth-child(2) {
-                font-size: 18px;
-                font-weight: 800;
-                color: #1e40af;
-                margin-bottom: 4px;
-                padding-right: 40px;
-            }
-
-            /* Row 3: Date */
-            .orders-table tbody td:nth-child(3) {
-                font-size: 12px;
-                color: #64748b;
-                margin-bottom: 8px;
-            }
-
-            /* Row 4: Customer */
-            .orders-table tbody td:nth-child(4) {
-                font-size: 16px;
-                font-weight: 700;
-                margin-bottom: 6px;
-            }
-
-            /* Row 5: Total + Payment inline */
-            .orders-table tbody td:nth-child(5) {
-                display: inline-block;
-                width: 50%;
-                font-size: 16px;
-                font-weight: 800;
-                color: #1e293b;
-                margin-bottom: 6px;
-                vertical-align: middle;
-            }
-            .orders-table tbody td:nth-child(6) {
-                display: inline-block;
-                width: 50%;
-                text-align: right !important;
-                margin-bottom: 6px;
-                vertical-align: middle;
-            }
-
-            /* Row 6: Status */
-            .orders-table tbody td:nth-child(7) {
-                margin-bottom: 10px;
-            }
-
-            /* Row 7: Actions - full row with wrap */
-            .orders-table tbody td:nth-child(8) {
-                border-top: 1px solid #f1f5f9 !important;
-                padding-top: 10px !important;
-                margin-top: 6px;
-            }
-            .orders-table tbody td:nth-child(8) > div {
-                display: flex !important;
-                flex-wrap: wrap;
-                gap: 6px !important;
-                justify-content: flex-start !important;
-            }
-            .action-btn {
-                font-size: 13px;
-                padding: 8px 10px;
-                flex: 1;
-                min-width: 80px;
-            }
+            .orders-table, .orders-table tbody, .orders-table tr, .orders-table td { display: block; width: 100%; }
+            .orders-table tbody tr { background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 12px; padding: 12px; border: 1px solid #e2e8f0; position: relative; }
+            .orders-table tbody td { padding: 4px 0; border: none; background: transparent !important; text-align: left !important; }
+            .orders-table tbody td:nth-child(1) { position: absolute; top: 12px; right: 12px; width: auto; }
+            .orders-table tbody td:nth-child(2) { font-size: 18px; font-weight: 800; color: #1e40af; margin-bottom: 4px; padding-right: 40px; }
+            .orders-table tbody td:nth-child(3) { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+            .orders-table tbody td:nth-child(4) { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+            .orders-table tbody td:nth-child(5) { display: inline-block; width: 50%; font-size: 16px; font-weight: 800; color: #1e293b; margin-bottom: 6px; vertical-align: middle; }
+            .orders-table tbody td:nth-child(6) { display: inline-block; width: 50%; text-align: right !important; margin-bottom: 6px; vertical-align: middle; }
+            .orders-table tbody td:nth-child(7) { margin-bottom: 10px; }
+            .orders-table tbody td:nth-child(8) { border-top: 1px solid #f1f5f9 !important; padding-top: 10px !important; margin-top: 6px; }
+            .orders-table tbody td:nth-child(8) > div { display: flex !important; flex-wrap: wrap; gap: 6px !important; justify-content: flex-start !important; }
+            .action-btn { font-size: 13px; padding: 8px 10px; flex: 1; min-width: 80px; }
             .status-badge { font-size: 11px; padding: 5px 10px; }
             .payment-badge { font-size: 11px; padding: 4px 10px; }
         }
@@ -185,25 +83,12 @@
         [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .orders-table thead th { color: #f1f5f9 !important; border-color: #475569 !important; background: #0f172a !important; }
         [data-theme="dark"] .orders-table tbody td { border-color: #334155 !important; color: #ffffff !important; background: #1e293b !important; }
-        [data-theme="dark"] .orders-table tbody tr:hover td { background-color: #16223b !important; }
         [data-theme="dark"] .orders-table tbody tr { background-color: #1e293b !important; border-color: #334155 !important; }
         [data-theme="dark"] .customer-name, [data-theme="dark"] .total-cell { color: #ffffff !important; }
         [data-theme="dark"] .page-title { color: #ffffff !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
         [data-theme="dark"] .row-selected td { background-color: #1e3a8a !important; }
         [data-theme="dark"] .batch-bar { background: #020617 !important; }
-        [data-theme="dark"] .dropdown-menu { background-color: #1e293b !important; border-color: #334155 !important; }
-        [data-theme="dark"] .dropdown-item { color: #e2e8f0 !important; }
-        [data-theme="dark"] .btn-print { background: #334155; color: #60a5fa; border-color: #475569; }
-        [data-theme="dark"] .btn-del { background: #334155; color: #f87171; border-color: #7f1d1d; }
-        [data-theme="dark"] .btn-unpay { background: #334155; color: #fbbf24; border-color: #92400e; }
-
-        .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
-        .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
-        .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
-        .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
-        .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
     </style>
 </head>
 <body>
@@ -212,28 +97,28 @@
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
             <div class="text-center mb-4"><img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'"></div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html" class="active">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/customers.html">👥 Customers</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+            <a href="/">POS</a>
+            <a href="/dashboard.html">Dashboard</a>
+            <a href="/services.html">Services</a>
+            <a href="/products.html">Products</a>
+            <a href="/orders.html" class="active">Orders</a>
+            <a href="/replenishments.html">Replenishments</a>
+            <a href="/expenses.html">Expenses</a>
+            <a href="/customers.html">Customers</a>
+            <a href="/settings.html">Settings</a>
+            <a href="#" class="theme-toggle">Dark Mode</a>
+            <a href="#" onclick="logout()">Logout</a>
         </div>
 
         <div class="col-md-10 p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="page-title mb-0">Orders</h3>
-                <a href="/" class="btn btn-primary btn-sm">← POS</a>
+                <a href="/" class="btn btn-primary btn-sm">Back to POS</a>
             </div>
 
             <div class="panel mb-4">
                 <div class="row g-2">
-                    <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search" oninput="debouncedLoad()"></div>
+                    <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="Search" oninput="debouncedLoad()"></div>
                     <div class="col-md-3"><input type="date" id="dateFrom" class="form-control" onchange="loadOrders()"></div>
                     <div class="col-md-3"><input type="date" id="dateTo" class="form-control" onchange="loadOrders()"></div>
                     <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
@@ -244,20 +129,10 @@
                 <div class="p-3 border-bottom">
                     <div class="mb-2">
                         <small class="text-muted fw-bold me-2">PERIOD:</small>
-                        <button class="btn filter-btn period-btn" data-period="today" onclick="setPeriod('today', this)">📅 Today</button>
-                        <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">📆 Week</button>
-                        <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">🗓️ Month</button>
-                        <button class="btn filter-btn period-btn active" data-period="all" onclick="setPeriod('all', this)">📊 All</button>
-                    </div>
-                    <div>
-                        <small class="text-muted fw-bold me-2">STATUS:</small>
-                        <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('all')">All</button>
-                        <button class="btn filter-btn btn-outline-warning" onclick="setFilter('unpaid')">💰 Unpaid</button>
-                        <button class="btn filter-btn btn-outline-warning" onclick="setFilter('received')">📥 Received</button>
-                        <button class="btn filter-btn btn-outline-primary" onclick="setFilter('washing')">🌀 Washing</button>
-                        <button class="btn filter-btn btn-outline-secondary" onclick="setFilter('drying')">💨 Drying</button>
-                        <button class="btn filter-btn btn-outline-success" onclick="setFilter('ready')">✅ Ready</button>
-                        <button class="btn filter-btn btn-outline-dark" onclick="setFilter('pickedup')">📦 Done</button>
+                        <button class="btn filter-btn period-btn" data-period="today" onclick="setPeriod('today', this)">Today</button>
+                        <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">Week</button>
+                        <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">Month</button>
+                        <button class="btn filter-btn period-btn active" data-period="all" onclick="setPeriod('all', this)">All</button>
                     </div>
                 </div>
                 <div class="orders-scroll-box">
@@ -284,10 +159,10 @@
 
 <div class="batch-bar" id="batchBar">
     <span class="count"><span id="selectedCount">0</span> selected</span>
-    <button class="btn btn-sm btn-success" onclick="batchPay()">💰 Paid</button>
-    <button class="btn btn-sm btn-warning" onclick="batchUnpay()">⏳ Unpaid</button>
-    <button class="btn btn-sm btn-danger" id="batchDeleteBtn" onclick="batchDelete()">🗑 Delete</button>
-    <button class="btn btn-sm btn-outline-light" onclick="clearSelection()">✕ Clear</button>
+    <button class="btn btn-sm btn-success" onclick="batchPay()">Paid</button>
+    <button class="btn btn-sm btn-warning" onclick="batchUnpay()">Unpaid</button>
+    <button class="btn btn-sm btn-danger" id="batchDeleteBtn" onclick="batchDelete()">Delete</button>
+    <button class="btn btn-sm btn-outline-light" onclick="clearSelection()">Clear</button>
 </div>
 
 <script src="/role-guard.js"></script>
@@ -323,10 +198,10 @@
         const flow = order.service_flow || ['Received'];
         const currentStep = order.current_step || 0;
         const nextStep = currentStep + 1;
-        if (nextStep >= flow.length) return `<span class="text-muted small">✓</span>`;
+        if (nextStep >= flow.length) return `<span class="text-muted small">Done</span>`;
         const nextStatus = flow[nextStep];
         let extra = nextStatus === 'Out for Delivery' ? `onclick="advanceWithRider(${order.id})"` : `onclick="advanceOrder(${order.id})"`;
-        return `<button class="action-btn btn-status" ${extra}>→ ${nextStatus}</button>`;
+        return `<button class="action-btn btn-status" ${extra}>Next: ${nextStatus}</button>`;
     }
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
@@ -372,25 +247,9 @@
         document.getElementById('selectedCount').innerText = ids.length;
         document.getElementById('batchBar').classList.toggle('show', ids.length > 0);
     }
-    function toggleSelectAll(source) {
-        document.querySelectorAll('.order-checkbox-row').forEach(cb => {
-            cb.checked = source.checked;
-            cb.closest('tr').classList.toggle('row-selected', source.checked);
-        });
-        updateBatchBar();
-    }
-    function toggleRowCheckbox(cb) {
-        cb.closest('tr').classList.toggle('row-selected', cb.checked);
-        const all = document.querySelectorAll('.order-checkbox-row');
-        const checked = document.querySelectorAll('.order-checkbox-row:checked');
-        document.getElementById('selectAll').checked = (all.length > 0 && all.length === checked.length);
-        updateBatchBar();
-    }
-    function clearSelection() {
-        document.querySelectorAll('.order-checkbox-row').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('row-selected'); });
-        document.getElementById('selectAll').checked = false;
-        updateBatchBar();
-    }
+    function toggleSelectAll(source) { document.querySelectorAll('.order-checkbox-row').forEach(cb => { cb.checked = source.checked; cb.closest('tr').classList.toggle('row-selected', source.checked); }); updateBatchBar(); }
+    function toggleRowCheckbox(cb) { cb.closest('tr').classList.toggle('row-selected', cb.checked); const all = document.querySelectorAll('.order-checkbox-row'); const checked = document.querySelectorAll('.order-checkbox-row:checked'); document.getElementById('selectAll').checked = (all.length > 0 && all.length === checked.length); updateBatchBar(); }
+    function clearSelection() { document.querySelectorAll('.order-checkbox-row').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('row-selected'); }); document.getElementById('selectAll').checked = false; updateBatchBar(); }
 
     function loadOrders() {
         const search = document.getElementById('searchBox').value.trim();
@@ -415,21 +274,21 @@
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
                     const payBadge = isPaid ? 'bg-success' : 'bg-warning text-dark';
-                    const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">↺ Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">✓ Paid</button>`;
+                    const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">Paid</button>`;
                     const status = o.status || 'Received';
-                    const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">🗑 Delete</button>` : '';
-                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚 Pickup</span>` : '';
+                    const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">Delete</button>` : '';
+                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">Pickup</span>` : '';
                     return `<tr>
                         <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
                         <td><span class="order-id">#${o.id}</span></td>
                         <td><span class="date-cell">${date}</span></td>
                         <td><span class="customer-name">${o.customer}</span>${pickupIcon}</td>
-                        <td class="text-end"><span class="total-cell">₱${parseFloat(o.total).toFixed(2)}</span></td>
+                        <td class="text-end"><span class="total-cell">P${parseFloat(o.total).toFixed(2)}</span></td>
                         <td><span class="badge ${payBadge} payment-badge">${o.payment_status}</span></td>
                         <td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
                         <td class="text-end">
                             <div class="d-inline-flex align-items-center gap-2">
-                                <button class="action-btn btn-print" onclick="reprintReceipt(${o.id}, '58')">🖨️ Print</button>
+                                <button class="action-btn btn-print" onclick="reprintReceipt(${o.id}, '58')">Print</button>
                                 ${nextStepButton(o)}
                                 ${payBtn}
                                 ${deleteBtnHtml}
@@ -447,20 +306,14 @@
         fetch('/api/orders/' + id + '/next-status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({}) })
         .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
-
     function advanceWithRider(id) {
         const rider = prompt('Rider name (optional):', '');
         fetch('/api/orders/' + id + '/next-status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ riderName: rider || null }) })
         .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
     }
-
     function markPaid(id) { fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function markUnpaid(id) { fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
-    function deleteOrder(id) {
-        if (userRole === 'cashier') return alert('Cashiers cannot delete orders.');
-        if (!confirm('Delete order #' + id + '?')) return;
-        fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders());
-    }
+    function deleteOrder(id) { if (userRole === 'cashier') return alert('Cashiers cannot delete orders.'); if (!confirm('Delete order #' + id + '?')) return; fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function batchPay() { const ids = getSelectedIds(); if (ids.length === 0) return; fetch('/api/orders/batch/pay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(() => loadOrders()); }
     function batchUnpay() { const ids = getSelectedIds(); if (ids.length === 0) return; fetch('/api/orders/batch/unpay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(() => loadOrders()); }
     function batchDelete() { if (userRole === 'cashier') return alert('Cashiers cannot delete orders.'); const ids = getSelectedIds(); if (ids.length === 0) return; if (!confirm(`DELETE ${ids.length} order(s)?`)) return; fetch('/api/orders/batch/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(() => loadOrders()); }
@@ -471,9 +324,9 @@
             .then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
     }
 
-    // ===== LINE HELPERS =====
-    function dividerLine(size) { return (size === '58' ? '─'.repeat(31) : '─'.repeat(47)); }
-    function doubleDividerLine(size) { return (size === '58' ? '═'.repeat(31) : '═'.repeat(47)); }
+    // ===== ASCII-ONLY HELPERS =====
+    function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
+    function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
     function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
     function center(str, len) {
         str = String(str || '');
@@ -483,7 +336,7 @@
         const rightPad = totalPad - leftPad;
         return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
     }
-    function formatMoney(n) { return '₱' + parseFloat(n || 0).toFixed(2); }
+    function formatMoney(n) { return 'P' + parseFloat(n || 0).toFixed(2); }
 
     function buildReceiptText(order, size) {
         const width = size === '58' ? 32 : 48;
@@ -507,7 +360,7 @@
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
         lines.push(doubleDividerLine(size));
-        lines.push('#' + order.id + ' ● ' + shortDate);
+        lines.push('#' + order.id + ' - ' + shortDate);
         lines.push(customerFullName);
         lines.push(dividerLine(size));
 
@@ -542,7 +395,7 @@
         lines.push('');
         lines.push(center(shopFirstName, width));
         lines.push('');
-        lines.push('#' + order.id + ' ● ' + shortDate);
+        lines.push('#' + order.id + ' - ' + shortDate);
         lines.push(dividerLine(size));
 
         order.items.forEach(item => {
@@ -583,7 +436,7 @@
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
-        const cur = '₱';
+        const cur = 'P';
 
         const itemsCustomerHtml = order.items.map(item => {
             const nameTrunc = item.service_name.length > (size === '58' ? 16 : 28) ? item.service_name.substring(0, size === '58' ? 15 : 27) + '.' : item.service_name;
@@ -600,7 +453,7 @@
                 <div class="center big bold">HAWI'S LOVADA</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
                 <div class="divider-solid"></div>
-                <div class="info">#${order.id} ● ${formattedDate}</div>
+                <div class="info">#${order.id} - ${formattedDate}</div>
                 <div class="info">${customerFullName}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
@@ -623,7 +476,7 @@
                 <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
                 <div class="divider-solid"></div>
                 <div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div>
-                <div class="info" style="text-align: left;">#${order.id} ● ${formattedDate}</div>
+                <div class="info" style="text-align: left;">#${order.id} - ${formattedDate}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
                 <div class="divider"></div>
@@ -655,7 +508,7 @@
                 ${customerCopyHtml}
                 ${shopCopyHtml}
                 <br><br><br>
-                <button class="print-btn" onclick="window.print()">🖨️ Print Both Copies</button>
+                <button class="print-btn" onclick="window.print()">Print Both Copies</button>
             </body></html>`;
         const w = window.open('', '_blank', 'width=400,height=700');
         w.document.write(receiptHtml);

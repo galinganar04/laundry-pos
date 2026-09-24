@@ -17,13 +17,7 @@
         html, body { margin: 0; padding: 0; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
 
-        .topbar {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            color: white; padding: 10px 16px;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 12px; position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
+        .topbar { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .topbar .logo-img { height: 38px; width: auto; background: rgba(255,255,255,0.15); border-radius: 6px; padding: 4px; }
         .topbar .user-info { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
         .topbar .user-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -188,62 +182,62 @@
                 </div>
             </div>
 
-            <input type="text" class="search-input" id="searchBox" placeholder="🔍 Search services or add-ons...">
+            <input type="text" class="search-input" id="searchBox" placeholder="Search services or add-ons...">
 
-            <div class="section-label">🧴 Services</div>
+            <div class="section-label">Services</div>
             <div class="row" id="servicesContainer"></div>
 
-            <div class="section-label">✨ Add-ons</div>
+            <div class="section-label">Add-ons</div>
             <div class="row" id="addonsContainer"></div>
         </div>
 
         <div class="col-md-3 main-content desktop-cart-col">
             <div class="cart-panel">
-                <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
+                <h5>Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
                 <div id="cartItemsList" class="mb-3">
                     <p class="cart-empty">Cart is empty.</p>
                 </div>
 
                 <div class="order-type-toggle">
-                    <button id="btnWalkIn" class="active" onclick="setOrderType('walkin')">👤 Walk-In</button>
-                    <button id="btnPickup" onclick="setOrderType('pickup')">🚚 Pickup/Delivery</button>
+                    <button id="btnWalkIn" class="active" onclick="setOrderType('walkin')">Walk-In</button>
+                    <button id="btnPickup" onclick="setOrderType('pickup')">Pickup/Delivery</button>
                 </div>
 
                 <div class="pickup-info" id="pickupInfo">
                     <div class="heading">
-                        <span>🚚</span> Pickup &amp; Delivery Details
+                        <span>*</span> Pickup &amp; Delivery Details
                     </div>
                     <div class="mb-2">
-                        <label class="form-label">📱 Cellphone Number *</label>
+                        <label class="form-label">Cellphone Number *</label>
                         <input type="tel" id="customerPhone" class="form-control" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" autocomplete="tel" oninput="validatePhone()">
                         <small id="phoneHint" style="font-size: 11px; color: #92400e; display: block; margin-top: 4px;">11 digits, starts with 09</small>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">👤 Customer Name</label>
+                    <label class="form-label">Customer Name</label>
                     <input type="text" id="customerName" class="form-control" placeholder="Enter customer name..." list="customerList" autocomplete="off">
                     <datalist id="customerList"></datalist>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">💵 Payment</label>
+                    <label class="form-label">Payment</label>
                     <select id="paymentStatus" class="form-select">
-                        <option value="Paid">💵 Pay Now</option>
-                        <option value="Pending">⏳ Pay Later</option>
+                        <option value="Paid">Pay Now</option>
+                        <option value="Pending">Pay Later</option>
                     </select>
                 </div>
 
                 <div class="cart-total-row">
                     <span>Total</span>
-                    <span id="cartTotal">₱0.00</span>
+                    <span id="cartTotal">P0.00</span>
                 </div>
 
-                <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
+                <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">Checkout</button>
 
                 <div class="print-buttons" id="printButtons">
-                    <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
-                    <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
+                    <button class="btn-print" onclick="printReceipt('58')">Print 58mm</button>
+                    <button class="btn-print btn-print-80" onclick="printReceipt('80')">Print 80mm</button>
                 </div>
             </div>
         </div>
@@ -260,7 +254,7 @@
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
     const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: '₱' };
+    let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: 'P' };
     fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json()).then(data => { if (data) shopSettings = data; });
 
@@ -282,9 +276,8 @@
     function toTitleCase(str) {
         return (str || '').trim().toLowerCase().replace(/\s+/g, ' ').split(' ').map(word =>
             word ? word.charAt(0).toUpperCase() + word.slice(1) : ''
-        ).join(' ');
+        ).join('');
     }
-
     function getFirstNameUpper(str) {
         const parts = (str || '').trim().split(/\s+/);
         return parts[0] ? parts[0].toUpperCase() : '';
@@ -320,14 +313,7 @@
             btnPickup.classList.add('pickup-active');
             infoBox.classList.add('active');
             if (pickupServiceInfo && !cart.some(item => item.isPickupFee)) {
-                cart.push({
-                    name: 'Pickup/Delivery Fee',
-                    price: parseFloat(pickupServiceInfo.price) || 0,
-                    unit: pickupServiceInfo.unit || 'kg',
-                    qty: 1,
-                    type: 'service',
-                    isPickupFee: true
-                });
+                cart.push({ name: 'Pickup/Delivery Fee', price: parseFloat(pickupServiceInfo.price) || 0, unit: pickupServiceInfo.unit || 'kg', qty: 1, type: 'service', isPickupFee: true });
                 updateCartUI();
             }
             setTimeout(() => customerInput.focus(), 100);
@@ -338,8 +324,8 @@
         const phone = document.getElementById('customerPhone').value.trim();
         const hint = document.getElementById('phoneHint');
         if (phone.length === 0) { hint.style.color = '#92400e'; hint.innerText = '11 digits, starts with 09'; return false; }
-        if (!/^09\d{9}$/.test(phone)) { hint.style.color = '#dc2626'; hint.innerText = '⚠️ Invalid — must be 11 digits and start with 09'; return false; }
-        hint.style.color = '#059669'; hint.innerText = '✅ Valid number'; return true;
+        if (!/^09\d{9}$/.test(phone)) { hint.style.color = '#dc2626'; hint.innerText = 'Invalid - must be 11 digits and start with 09'; return false; }
+        hint.style.color = '#059669'; hint.innerText = 'Valid number'; return true;
     }
 
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
@@ -357,9 +343,9 @@
                 const unit = service.unit_label || service.unit || 'kg';
                 let inner;
                 if (service.image_data) {
-                    inner = `<div class="service-thumb"><img src="${service.image_data}"><div class="overlay"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
+                    inner = `<div class="service-thumb"><img src="${service.image_data}"><div class="overlay"><div class="name">${service.name}</div><div class="price">P${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
                 } else {
-                    inner = `<div class="service-thumb" style="background: ${color};"><div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 8px; text-align: center;"><div class="name">${service.name}</div><div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
+                    inner = `<div class="service-thumb" style="background: ${color};"><div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 8px; text-align: center;"><div class="name">${service.name}</div><div class="price">P${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
                 }
                 container.innerHTML += `<div class="col-6 col-md-4 mb-3"><div class="card service-card" id="svc-${service.id}" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service', ${service.id})">${inner}</div></div>`;
             });
@@ -372,8 +358,8 @@
             const container = document.getElementById('addonsContainer');
             if (addons.length === 0) { container.innerHTML = '<div class="col-12 text-center text-muted py-3">No add-ons available.</div>'; return; }
             addons.forEach(p => {
-                const thumb = p.image_data ? `<div class="addon-thumb"><img src="${p.image_data}"></div>` : `<div class="addon-thumb">${p.icon || '📦'}</div>`;
-                container.innerHTML += `<div class="col-12 col-md-6"><div class="addon-card" id="prod-${p.id}" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon', 'p${p.id}')">${thumb}<div class="flex-grow-1"><div class="addon-name">${p.name}</div><div class="addon-meta">${p.category || 'General'} • ${p.stock} in stock</div></div><div class="text-end"><div class="addon-price">₱${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div><div class="qty-badge" id="badge-p${p.id}">0</div></div></div></div>`;
+                const thumb = p.image_data ? `<div class="addon-thumb"><img src="${p.image_data}"></div>` : `<div class="addon-thumb">${p.icon || '*'}</div>`;
+                container.innerHTML += `<div class="col-12 col-md-6"><div class="addon-card" id="prod-${p.id}" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon', 'p${p.id}')">${thumb}<div class="flex-grow-1"><div class="addon-name">${p.name}</div><div class="addon-meta">${p.category || 'General'} - ${p.stock} in stock</div></div><div class="text-end"><div class="addon-price">P${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div><div class="qty-badge" id="badge-p${p.id}">0</div></div></div></div>`;
             });
         });
 
@@ -444,14 +430,14 @@
                 total += itemTotal; itemCount += item.qty;
                 const qtyControls = item.isPickupFee
                     ? `<span style="font-size: 11px; color: #f59e0b; font-weight: 700;">FIXED</span>`
-                    : `<div class="qty-controls"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">−</button><span style="font-weight:600; min-width:18px; text-align:center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button></div>`;
+                    : `<div class="qty-controls"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">-</button><span style="font-weight:600; min-width:18px; text-align:center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button></div>`;
                 const rowStyle = item.isPickupFee ? 'style="background: #fffbeb; border-radius: 8px; padding: 10px 8px; border-left: 3px solid #f59e0b;"' : '';
-                const subText = item.isPickupFee ? 'Auto-added' : '₱' + item.price.toFixed(2) + ' × ' + item.qty;
-                list.innerHTML += `<div class="cart-item" ${rowStyle}><div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-sub">${subText}</div></div>${qtyControls}<div class="cart-item-price">₱${itemTotal.toFixed(2)}</div></div>`;
+                const subText = item.isPickupFee ? 'Auto-added' : 'P' + item.price.toFixed(2) + ' x ' + item.qty;
+                list.innerHTML += `<div class="cart-item" ${rowStyle}><div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-sub">${subText}</div></div>${qtyControls}<div class="cart-item-price">P${itemTotal.toFixed(2)}</div></div>`;
             });
         }
         countSpan.innerText = itemCount + ' items';
-        totalSpan.innerText = '₱' + total.toFixed(2);
+        totalSpan.innerText = 'P' + total.toFixed(2);
     }
 
     function checkout() {
@@ -464,49 +450,26 @@
         const isPickup = orderType === 'pickup';
 
         if (isPickup) {
-            if (!customer) {
-                document.getElementById('customerName').focus();
-                return alert('⚠️ Customer name is required for Pickup & Delivery');
-            }
-            if (!/^09\d{9}$/.test(customerPhone)) {
-                document.getElementById('customerPhone').focus();
-                return alert('⚠️ Cellphone number is required (11 digits, starts with 09)\nExample: 09171234567');
-            }
+            if (!customer) { document.getElementById('customerName').focus(); return alert('Customer name is required for Pickup & Delivery'); }
+            if (!/^09\d{9}$/.test(customerPhone)) { document.getElementById('customerPhone').focus(); return alert('Cellphone number is required (11 digits, starts with 09)\nExample: 09171234567'); }
         } else {
             if (!customer) customer = 'Walk-In Customer';
         }
 
         const formattedCustomer = toTitleCase(customer);
-
         const btn = document.getElementById('checkoutBtn');
         btn.innerText = 'Processing...'; btn.disabled = true;
 
-        const receiptData = {
-            customer: formattedCustomer,
-            total,
-            items: JSON.parse(JSON.stringify(cart)),
-            date: new Date().toLocaleString(),
-            paymentStatus,
-            pickupDelivery: isPickup,
-            customerPhone: isPickup ? customerPhone : null
-        };
+        const receiptData = { customer: formattedCustomer, total, items: JSON.parse(JSON.stringify(cart)), date: new Date().toLocaleString(), paymentStatus, pickupDelivery: isPickup, customerPhone: isPickup ? customerPhone : null };
 
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({
-                customer: formattedCustomer,
-                total,
-                cartItems: cart,
-                paymentStatus,
-                cashierName,
-                pickupDelivery: isPickup,
-                customerPhone: isPickup ? customerPhone : null
-            })
+            body: JSON.stringify({ customer: formattedCustomer, total, cartItems: cart, paymentStatus, cashierName, pickupDelivery: isPickup, customerPhone: isPickup ? customerPhone : null })
         })
         .then(res => res.json())
         .then(data => {
-            if (data.error) { alert('Error: ' + data.error); btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
+            if (data.error) { alert('Error: ' + data.error); btn.innerText = 'Checkout'; btn.disabled = false; return; }
             alert(data.message + ' (Cashier: ' + cashierName + ')');
             receiptData.orderId = data.orderId;
             receiptData.serviceFlow = data.serviceFlow;
@@ -517,31 +480,17 @@
             document.getElementById('customerName').value = '';
             document.querySelectorAll('.qty-badge').forEach(b => { b.innerText = '0'; b.style.display = 'none'; });
             document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
-            btn.innerText = '✅ Checkout'; btn.disabled = false;
+            btn.innerText = 'Checkout'; btn.disabled = false;
             document.getElementById('printButtons').style.display = 'block';
             document.getElementById('printButtons').scrollIntoView({ behavior: 'smooth', block: 'center' });
         })
-        .catch(() => { alert("Error saving order."); btn.innerText = '✅ Checkout'; btn.disabled = false; });
+        .catch(() => { alert("Error saving order."); btn.innerText = 'Checkout'; btn.disabled = false; });
     }
 
-    // ===== LINE HELPERS =====
-    // 32 chars for 58mm typical font; 48 chars for 80mm
-    function dividerLine(size) {
-        return (size === '58' ? '─'.repeat(31) : '─'.repeat(47));
-    }
-    function doubleDividerLine(size) {
-        return (size === '58' ? '═'.repeat(31) : '═'.repeat(47));
-    }
-    function padRight(str, len) {
-        str = String(str || '');
-        if (str.length >= len) return str.substring(0, len);
-        return str + ' '.repeat(len - str.length);
-    }
-    function padLeft(str, len) {
-        str = String(str || '');
-        if (str.length >= len) return str.substring(0, len);
-        return ' '.repeat(len - str.length) + str;
-    }
+    // ===== ASCII-ONLY HELPERS =====
+    function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
+    function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
+    function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
     function center(str, len) {
         str = String(str || '');
         if (str.length >= len) return str.substring(0, len);
@@ -550,11 +499,8 @@
         const rightPad = totalPad - leftPad;
         return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
     }
-    function formatMoney(n) {
-        return '₱' + parseFloat(n || 0).toFixed(2);
-    }
+    function formatMoney(n) { return 'P' + parseFloat(n || 0).toFixed(2); }
 
-    // ===== BUILD PLAIN-TEXT RECEIPT FOR RawBT (MOBILE) =====
     function buildReceiptText(size) {
         const width = size === '58' ? 32 : 48;
         const order = lastOrder;
@@ -564,7 +510,6 @@
         const isPaid = String(order.paymentStatus).toLowerCase() === 'paid';
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
 
-        // Short date: "Sept 24, 4:30PM"
         const d = new Date();
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         let hrs = d.getHours();
@@ -575,36 +520,32 @@
 
         let lines = [];
 
-        // ============ CUSTOMER COPY ============
         lines.push(doubleDividerLine(size));
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
         lines.push(doubleDividerLine(size));
-        lines.push('#' + order.orderId + ' ● ' + shortDate);
+        lines.push('#' + order.orderId + ' - ' + shortDate);
         lines.push(customerFullName);
         lines.push(dividerLine(size));
 
-        // Items
         order.items.forEach(item => {
             const nameMax = width - 14;
             const name = item.name.length > nameMax ? item.name.substring(0, nameMax - 1) + '.' : item.name;
-            const qtyPart = ' x' + item.qty;
             const amtPart = formatMoney(item.price * item.qty);
-            const nameQty = name + qtyPart;
+            const nameQty = name + ' x' + item.qty;
             lines.push(padRight(nameQty, width - amtPart.length) + amtPart);
         });
 
         lines.push(dividerLine(size));
-        const totalLabel = 'TOTAL';
         const totalValue = formatMoney(order.total);
-        lines.push(padRight(totalLabel, width - totalValue.length) + totalValue);
+        lines.push(padRight('TOTAL', width - totalValue.length) + totalValue);
         lines.push(dividerLine(size));
         lines.push(center(statusLabel, width));
 
         if (order.pickupDelivery) {
             lines.push(dividerLine(size));
-            lines.push('🚚 PICKUP & DELIVERY');
-            lines.push('📱 ' + (order.customerPhone || ''));
+            lines.push('PICKUP & DELIVERY');
+            lines.push('Tel: ' + (order.customerPhone || ''));
         }
 
         lines.push(dividerLine(size));
@@ -618,7 +559,6 @@
         lines.push('');
         lines.push('');
 
-        // ============ SHOP COPY ============
         lines.push(doubleDividerLine(size));
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
@@ -626,10 +566,9 @@
         lines.push('');
         lines.push(center(shopFirstName, width));
         lines.push('');
-        lines.push('#' + order.orderId + ' ● ' + shortDate);
+        lines.push('#' + order.orderId + ' - ' + shortDate);
         lines.push(dividerLine(size));
 
-        // Items (no prices)
         order.items.forEach(item => {
             const nameMax = width - 6;
             const name = item.name.length > nameMax ? item.name.substring(0, nameMax - 1) + '.' : item.name;
@@ -641,7 +580,7 @@
 
         if (order.pickupDelivery) {
             lines.push(dividerLine(size));
-            lines.push('🚚 ' + (order.customerPhone || ''));
+            lines.push('Tel: ' + (order.customerPhone || ''));
         }
 
         lines.push(dividerLine(size));
@@ -650,37 +589,24 @@
         return lines.join('\n');
     }
 
-    // ===== PRINT RECEIPT (Auto-detects phone vs PC) =====
     function printReceipt(size) {
         if (!lastOrder) return alert("No recent order to print.");
 
         if (isPhone) {
-            // MOBILE: send to RawBT
             const receiptText = buildReceiptText(size);
-            // RawBT accepts base64 encoded data via URL scheme
             const encoded = btoa(unescape(encodeURIComponent(receiptText)));
             const rawbtUrl = 'rawbt:base64,' + encoded;
-
-            // Try opening RawBT
             const a = document.createElement('a');
             a.href = rawbtUrl;
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-
-            // Fallback message
-            setTimeout(() => {
-                alert('If RawBT did not open, please install RawBT from Play Store and set it as the default app for rawbt: links.');
-            }, 500);
             return;
         }
-
-        // DESKTOP: keep existing HTML window.print approach
         printReceiptDesktop(size);
     }
 
-    // ===== DESKTOP HTML PRINT (unchanged logic, updated layout) =====
     function printReceiptDesktop(size) {
         const rawName = lastOrder.customer || 'Walk-In Customer';
         const customerFullName = toTitleCase(rawName);
@@ -691,7 +617,7 @@
         const payNote = isPaid ? '' : 'Please pay upon pickup.';
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
-        const cur = shopSettings.currency || '₱';
+        const cur = 'P';
 
         const itemsCustomerHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
@@ -703,14 +629,14 @@
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.qty}</td></tr>`;
         }).join('');
 
-        const pickupNote = lastOrder.pickupDelivery ? `<div class="divider"></div><div class="center bold">🚚 PICKUP &amp; DELIVERY</div><div class="center">📱 ${lastOrder.customerPhone || ''}</div>` : '';
+        const pickupNote = lastOrder.pickupDelivery ? `<div class="divider"></div><div class="center bold">PICKUP &amp; DELIVERY</div><div class="center">Tel: ${lastOrder.customerPhone || ''}</div>` : '';
 
         const customerCopyHtml = `
             <div class="receipt-copy">
                 <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
                 <div class="divider-solid"></div>
-                <div class="info">#${lastOrder.orderId} ● ${lastOrder.date}</div>
+                <div class="info">#${lastOrder.orderId} - ${lastOrder.date}</div>
                 <div class="info">${customerFullName}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
@@ -735,13 +661,13 @@
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
                 <div class="divider-solid"></div>
                 <div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div>
-                <div class="info" style="text-align: left;">#${lastOrder.orderId} ● ${lastOrder.date}</div>
+                <div class="info" style="text-align: left;">#${lastOrder.orderId} - ${lastOrder.date}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
                 <div class="divider"></div>
                 <div class="status">${statusLabel}</div>
                 ${pickupNote}
-                <div class="divider"></div>
+                <div class="divider-solid"></div>
                 <div class="footer">Thank you!</div>
             </div>
         `;
@@ -763,16 +689,12 @@
                 .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
                 .info { font-size: ${fontSize}px; margin: 2px 0; }
                 .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
-                @media print {
-                    .print-btn { display: none; }
-                    body { padding: 2mm; }
-                    * { color: #000 !important; background: #fff !important; }
-                }
+                @media print { .print-btn { display: none; } body { padding: 2mm; } * { color: #000 !important; background: #fff !important; } }
             </style></head><body>
                 ${customerCopyHtml}
                 ${shopCopyHtml}
                 <br><br><br>
-                <button class="print-btn" onclick="window.print()">🖨️ Print Both Copies</button>
+                <button class="print-btn" onclick="window.print()">Print Both Copies</button>
             </body></html>`;
         const w = window.open('', '_blank', 'width=400,height=700');
         w.document.write(receiptHtml);
