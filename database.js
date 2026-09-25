@@ -31,27 +31,14 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS si_or_number TEXT;`);
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS account TEXT DEFAULT 'Operating Expense';`);
 
-        // Archived orders
+        // Archived orders (legacy)
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_orders (id SERIAL PRIMARY KEY, original_id INTEGER, date TEXT NOT NULL, customer TEXT NOT NULL, total NUMERIC NOT NULL, payment_status TEXT NOT NULL, status TEXT, cashier_name TEXT, archived_at TIMESTAMPTZ DEFAULT NOW());`);
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_order_items (id SERIAL PRIMARY KEY, archived_order_id INTEGER REFERENCES archived_orders(id), service_name TEXT, quantity INTEGER, price NUMERIC);`);
 
-        // Users table
-        await pool.query(`CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL,
-            email TEXT,
-            full_name TEXT,
-            role TEXT DEFAULT 'admin',
-            security_question TEXT,
-            security_answer_hash TEXT,
-            reset_token TEXT,
-            reset_token_expires TIMESTAMPTZ,
-            created_at TIMESTAMPTZ DEFAULT NOW(),
-            last_login TIMESTAMPTZ
-        );`);
+        // Users
+        await pool.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, email TEXT, full_name TEXT, role TEXT DEFAULT 'admin', security_question TEXT, security_answer_hash TEXT, reset_token TEXT, reset_token_expires TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW(), last_login TIMESTAMPTZ);`);
 
-        // Order status flow columns
+        // Order status flow
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS service_flow JSONB;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS current_step INTEGER DEFAULT 0;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_delivery BOOLEAN DEFAULT FALSE;`);
@@ -60,7 +47,9 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_history JSONB DEFAULT '[]'::jsonb;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMPTZ DEFAULT NOW();`);
 
-        // Backfill existing services with a service_type if missing
+        // NEW: Archive support
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;`);
+
         await pool.query(`UPDATE services SET service_type = 'wash_dry_fold' WHERE service_type IS NULL OR service_type = 'Per Load';`);
 
         const defaults = [
@@ -96,9 +85,7 @@ async function getServices() {
 }
 
 async function getPickupService() {
-    const result = await pool.query(
-        "SELECT * FROM services WHERE status = 'Available' AND (LOWER(name) LIKE '%pickup%' OR LOWER(name) LIKE '%delivery%') LIMIT 1"
-    );
+    const result = await pool.query("SELECT * FROM services WHERE status = 'Available' AND (LOWER(name) LIKE '%pickup%' OR LOWER(name) LIKE '%delivery%') LIMIT 1");
     return result.rows[0] || null;
 }
 
@@ -113,8 +100,7 @@ async function addService(data) {
     if (Array.isArray(data.materials)) {
         for (const m of data.materials) {
             if (m.product_id && m.quantity > 0) {
-                await pool.query(`INSERT INTO service_materials (service_id, product_id, quantity, amount) VALUES ($1, $2, $3, $4)`,
-                    [serviceId, m.product_id, parseInt(m.quantity) || 1, parseFloat(m.amount) || 0]);
+                await pool.query(`INSERT INTO service_materials (service_id, product_id, quantity, amount) VALUES ($1, $2, $3, $4)`, [serviceId, m.product_id, parseInt(m.quantity) || 1, parseFloat(m.amount) || 0]);
             }
         }
     }
@@ -123,8 +109,7 @@ async function addService(data) {
 
 async function updateService(id, data) {
     await pool.query(
-        `UPDATE services SET name = $1, price = $2, unit = $3, color = $4, service_type = $5, 
-         minimum = $6, unit_label = $7, image_data = $8, hidden = $9 WHERE id = $10`,
+        `UPDATE services SET name = $1, price = $2, unit = $3, color = $4, service_type = $5, minimum = $6, unit_label = $7, image_data = $8, hidden = $9 WHERE id = $10`,
         [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg', data.color || '#4f46e5',
          data.service_type || 'Per Load', parseFloat(data.minimum) || 1, data.unit_label || 'kg',
          data.image_data || null, data.hidden || false, id]);
@@ -132,8 +117,7 @@ async function updateService(id, data) {
     if (Array.isArray(data.materials)) {
         for (const m of data.materials) {
             if (m.product_id && m.quantity > 0) {
-                await pool.query(`INSERT INTO service_materials (service_id, product_id, quantity, amount) VALUES ($1, $2, $3, $4)`,
-                    [id, m.product_id, parseInt(m.quantity) || 1, parseFloat(m.amount) || 0]);
+                await pool.query(`INSERT INTO service_materials (service_id, product_id, quantity, amount) VALUES ($1, $2, $3, $4)`, [id, m.product_id, parseInt(m.quantity) || 1, parseFloat(m.amount) || 0]);
             }
         }
     }
@@ -150,18 +134,12 @@ async function saveOrder(customer, total, cartItems, paymentStatus, cashierName,
     const orderResult = await pool.query(
         `INSERT INTO orders (date, customer, total, payment_status, cashier_name, status, service_flow, current_step, pickup_delivery, customer_phone, status_history, status_updated_at)
          VALUES ($1, $2, $3, $4, $5, 'Received', $6, 0, $7, $8, $9, NOW()) RETURNING id`,
-        [
-            date, customer, total, status, cashierName || 'Admin',
-            JSON.stringify(serviceFlow),
-            pickupDelivery || false,
-            customerPhone || null,
-            JSON.stringify([{ status: 'Received', at: new Date().toISOString(), by: cashierName || 'Admin' }])
-        ]
+        [date, customer, total, status, cashierName || 'Admin', JSON.stringify(serviceFlow), pickupDelivery || false, customerPhone || null,
+         JSON.stringify([{ status: 'Received', at: new Date().toISOString(), by: cashierName || 'Admin' }])]
     );
     const orderId = orderResult.rows[0].id;
     for (const item of cartItems) {
-        await pool.query("INSERT INTO order_items (order_id, service_name, quantity, price) VALUES ($1, $2, $3, $4)",
-            [orderId, item.name, item.qty, item.price]);
+        await pool.query("INSERT INTO order_items (order_id, service_name, quantity, price) VALUES ($1, $2, $3, $4)", [orderId, item.name, item.qty, item.price]);
         if (item.type === 'addon') {
             await pool.query("UPDATE products SET stock = GREATEST(stock - $1, 0) WHERE name = $2", [item.qty, item.name]);
         }
@@ -170,8 +148,7 @@ async function saveOrder(customer, total, cartItems, paymentStatus, cashierName,
             if (svc.rows.length > 0) {
                 const mats = await pool.query("SELECT product_id, quantity FROM service_materials WHERE service_id = $1", [svc.rows[0].id]);
                 for (const m of mats.rows) {
-                    await pool.query("UPDATE products SET stock = GREATEST(stock - ($1 * $2), 0) WHERE id = $3",
-                        [m.quantity, item.qty, m.product_id]);
+                    await pool.query("UPDATE products SET stock = GREATEST(stock - ($1 * $2), 0) WHERE id = $3", [m.quantity, item.qty, m.product_id]);
                 }
             }
         }
@@ -180,7 +157,7 @@ async function saveOrder(customer, total, cartItems, paymentStatus, cashierName,
 }
 
 async function getOrders(filter, search, dateFrom, dateTo) {
-    const conditions = [];
+    const conditions = ["archived_at IS NULL"];
     const params = [];
     if (filter === 'paid') conditions.push("payment_status = 'Paid'");
     else if (filter === 'unpaid') conditions.push("payment_status = 'Pending'");
@@ -196,9 +173,24 @@ async function getOrders(filter, search, dateFrom, dateTo) {
     }
     if (dateFrom) { params.push(dateFrom); conditions.push(`date::timestamptz >= $${params.length}::timestamptz`); }
     if (dateTo) { params.push(dateTo + ' 23:59:59'); conditions.push(`date::timestamptz <= $${params.length}::timestamptz`); }
-    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name FROM orders";
-    if (conditions.length > 0) query += " WHERE " + conditions.join(" AND ");
+    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at FROM orders";
+    query += " WHERE " + conditions.join(" AND ");
     query += " ORDER BY id DESC LIMIT 500";
+    const result = await pool.query(query, params);
+    return result.rows;
+}
+
+async function getArchivedOrders(filter, search) {
+    const conditions = ["archived_at IS NOT NULL"];
+    const params = [];
+    if (search) {
+        params.push('%' + search + '%');
+        params.push(search);
+        conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`);
+    }
+    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at FROM orders";
+    query += " WHERE " + conditions.join(" AND ");
+    query += " ORDER BY archived_at DESC LIMIT 500";
     const result = await pool.query(query, params);
     return result.rows;
 }
@@ -208,14 +200,33 @@ async function getOrderById(id) {
     return result.rows[0];
 }
 
+async function archiveOrder(id) {
+    await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = $1", [id]);
+}
+
+async function restoreOrder(id) {
+    await pool.query("UPDATE orders SET archived_at = NULL WHERE id = $1", [id]);
+}
+
+async function archiveBatch(ids) {
+    if (!ids || ids.length === 0) return 0;
+    await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = ANY($1::int[])", [ids]);
+    return ids.length;
+}
+
+async function cleanupOldArchive() {
+    // Delete archived orders older than 7 days
+    const result = await pool.query(
+        "DELETE FROM orders WHERE archived_at IS NOT NULL AND archived_at < NOW() - INTERVAL '7 days' RETURNING id"
+    );
+    return result.rowCount;
+}
+
 async function markAsPaid(id) { await pool.query("UPDATE orders SET payment_status = 'Paid' WHERE id = $1", [id]); }
 async function markAsUnpaid(id) { await pool.query("UPDATE orders SET payment_status = 'Pending' WHERE id = $1", [id]); }
 
 async function deleteOrder(id) {
-    const orderResult = await pool.query(
-        "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name FROM orders WHERE id = $1",
-        [id]
-    );
+    const orderResult = await pool.query("SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name FROM orders WHERE id = $1", [id]);
     if (orderResult.rows.length === 0) return;
     const order = orderResult.rows[0];
     const archivedResult = await pool.query(
@@ -226,10 +237,7 @@ async function deleteOrder(id) {
     const archivedId = archivedResult.rows[0].id;
     const items = await pool.query("SELECT service_name, quantity, price FROM order_items WHERE order_id = $1", [id]);
     for (const item of items.rows) {
-        await pool.query(
-            "INSERT INTO archived_order_items (archived_order_id, service_name, quantity, price) VALUES ($1, $2, $3, $4)",
-            [archivedId, item.service_name, item.quantity, item.price]
-        );
+        await pool.query("INSERT INTO archived_order_items (archived_order_id, service_name, quantity, price) VALUES ($1, $2, $3, $4)", [archivedId, item.service_name, item.quantity, item.price]);
     }
     await pool.query("DELETE FROM order_items WHERE order_id = $1", [id]);
     await pool.query("DELETE FROM orders WHERE id = $1", [id]);
@@ -252,13 +260,11 @@ async function getCustomers(search) {
 }
 async function getCustomer(id) { const result = await pool.query("SELECT * FROM customers WHERE id = $1", [id]); return result.rows[0]; }
 async function addCustomer(name, phone, address, notes) {
-    const result = await pool.query("INSERT INTO customers (name, phone, address, notes) VALUES ($1, $2, $3, $4) RETURNING id",
-        [name, phone || null, address || null, notes || null]);
+    const result = await pool.query("INSERT INTO customers (name, phone, address, notes) VALUES ($1, $2, $3, $4) RETURNING id", [name, phone || null, address || null, notes || null]);
     return result.rows[0].id;
 }
 async function updateCustomer(id, name, phone, address, notes) {
-    await pool.query("UPDATE customers SET name = $1, phone = $2, address = $3, notes = $4 WHERE id = $5",
-        [name, phone || null, address || null, notes || null, id]);
+    await pool.query("UPDATE customers SET name = $1, phone = $2, address = $3, notes = $4 WHERE id = $5", [name, phone || null, address || null, notes || null, id]);
 }
 async function deleteCustomer(id) { await pool.query("DELETE FROM customers WHERE id = $1", [id]); }
 async function getCustomerOrders(name) {
@@ -272,28 +278,21 @@ async function getReportSummary(dateFrom, dateTo) {
             COALESCE(AVG(total), 0) AS avg_order_value,
             COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN total ELSE 0 END), 0) AS unpaid_revenue
         FROM (
-            SELECT total, payment_status FROM orders 
-            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            SELECT total, payment_status FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
             UNION ALL
-            SELECT total, payment_status FROM archived_orders 
-            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
-        ) combined`,
-        [dateFrom, dateTo + ' 23:59:59']);
+            SELECT total, payment_status FROM archived_orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        ) combined`, [dateFrom, dateTo + ' 23:59:59']);
     return result.rows[0];
 }
 
 async function getReportDaily(dateFrom, dateTo) {
     const result = await pool.query(`
-        SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count,
-            COALESCE(SUM(total), 0) AS revenue, COALESCE(AVG(total), 0) AS avg_order
+        SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue, COALESCE(AVG(total), 0) AS avg_order
         FROM (
-            SELECT date, total FROM orders 
-            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            SELECT date, total FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
             UNION ALL
-            SELECT date, total FROM archived_orders 
-            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
-        ) combined
-        GROUP BY DATE(date::timestamptz) ORDER BY day ASC`, [dateFrom, dateTo + ' 23:59:59']);
+            SELECT date, total FROM archived_orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        ) combined GROUP BY DATE(date::timestamptz) ORDER BY day ASC`, [dateFrom, dateTo + ' 23:59:59']);
     return result.rows;
 }
 
@@ -301,15 +300,12 @@ async function getReportTopServices(dateFrom, dateTo) {
     const result = await pool.query(`
         SELECT service_name, SUM(quantity) AS total_qty, SUM(quantity * price) AS total_revenue
         FROM (
-            SELECT oi.service_name, oi.quantity, oi.price FROM order_items oi 
-            JOIN orders o ON o.id = oi.order_id
+            SELECT oi.service_name, oi.quantity, oi.price FROM order_items oi JOIN orders o ON o.id = oi.order_id
             WHERE o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
             UNION ALL
-            SELECT aoi.service_name, aoi.quantity, aoi.price FROM archived_order_items aoi
-            JOIN archived_orders ao ON ao.id = aoi.archived_order_id
+            SELECT aoi.service_name, aoi.quantity, aoi.price FROM archived_order_items aoi JOIN archived_orders ao ON ao.id = aoi.archived_order_id
             WHERE ao.date::timestamptz >= $1::timestamptz AND ao.date::timestamptz <= $2::timestamptz
-        ) combined
-        GROUP BY service_name ORDER BY total_revenue DESC LIMIT 10`, [dateFrom, dateTo + ' 23:59:59']);
+        ) combined GROUP BY service_name ORDER BY total_revenue DESC LIMIT 10`, [dateFrom, dateTo + ' 23:59:59']);
     return result.rows;
 }
 
@@ -317,13 +313,10 @@ async function getReportTopCustomers(dateFrom, dateTo) {
     const result = await pool.query(`
         SELECT customer, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_spent
         FROM (
-            SELECT customer, total FROM orders 
-            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            SELECT customer, total FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
             UNION ALL
-            SELECT customer, total FROM archived_orders 
-            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
-        ) combined
-        GROUP BY customer ORDER BY total_spent DESC LIMIT 10`, [dateFrom, dateTo + ' 23:59:59']);
+            SELECT customer, total FROM archived_orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        ) combined GROUP BY customer ORDER BY total_spent DESC LIMIT 10`, [dateFrom, dateTo + ' 23:59:59']);
     return result.rows;
 }
 
@@ -415,8 +408,7 @@ async function getUnifiedLedger(dateFrom, dateTo, search) {
         UNION ALL
         SELECT 'replenish-' || r.id AS unique_id, r.id AS ref_id, r.date, 'Inventory replenishment — ' || p.name AS description, 'REF-' || LPAD(r.id::TEXT, 5, '0') AS si_or_number, 'Merchandise Inventory' AS account, 'Replenishment' AS source, (r.cost * r.quantity) AS amount, 'Inventory' AS category, r.supplier, r.notes
         FROM replenishments r JOIN products p ON p.id = r.product_id
-        ORDER BY date DESC LIMIT 500
-    `;
+        ORDER BY date DESC LIMIT 500`;
     const result = await pool.query(query, params);
     return result.rows;
 }
@@ -433,8 +425,7 @@ async function getLedgerStats(dateFrom, dateTo) {
             SELECT amount FROM expenses ${whereClause}
             UNION ALL
             SELECT (r.cost * r.quantity) AS amount FROM replenishments r
-        ) combined
-    `;
+        ) combined`;
     const result = await pool.query(query, [...params, ...params]);
     const row = result.rows[0];
     const total = parseFloat(row.total) || 0;
@@ -450,10 +441,8 @@ async function getAllUsers() { const result = await pool.query("SELECT id, usern
 async function getUserCount() { const result = await pool.query("SELECT COUNT(*) AS count FROM users"); return parseInt(result.rows[0].count); }
 async function createUser(data) {
     const result = await pool.query(
-        `INSERT INTO users (username, password_hash, email, full_name, role, security_question, security_answer_hash)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-        [data.username, data.password_hash, data.email || null, data.full_name || null,
-         data.role || 'admin', data.security_question || null, data.security_answer_hash || null]
+        `INSERT INTO users (username, password_hash, email, full_name, role, security_question, security_answer_hash) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [data.username, data.password_hash, data.email || null, data.full_name || null, data.role || 'admin', data.security_question || null, data.security_answer_hash || null]
     );
     return result.rows[0].id;
 }
@@ -466,7 +455,9 @@ async function deleteUser(id) { await pool.query("DELETE FROM users WHERE id = $
 async function updateUserRole(id, role) { await pool.query("UPDATE users SET role = $1 WHERE id = $2", [role, id]); }
 
 module.exports = {
-    pool, getServices, addService, updateService, deleteService, getPickupService, saveOrder, getOrders, getOrderById,
+    pool, getServices, addService, updateService, deleteService, getPickupService,
+    saveOrder, getOrders, getArchivedOrders, getOrderById,
+    archiveOrder, restoreOrder, archiveBatch, cleanupOldArchive,
     markAsPaid, markAsUnpaid, deleteOrder, updateOrderStatus,
     getCustomers, getCustomer, addCustomer, updateCustomer, deleteCustomer, getCustomerOrders,
     getReportSummary, getReportDaily, getReportTopServices, getReportTopCustomers,

@@ -21,7 +21,13 @@
         .filter-btn { margin-right: 6px; margin-bottom: 6px; font-size: 13px; padding: 6px 14px; border-radius: 20px; font-weight: 600; }
         .period-btn.active { background: #1e40af !important; color: white !important; border-color: #1e40af !important; }
 
-        .orders-scroll-box { max-height: calc(100vh - 340px); overflow-y: auto; overflow-x: hidden; border-radius: 10px; }
+        /* TABS */
+        .order-tabs { display: flex; background: #f1f5f9; border-radius: 12px; padding: 5px; margin-bottom: 14px; border: 1.5px solid #e2e8f0; }
+        .order-tabs button { flex: 1; border: none; background: transparent; padding: 12px 8px; border-radius: 8px; font-size: 14px; font-weight: 800; color: #64748b; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .order-tabs button.active { background: #1e40af; color: white; box-shadow: 0 2px 8px rgba(30,64,175,0.25); }
+        .order-tabs button.archive-active { background: #f59e0b; color: white; box-shadow: 0 2px 8px rgba(245,158,11,0.3); }
+
+        .orders-scroll-box { max-height: calc(100vh - 380px); overflow-y: auto; overflow-x: hidden; border-radius: 10px; }
         .orders-table { width: 100%; border-collapse: collapse; }
         .orders-table thead th { font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase; color: #0f172a; font-weight: 700; padding: 16px 14px; border-bottom: 2px solid #cbd5e1; background: #f1f5f9; position: sticky; top: 0; z-index: 2; }
         .orders-table tbody td { padding: 16px 14px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 15px; background: white; }
@@ -40,6 +46,8 @@
         .btn-unpay { background: white; color: #92400e; border-color: #f59e0b; }
         .btn-print { background: white; color: #1e40af; border-color: #bfdbfe; }
         .btn-del { background: white; color: #dc2626; border-color: #fecaca; }
+        .btn-archive { background: #f59e0b; color: white; border-color: #f59e0b; }
+        .btn-retrieve { background: #10b981; color: white; border-color: #10b981; }
         .order-checkbox { cursor: pointer; transform: scale(1.5); }
         .row-selected td { background-color: #eff6ff !important; }
         .customer-name { font-weight: 700; color: #1e293b; font-size: 15px; }
@@ -48,128 +56,36 @@
         .total-cell { font-weight: 700; color: #1e293b; font-size: 15px; }
         .payment-badge { font-size: 13px; padding: 5px 12px; font-weight: 700; border-radius: 12px; }
         .pickup-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; background: #fef3c7; color: #92400e; font-weight: 700; margin-left: 4px; }
+        .expiry-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 700; }
+        .expiry-green { background: #dcfce7; color: #14532d; }
+        .expiry-yellow { background: #fef3c7; color: #92400e; }
+        .expiry-red { background: #fee2e2; color: #991b1b; }
         .batch-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); display: none; z-index: 1000; align-items: center; gap: 10px; flex-wrap: wrap; }
         .batch-bar.show { display: flex; }
         .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
 
-        /* =================================================
-           MOBILE: Clean, organized card layout
-           ================================================= */
+        /* MOBILE */
         @media (max-width: 767px) {
             html, body { height: auto !important; overflow: visible !important; }
             .sidebar { display: none !important; }
             .orders-scroll-box { max-height: none; overflow: visible; }
             .page-title { font-size: 18px; margin-bottom: 8px; }
             .col-md-10 { padding: 12px !important; }
-
-            /* Hide desktop table header */
             .orders-table thead { display: none; }
-
-            /* Convert each row into a card */
-            .orders-table, .orders-table tbody, .orders-table tr, .orders-table td {
-                display: block;
-                width: 100%;
-            }
-
-            .orders-table tbody tr {
-                background: white;
-                border-radius: 14px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-                margin-bottom: 14px;
-                padding: 14px 16px;
-                border: 1px solid #e2e8f0;
-                position: relative;
-            }
-
-            .orders-table tbody td {
-                padding: 0;
-                border: none;
-                background: transparent !important;
-                text-align: left !important;
-            }
-
-            /* --- ROW 1: Checkbox (top-right absolute) --- */
-            .orders-table tbody td:nth-child(1) {
-                position: absolute;
-                top: 14px;
-                right: 14px;
-                width: auto;
-            }
-
-            /* --- ROW 2: Order # + Pickup badge --- */
-            .orders-table tbody td:nth-child(2) {
-                font-size: 16px;
-                font-weight: 800;
-                color: #1e40af;
-                padding-right: 50px;
-                margin-bottom: 10px;
-            }
-
-            /* --- ROW 3: Date --- */
-            .orders-table tbody td:nth-child(3) {
-                font-size: 12px;
-                color: #94a3b8;
-                margin-bottom: 10px;
-            }
-
-            /* --- ROW 4: Customer name --- */
-            .orders-table tbody td:nth-child(4) {
-                font-size: 17px;
-                font-weight: 700;
-                color: #1e293b;
-                margin-bottom: 12px;
-            }
-
-            /* --- ROW 5+6: Total (left) + Payment (right) on same line --- */
-            .orders-table tbody td:nth-child(5) {
-                display: inline-block;
-                width: 50%;
-                font-size: 18px;
-                font-weight: 800;
-                color: #1e293b;
-                margin-bottom: 10px;
-                vertical-align: middle;
-            }
-            .orders-table tbody td:nth-child(6) {
-                display: inline-block;
-                width: 48%;
-                text-align: right !important;
-                margin-bottom: 10px;
-                vertical-align: middle;
-            }
-
-            /* --- ROW 7: Status badge --- */
-            .orders-table tbody td:nth-child(7) {
-                margin-bottom: 12px;
-            }
-
-            /* --- ROW 8: Action buttons --- */
-            .orders-table tbody td:nth-child(8) {
-                border-top: 1px solid #f1f5f9 !important;
-                padding-top: 12px !important;
-                margin-top: 4px;
-            }
-            .orders-table tbody td:nth-child(8) > div {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr;
-                gap: 8px !important;
-            }
-            .action-btn {
-                font-size: 13px;
-                padding: 10px 8px;
-                width: 100%;
-                border-radius: 8px;
-                text-align: center;
-            }
-
-            /* Badges */
-            .status-badge { font-size: 12px; padding: 6px 12px; }
-            .payment-badge { font-size: 12px; padding: 5px 12px; }
-            .pickup-badge { font-size: 10px; padding: 3px 8px; }
-
-            /* Filter buttons tighter */
-            .panel { padding: 12px; border-radius: 12px; }
-            .filter-btn { font-size: 12px; padding: 6px 12px; }
+            .orders-table, .orders-table tbody, .orders-table tr, .orders-table td { display: block; width: 100%; }
+            .orders-table tbody tr { background: white; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px; padding: 14px 16px; border: 1px solid #e2e8f0; position: relative; }
+            .orders-table tbody td { padding: 0; border: none; background: transparent !important; text-align: left !important; }
+            .orders-table tbody td:nth-child(1) { position: absolute; top: 14px; right: 14px; width: auto; }
+            .orders-table tbody td:nth-child(2) { font-size: 16px; font-weight: 800; color: #1e40af; padding-right: 50px; margin-bottom: 10px; }
+            .orders-table tbody td:nth-child(3) { font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
+            .orders-table tbody td:nth-child(4) { font-size: 17px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
+            .orders-table tbody td:nth-child(5) { display: inline-block; width: 50%; font-size: 18px; font-weight: 800; color: #1e293b; margin-bottom: 10px; vertical-align: middle; }
+            .orders-table tbody td:nth-child(6) { display: inline-block; width: 48%; text-align: right !important; margin-bottom: 10px; vertical-align: middle; }
+            .orders-table tbody td:nth-child(7) { margin-bottom: 12px; }
+            .orders-table tbody td:nth-child(8) { border-top: 1px solid #f1f5f9 !important; padding-top: 12px !important; margin-top: 4px; }
+            .orders-table tbody td:nth-child(8) > div { display: grid !important; grid-template-columns: 1fr 1fr; gap: 8px !important; }
+            .action-btn { font-size: 13px; padding: 10px 8px; width: 100%; border-radius: 8px; text-align: center; }
+            .order-tabs button { font-size: 13px; padding: 10px 6px; }
         }
 
         [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; }
@@ -183,8 +99,9 @@
         [data-theme="dark"] .customer-name, [data-theme="dark"] .total-cell { color: #ffffff !important; }
         [data-theme="dark"] .page-title { color: #ffffff !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .row-selected td { background-color: #1e3a8a !important; }
         [data-theme="dark"] .batch-bar { background: #020617 !important; }
+        [data-theme="dark"] .order-tabs { background: #334155; border-color: #475569; }
+        [data-theme="dark"] .order-tabs button { color: #94a3b8; }
     </style>
 </head>
 <body>
@@ -212,41 +129,83 @@
                 <a href="/" class="btn btn-primary btn-sm">← POS</a>
             </div>
 
-            <div class="panel mb-3">
-                <div class="row g-2">
-                    <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search" oninput="debouncedLoad()"></div>
-                    <div class="col-md-3"><input type="date" id="dateFrom" class="form-control" onchange="loadOrders()"></div>
-                    <div class="col-md-3"><input type="date" id="dateTo" class="form-control" onchange="loadOrders()"></div>
-                    <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
+            <!-- TABS -->
+            <div class="order-tabs" id="orderTabs">
+                <button id="tabActive" class="active" onclick="switchTab('active')">📥 Active <span id="activeCount">(0)</span></button>
+                <button id="tabArchive" onclick="switchTab('archive')">📦 Archive <span id="archiveCount">(0)</span></button>
+            </div>
+
+            <!-- ACTIVE FILTERS -->
+            <div id="activeFilters">
+                <div class="panel mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search" oninput="debouncedLoad()"></div>
+                        <div class="col-md-3"><input type="date" id="dateFrom" class="form-control" onchange="loadOrders()"></div>
+                        <div class="col-md-3"><input type="date" id="dateTo" class="form-control" onchange="loadOrders()"></div>
+                        <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
+                    </div>
+                </div>
+                <div class="panel p-0">
+                    <div class="p-3 border-bottom">
+                        <div class="mb-2">
+                            <small class="text-muted fw-bold me-2">PERIOD:</small>
+                            <button class="btn filter-btn period-btn" data-period="today" onclick="setPeriod('today', this)">Today</button>
+                            <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">Week</button>
+                            <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">Month</button>
+                            <button class="btn filter-btn period-btn active" data-period="all" onclick="setPeriod('all', this)">All</button>
+                        </div>
+                    </div>
+                    <div class="orders-scroll-box">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 50px;"><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
+                                    <th style="width: 70px;">#</th>
+                                    <th style="width: 130px;">Date</th>
+                                    <th>Customer</th>
+                                    <th class="text-end" style="width: 110px;">Total</th>
+                                    <th style="width: 100px;">Payment</th>
+                                    <th style="width: 150px;">Status</th>
+                                    <th class="text-end" style="width: 260px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div class="panel p-0">
-                <div class="p-3 border-bottom">
-                    <div class="mb-2">
-                        <small class="text-muted fw-bold me-2">PERIOD:</small>
-                        <button class="btn filter-btn period-btn" data-period="today" onclick="setPeriod('today', this)">Today</button>
-                        <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">Week</button>
-                        <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">Month</button>
-                        <button class="btn filter-btn period-btn active" data-period="all" onclick="setPeriod('all', this)">All</button>
+            <!-- ARCHIVE VIEW -->
+            <div id="archiveView" style="display: none;">
+                <div class="panel mb-3">
+                    <div class="row g-2">
+                        <div class="col-md-8"><input type="text" id="archiveSearchBox" class="form-control" placeholder="🔍 Search archive" oninput="debouncedArchiveLoad()"></div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-warning" onclick="forceCleanup()">🧹 Clean Up Old</button>
+                        </div>
                     </div>
                 </div>
-                <div class="orders-scroll-box">
-                    <table class="orders-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;"><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
-                                <th style="width: 70px;">#</th>
-                                <th style="width: 130px;">Date</th>
-                                <th>Customer</th>
-                                <th class="text-end" style="width: 110px;">Total</th>
-                                <th style="width: 100px;">Payment</th>
-                                <th style="width: 150px;">Status</th>
-                                <th class="text-end" style="width: 260px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
-                    </table>
+                <div class="panel p-0">
+                    <div class="p-3 border-bottom" style="background: #fffbeb; color: #92400e; font-size: 13px;">
+                        📦 <strong>Archive</strong> — Orders auto-delete after <strong>7 days</strong>. You can retrieve them anytime before then.
+                    </div>
+                    <div class="orders-scroll-box">
+                        <table class="orders-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70px;">#</th>
+                                    <th style="width: 130px;">Date</th>
+                                    <th>Customer</th>
+                                    <th class="text-end" style="width: 110px;">Total</th>
+                                    <th style="width: 100px;">Payment</th>
+                                    <th style="width: 130px;">Status</th>
+                                    <th style="width: 130px;">Expires</th>
+                                    <th class="text-end" style="width: 200px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="archiveTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -257,6 +216,7 @@
     <span class="count"><span id="selectedCount">0</span> selected</span>
     <button class="btn btn-sm btn-success" onclick="batchPay()">Paid</button>
     <button class="btn btn-sm btn-warning" onclick="batchUnpay()">Unpaid</button>
+    <button class="btn btn-sm btn-archive" id="batchArchiveBtn" onclick="batchArchive()">📦 Archive</button>
     <button class="btn btn-sm btn-danger" id="batchDeleteBtn" onclick="batchDelete()">Delete</button>
     <button class="btn btn-sm btn-outline-light" onclick="clearSelection()">Clear</button>
 </div>
@@ -271,7 +231,9 @@
 
     let currentFilter = 'all';
     let currentPeriod = 'all';
+    let currentTab = 'active';
     let searchTimeout;
+    let archiveTimeout;
 
     function toTitleCase(str) { return (str || '').trim().toLowerCase().replace(/\s+/g, ' ').split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '').join(''); }
     function getFirstNameUpper(str) { const p = (str || '').trim().split(/\s+/); return p[0] ? p[0].toUpperCase() : ''; }
@@ -300,8 +262,43 @@
         return `<button class="action-btn btn-status" ${extra}>Next: ${nextStatus}</button>`;
     }
 
+    function isFinalStatus(status) {
+        return status === 'Delivered' || status === 'Picked Up';
+    }
+
+    function expiryInfo(archivedAt) {
+        const archived = new Date(archivedAt).getTime();
+        const expiresAt = archived + (7 * 24 * 60 * 60 * 1000);
+        const daysLeft = Math.ceil((expiresAt - Date.now()) / (24 * 60 * 60 * 1000));
+        if (daysLeft <= 1) return { days: daysLeft, cls: 'expiry-red', label: daysLeft <= 0 ? 'Expires today!' : 'Expires in 1 day' };
+        if (daysLeft <= 4) return { days: daysLeft, cls: 'expiry-yellow', label: `Expires in ${daysLeft} days` };
+        return { days: daysLeft, cls: 'expiry-green', label: `Expires in ${daysLeft} days` };
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        const tabActive = document.getElementById('tabActive');
+        const tabArchive = document.getElementById('tabArchive');
+        const activeView = document.getElementById('activeFilters');
+        const archiveView = document.getElementById('archiveView');
+
+        if (tab === 'active') {
+            tabActive.className = 'active';
+            tabArchive.className = '';
+            activeView.style.display = 'block';
+            archiveView.style.display = 'none';
+            loadOrders();
+        } else {
+            tabActive.className = '';
+            tabArchive.className = 'archive-active';
+            activeView.style.display = 'none';
+            archiveView.style.display = 'block';
+            loadArchive();
+        }
+    }
+
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
-    function setFilter(f) { currentFilter = f; loadOrders(); }
+    function debouncedArchiveLoad() { clearTimeout(archiveTimeout); archiveTimeout = setTimeout(() => loadArchive(), 300); }
     function setPeriod(period, btn) {
         currentPeriod = period;
         document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -316,13 +313,8 @@
         const today = new Date();
         const todayStr = toISO(today);
         if (currentPeriod === 'today') return { from: todayStr, to: todayStr };
-        if (currentPeriod === 'week') {
-            const start = new Date(today);
-            const day = start.getDay();
-            start.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
-            return { from: toISO(start), to: todayStr };
-        }
-        if (currentPeriod === 'month') { const start = new Date(today.getFullYear(), today.getMonth(), 1); return { from: toISO(start), to: todayStr }; }
+        if (currentPeriod === 'week') { const s = new Date(today); const day = s.getDay(); s.setDate(today.getDate() - (day === 0 ? 6 : day - 1)); return { from: toISO(s), to: todayStr }; }
+        if (currentPeriod === 'month') { const s = new Date(today.getFullYear(), today.getMonth(), 1); return { from: toISO(s), to: todayStr }; }
         return { from: '', to: '' };
     }
 
@@ -347,6 +339,7 @@
     function toggleRowCheckbox(cb) { cb.closest('tr').classList.toggle('row-selected', cb.checked); const all = document.querySelectorAll('.order-checkbox-row'); const checked = document.querySelectorAll('.order-checkbox-row:checked'); document.getElementById('selectAll').checked = (all.length > 0 && all.length === checked.length); updateBatchBar(); }
     function clearSelection() { document.querySelectorAll('.order-checkbox-row').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('row-selected'); }); document.getElementById('selectAll').checked = false; updateBatchBar(); }
 
+    // ===== LOAD ACTIVE ORDERS =====
     function loadOrders() {
         const search = document.getElementById('searchBox').value.trim();
         let dateFrom = document.getElementById('dateFrom').value;
@@ -364,8 +357,9 @@
             })
             .then(orders => {
                 if (!orders) return;
+                document.getElementById('activeCount').innerText = '(' + orders.length + ')';
                 const table = document.getElementById('ordersTable');
-                if (orders.length === 0) { table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No orders found.</td></tr>'; updateBatchBar(); return; }
+                if (orders.length === 0) { table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No active orders.</td></tr>'; updateBatchBar(); return; }
                 table.innerHTML = orders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
@@ -373,6 +367,7 @@
                     const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">Paid</button>`;
                     const status = o.status || 'Received';
                     const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">Delete</button>` : '';
+                    const archiveBtn = isFinalStatus(status) ? `<button class="action-btn btn-archive" onclick="archiveOrder(${o.id})">📦 Archive</button>` : '';
                     const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚 Pickup</span>` : '';
                     return `<tr>
                         <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
@@ -386,6 +381,7 @@
                             <div class="d-inline-flex align-items-center gap-2">
                                 <button class="action-btn btn-print" onclick="reprintReceipt(${o.id}, '58')">🖨️ Print</button>
                                 ${nextStepButton(o)}
+                                ${archiveBtn}
                                 ${payBtn}
                                 ${deleteBtnHtml}
                             </div>
@@ -396,6 +392,90 @@
                 updateBatchBar();
             })
             .catch(err => console.error(err));
+    }
+
+    // ===== LOAD ARCHIVE =====
+    function loadArchive() {
+        // First, trigger cleanup in background
+        fetch('/api/orders/archive/cleanup', { method: 'POST', headers: { 'x-auth-token': authToken } }).catch(() => {});
+
+        const search = document.getElementById('archiveSearchBox').value.trim();
+        let url = '/api/orders/archive';
+        if (search) url += '?search=' + encodeURIComponent(search);
+
+        fetch(url, { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(orders => {
+                if (!orders) return;
+                document.getElementById('archiveCount').innerText = '(' + orders.length + ')';
+                const table = document.getElementById('archiveTable');
+                if (orders.length === 0) { table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Archive is empty.</td></tr>'; return; }
+                table.innerHTML = orders.map(o => {
+                    const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                    const isPaid = o.payment_status === 'Paid';
+                    const payBadge = isPaid ? 'bg-success' : 'bg-warning text-dark';
+                    const status = o.status || 'Delivered';
+                    const exp = expiryInfo(o.archived_at);
+                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚 Pickup</span>` : '';
+                    return `<tr>
+                        <td><span class="order-id">#${o.id}</span></td>
+                        <td><span class="date-cell">${date}</span></td>
+                        <td><span class="customer-name">${o.customer}</span>${pickupIcon}</td>
+                        <td class="text-end"><span class="total-cell">₱${parseFloat(o.total).toFixed(2)}</span></td>
+                        <td><span class="badge ${payBadge} payment-badge">${o.payment_status}</span></td>
+                        <td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
+                        <td><span class="expiry-badge ${exp.cls}">⏱ ${exp.label}</span></td>
+                        <td class="text-end">
+                            <div class="d-inline-flex align-items-center gap-2">
+                                <button class="action-btn btn-retrieve" onclick="retrieveOrder(${o.id})">↩ Retrieve</button>
+                                <button class="action-btn btn-print" onclick="reprintReceipt(${o.id}, '58')">🖨️ Print</button>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+            })
+            .catch(err => console.error(err));
+    }
+
+    // ===== ACTIONS =====
+    function archiveOrder(id) {
+        if (!confirm('Move order #' + id + ' to Archive?')) return;
+        fetch('/api/orders/' + id + '/archive', { method: 'POST', headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return alert('Error: ' + data.error);
+                loadOrders();
+            });
+    }
+
+    function retrieveOrder(id) {
+        if (!confirm('Retrieve order #' + id + ' back to Active?')) return;
+        fetch('/api/orders/' + id + '/restore', { method: 'POST', headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return alert('Error: ' + data.error);
+                loadArchive();
+            });
+    }
+
+    function batchArchive() {
+        const ids = getSelectedIds();
+        if (ids.length === 0) return;
+        if (!confirm(`Archive ${ids.length} order(s)?`)) return;
+        fetch('/api/orders/batch/archive', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
+            .then(res => res.json())
+            .then(data => { if (data.error) return alert('Error: ' + data.error); clearSelection(); loadOrders(); });
+    }
+
+    function forceCleanup() {
+        if (!confirm('Delete ALL archived orders older than 7 days? This cannot be undone.')) return;
+        fetch('/api/orders/archive/cleanup', { method: 'POST', headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return alert('Error: ' + data.error);
+                alert('✅ Deleted ' + data.deleted + ' old archived orders.');
+                loadArchive();
+            });
     }
 
     function advanceOrder(id) {
@@ -420,17 +500,11 @@
             .then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
     }
 
+    // ===== RECEIPT (ASCII) =====
     function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
     function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
     function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
-    function center(str, len) {
-        str = String(str || '');
-        if (str.length >= len) return str.substring(0, len);
-        const totalPad = len - str.length;
-        const leftPad = Math.floor(totalPad / 2);
-        const rightPad = totalPad - leftPad;
-        return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
-    }
+    function center(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); const tp = len - str.length; const lp = Math.floor(tp / 2); const rp = tp - lp; return ' '.repeat(lp) + str + ' '.repeat(rp); }
     function formatMoney(n) { return 'P' + parseFloat(n || 0).toFixed(2); }
 
     function buildReceiptText(order, size) {
@@ -440,7 +514,6 @@
         const shopFirstName = getFirstNameUpper(rawName);
         const isPaid = order.payment_status === 'Paid';
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
-
         const dateObj = new Date(order.date);
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         let hrs = dateObj.getHours();
@@ -448,7 +521,6 @@
         const ampm = hrs >= 12 ? 'PM' : 'AM';
         hrs = hrs % 12 || 12;
         const shortDate = months[dateObj.getMonth()] + ' ' + dateObj.getDate() + ', ' + hrs + ':' + mins + ampm;
-
         let lines = [];
 
         lines.push(doubleDividerLine(size));
@@ -458,7 +530,6 @@
         lines.push('#' + order.id + ' - ' + shortDate);
         lines.push(customerFullName);
         lines.push(dividerLine(size));
-
         order.items.forEach(item => {
             const nameMax = width - 14;
             const name = item.service_name.length > nameMax ? item.service_name.substring(0, nameMax - 1) + '.' : item.service_name;
@@ -466,7 +537,6 @@
             const nameQty = name + ' x' + item.quantity;
             lines.push(padRight(nameQty, width - amtPart.length) + amtPart);
         });
-
         lines.push(dividerLine(size));
         const totalValue = formatMoney(order.total);
         lines.push(padRight('TOTAL', width - totalValue.length) + totalValue);
@@ -492,18 +562,15 @@
         lines.push('');
         lines.push('#' + order.id + ' - ' + shortDate);
         lines.push(dividerLine(size));
-
         order.items.forEach(item => {
             const nameMax = width - 6;
             const name = item.service_name.length > nameMax ? item.service_name.substring(0, nameMax - 1) + '.' : item.service_name;
             lines.push(name + ' x' + item.quantity);
         });
-
         lines.push(dividerLine(size));
         lines.push(center(statusLabel, width));
         lines.push(dividerLine(size));
         lines.push(center('Thank you!', width));
-
         return lines.join('\n');
     }
 
@@ -511,9 +578,8 @@
         if (isPhone) {
             const receiptText = buildReceiptText(order, size);
             const encoded = btoa(unescape(encodeURIComponent(receiptText)));
-            const rawbtUrl = 'rawbt:base64,' + encoded;
             const a = document.createElement('a');
-            a.href = rawbtUrl;
+            a.href = 'rawbt:base64,' + encoded;
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
@@ -532,7 +598,6 @@
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const cur = 'P';
-
         const itemsCustomerHtml = order.items.map(item => {
             const nameTrunc = item.service_name.length > (size === '58' ? 16 : 28) ? item.service_name.substring(0, size === '58' ? 15 : 27) + '.' : item.service_name;
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.quantity}</td><td style="text-align:right;">${cur}${(parseFloat(item.price) * item.quantity).toFixed(2)}</td></tr>`;
@@ -543,68 +608,10 @@
         }).join('');
         const formattedDate = new Date(order.date).toLocaleString();
 
-        const customerCopyHtml = `
-            <div class="receipt-copy">
-                <div class="center big bold">HAWI'S LOVADA</div>
-                <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
-                <div class="divider-solid"></div>
-                <div class="info">#${order.id} - ${formattedDate}</div>
-                <div class="info">${customerFullName}</div>
-                <div class="divider"></div>
-                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
-                <div class="divider"></div>
-                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${parseFloat(order.total).toFixed(2)}</td></tr></table>
-                <div class="divider"></div>
-                <div class="status">${statusLabel}</div>
-                <div class="divider"></div>
-                <div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div>
-                <div class="divider-solid"></div>
-                <div class="footer">Thank you! Come again!</div>
-                <div class="center" style="margin-top: 12px;">-------- CUT HERE --------</div>
-                <div style="height: 30px;"></div>
-            </div>
-        `;
+        const customerCopyHtml = `<div class="receipt-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div><div class="info">#${order.id} - ${formattedDate}</div><div class="info">${customerFullName}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table><div class="divider"></div><table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${parseFloat(order.total).toFixed(2)}</td></tr></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider"></div><div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div><div class="divider-solid"></div><div class="footer">Thank you! Come again!</div><div class="center" style="margin-top: 12px;">-------- CUT HERE --------</div><div style="height: 30px;"></div></div>`;
+        const shopCopyHtml = `<div class="receipt-copy shop-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div><div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div><div class="info" style="text-align: left;">#${order.id} - ${formattedDate}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider-solid"></div><div class="footer">Thank you!</div></div>`;
 
-        const shopCopyHtml = `
-            <div class="receipt-copy shop-copy">
-                <div class="center big bold">HAWI'S LOVADA</div>
-                <div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div>
-                <div class="divider-solid"></div>
-                <div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div>
-                <div class="info" style="text-align: left;">#${order.id} - ${formattedDate}</div>
-                <div class="divider"></div>
-                <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
-                <div class="divider"></div>
-                <div class="status">${statusLabel}</div>
-                <div class="divider-solid"></div>
-                <div class="footer">Thank you!</div>
-            </div>
-        `;
-
-        const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${order.id}</title>
-            <style>
-                @page { size: ${pageWidth} auto; margin: 0; }
-                body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; }
-                .receipt-copy { padding-bottom: 10px; }
-                .receipt-copy.shop-copy { border-top: 2px dashed #000; padding-top: 12px; margin-top: 10px; }
-                .center { text-align: center; }
-                .bold { font-weight: 900; }
-                .big { font-size: ${size === '58' ? 14 : 16}px; }
-                .divider { border-top: 1px dashed #000; margin: 4px 0; }
-                .divider-solid { border-top: 2px solid #000; margin: 6px 0; }
-                table { width: 100%; border-collapse: collapse; }
-                .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; }
-                .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; color: #000; background: #fff; }
-                .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; }
-                .info { font-size: ${fontSize}px; margin: 2px 0; }
-                .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; }
-                @media print { .print-btn { display: none; } body { padding: 2mm; } * { color: #000 !important; background: #fff !important; } }
-            </style></head><body>
-                ${customerCopyHtml}
-                ${shopCopyHtml}
-                <br><br><br>
-                <button class="print-btn" onclick="window.print()">Print Both Copies</button>
-            </body></html>`;
+        const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${order.id}</title><style>@page { size: ${pageWidth} auto; margin: 0; } body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; } .receipt-copy { padding-bottom: 10px; } .receipt-copy.shop-copy { border-top: 2px dashed #000; padding-top: 12px; margin-top: 10px; } .center { text-align: center; } .bold { font-weight: 900; } .big { font-size: ${size === '58' ? 14 : 16}px; } .divider { border-top: 1px dashed #000; margin: 4px 0; } .divider-solid { border-top: 2px solid #000; margin: 6px 0; } table { width: 100%; border-collapse: collapse; } .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; } .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; color: #000; background: #fff; } .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; } .info { font-size: ${fontSize}px; margin: 2px 0; } .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; } @media print { .print-btn { display: none; } body { padding: 2mm; } * { color: #000 !important; background: #fff !important; } }</style></head><body>${customerCopyHtml}${shopCopyHtml}<br><br><br><button class="print-btn" onclick="window.print()">Print Both Copies</button></body></html>`;
         const w = window.open('', '_blank', 'width=400,height=700');
         w.document.write(receiptHtml);
         w.document.close();

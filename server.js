@@ -410,11 +410,43 @@ app.post('/api/orders/batch/unpay', requireAuth, async (req, res) => {
     try { for (const id of ids) await db.markAsUnpaid(id); res.json({ success: true, count: ids.length }); }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
-app.post('/api/orders/batch/delete', requireAuth, async (req, res) => {
+// ===== ARCHIVE =====
+app.get('/api/orders/archive', requireAuth, async (req, res) => {
+    try {
+        const { search = '' } = req.query;
+        const orders = await db.getArchivedOrders('all', search);
+        res.json(orders);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/:id/archive', requireAuth, async (req, res) => {
+    try {
+        await db.archiveOrder(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/:id/restore', requireAuth, async (req, res) => {
+    try {
+        await db.restoreOrder(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/batch/archive', requireAuth, async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
-    try { for (const id of ids) await db.deleteOrder(id); res.json({ success: true, count: ids.length }); }
-    catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const count = await db.archiveBatch(ids);
+        res.json({ success: true, count });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/archive/cleanup', requireAuth, async (req, res) => {
+    try {
+        const deleted = await db.cleanupOldArchive();
+        res.json({ success: true, deleted });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== CUSTOMERS =====
