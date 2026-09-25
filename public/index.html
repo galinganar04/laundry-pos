@@ -14,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        html, body { margin: 0; padding: 0; }
+        html, body { margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
 
         .topbar { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
@@ -36,28 +36,102 @@
         .search-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 15px; background: white; margin-bottom: 12px; }
         .search-input:focus { outline: none; border-color: #3b82f6; }
 
-        .service-card { cursor: pointer; border: none; border-radius: 12px; background: white; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.06); transition: 0.2s; }
-        .service-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.12); }
-        .service-card.selected { outline: 3px solid #10b981; outline-offset: -3px; }
-        .service-thumb { height: 110px; width: 100%; position: relative; background: #0f172a; }
-        .service-thumb img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-        .service-thumb .overlay { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px; background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.85) 100%); color: white; text-align: center; }
-        .service-thumb .name { font-weight: 800; font-size: 12px; text-transform: uppercase; }
-        .service-thumb .price { font-weight: 800; font-size: 13px; margin-top: 2px; }
-        .service-card .qty-badge { position: absolute; top: 6px; right: 6px; background: #10b981; color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: none; }
+        /* ============================================
+           SERVICE CARD — BIG EMOJI + GRADIENT
+           ============================================ */
+        .service-card {
+            cursor: pointer;
+            border: none;
+            border-radius: 16px;
+            padding: 22px 12px;
+            text-align: center;
+            color: white;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+        .service-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.25);
+        }
+        .service-card:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+        .service-card.selected {
+            outline: 4px solid #fbbf24;
+            outline-offset: -4px;
+        }
+        .service-card .emoji {
+            font-size: 60px;
+            line-height: 1;
+            display: block;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+            transition: transform 0.25s;
+        }
+        .service-card:hover .emoji { transform: scale(1.15); }
+        .service-card:active .emoji { transform: scale(1.05); }
+        .service-card .name {
+            font-weight: 800;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+        .service-card .price {
+            font-weight: 700;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+        .service-card .qty-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #fbbf24;
+            color: #000;
+            font-size: 13px;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
         .service-card.selected .qty-badge { display: block; }
 
-        .addon-card { cursor: pointer; border: 1px solid #e5e7eb; border-radius: 10px; background: white; padding: 12px; display: flex; align-items: center; gap: 12px; margin-bottom: 8px; transition: 0.2s; position: relative; }
-        .addon-card:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
-        .addon-card.selected { border-color: #10b981; border-width: 2px; }
-        .addon-thumb { width: 48px; height: 48px; border-radius: 8px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 22px; overflow: hidden; flex-shrink: 0; }
+        /* Color variants */
+        .bg-blue   { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
+        .bg-teal   { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); }
+        .bg-purple { background: linear-gradient(135deg, #7e22ce 0%, #a855f7 100%); }
+        .bg-green  { background: linear-gradient(135deg, #15803d 0%, #22c55e 100%); }
+        .bg-orange { background: linear-gradient(135deg, #c2410c 0%, #f97316 100%); }
+        .bg-red    { background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%); }
+        .bg-pink   { background: linear-gradient(135deg, #be185d 0%, #ec4899 100%); }
+        .bg-indigo { background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%); }
+        .bg-amber  { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
+        .bg-cyan   { background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%); }
+
+        /* ============================================
+           ADD-ON CARD
+           ============================================ */
+        .addon-card { cursor: pointer; border-radius: 14px; background: white; padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border: 2px solid #e5e7eb; transition: all 0.2s; position: relative; user-select: none; -webkit-tap-highlight-color: transparent; }
+        .addon-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
+        .addon-card.selected { border-color: #10b981; background: #f0fdf4; }
+        .addon-thumb { width: 56px; height: 56px; border-radius: 12px; background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); display: flex; align-items: center; justify-content: center; font-size: 30px; overflow: hidden; flex-shrink: 0; }
         .addon-thumb img { width: 100%; height: 100%; object-fit: cover; }
         .addon-name { font-weight: 700; color: #1e293b; text-transform: uppercase; font-size: 13px; }
         .addon-meta { font-size: 11px; color: #94a3b8; }
-        .addon-price { font-weight: 700; color: #1e40af; font-size: 14px; }
-        .addon-card .qty-badge { background: #10b981; color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; display: none; }
+        .addon-price { font-weight: 800; color: #1e40af; font-size: 15px; }
+        .addon-card .qty-badge { background: #10b981; color: white; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: none; margin-top: 4px; }
         .addon-card.selected .qty-badge { display: inline-block; }
 
+        /* ============================================
+           CART PANEL
+           ============================================ */
         .cart-panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-top: 8px; }
         .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
         .cart-empty { color: #94a3b8; text-align: center; font-size: 13px; padding: 12px 0; }
@@ -73,18 +147,17 @@
 
         .form-label { font-size: 12px; color: #475569; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .form-control, .form-select { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 15px; width: 100%; }
-        .form-control:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .form-control:focus, .form-select:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); outline: none; }
 
         .cart-total-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; font-weight: 700; font-size: 18px; color: #1e293b; border-top: 2px solid #e2e8f0; margin-top: 8px; }
 
         .btn-checkout { background: #1e40af; color: white; width: 100%; padding: 16px; font-weight: 700; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; margin-top: 8px; }
-        .btn-checkout:hover { background: #1e3a8a; color: white; }
+        .btn-checkout:hover { background: #1e3a8a; }
         .btn-checkout:disabled { opacity: 0.6; cursor: not-allowed; }
 
         .btn-print { background: #10b981; color: white; width: 100%; padding: 14px; font-weight: 700; border: none; border-radius: 10px; font-size: 14px; margin-top: 8px; cursor: pointer; }
-        .btn-print:hover { background: #059669; color: white; }
+        .btn-print:hover { background: #059669; }
         .btn-print-80 { background: #0891b2; }
-        .btn-print-80:hover { background: #0e7490; }
         .print-buttons { display: none; }
 
         .order-type-toggle { display: flex; background: #f1f5f9; border-radius: 10px; padding: 4px; margin-bottom: 14px; border: 1.5px solid #e2e8f0; }
@@ -100,17 +173,15 @@
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .cart-panel, [data-theme="dark"] .addon-card, [data-theme="dark"] .service-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .cart-panel, [data-theme="dark"] .addon-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .page-title, [data-theme="dark"] .addon-name, [data-theme="dark"] .cart-item-name { color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select, [data-theme="dark"] .search-input { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] .addon-thumb { background: #334155; }
         [data-theme="dark"] .qty-btn { background: #334155; border-color: #475569; color: #cbd5e1; }
         [data-theme="dark"] .cart-item { border-color: #334155; }
         [data-theme="dark"] .cart-total-row { color: #e2e8f0; border-color: #334155; }
-        [data-theme="dark"] .section-label { color: #64748b; }
-        [data-theme="dark"] .section-label::after { background: #334155; }
         [data-theme="dark"] .cart-panel h5 { border-color: #334155; }
+        [data-theme="dark"] .addon-thumb { background: linear-gradient(135deg, #334155 0%, #475569 100%); }
+        [data-theme="dark"] .addon-card.selected { background: #064e3b; border-color: #10b981; }
         [data-theme="dark"] .order-type-toggle { background: #334155; border-color: #475569; }
         [data-theme="dark"] .order-type-toggle button { color: #94a3b8; }
         [data-theme="dark"] .pickup-info { background: #422006 !important; border-color: #f59e0b !important; }
@@ -124,22 +195,21 @@
             .main-content { padding: 12px; }
             .col-md-7, .col-md-3, .col-md-2 { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; padding-left: 10px !important; padding-right: 10px !important; }
             .desktop-cart-col { margin-top: 6px; }
-            .cart-panel { position: static !important; margin-top: 12px; height: auto !important; max-height: none !important; overflow: visible !important; }
-            .service-thumb { height: 100px; }
-            .service-thumb .name { font-size: 11px; }
-            .service-thumb .price { font-size: 12px; }
+            .cart-panel { position: static !important; margin-top: 12px; }
+            .service-card { padding: 18px 8px; border-radius: 14px; }
+            .service-card .emoji { font-size: 52px; margin-bottom: 8px; }
+            .service-card .name { font-size: 11px; }
+            .service-card .price { font-size: 13px; }
             .btn-checkout { padding: 18px; font-size: 17px; }
             .btn-print { padding: 16px; font-size: 15px; }
             .qty-btn { width: 34px; height: 34px; font-size: 17px; }
             .form-control, .form-select { padding: 14px; font-size: 16px; }
+            .addon-thumb { width: 52px; height: 52px; font-size: 26px; }
         }
         @media (min-width: 768px) {
             .topbar { display: none; }
             .desktop-sidebar { display: block; }
             .main-content { padding: 24px; }
-            .service-thumb { height: 140px; }
-            .service-thumb .name { font-size: 13px; }
-            .service-thumb .price { font-size: 14px; }
             .desktop-cart-col .cart-panel { position: sticky; top: 20px; }
         }
     </style>
@@ -182,49 +252,49 @@
                 </div>
             </div>
 
-            <input type="text" class="search-input" id="searchBox" placeholder="Search services or add-ons...">
+            <input type="text" class="search-input" id="searchBox" placeholder="🔍 Search services or add-ons...">
 
-            <div class="section-label">Services</div>
-            <div class="row" id="servicesContainer"></div>
+            <div class="section-label">🧴 Services</div>
+            <div class="row g-2" id="servicesContainer"></div>
 
-            <div class="section-label">Add-ons</div>
+            <div class="section-label">✨ Add-ons</div>
             <div class="row" id="addonsContainer"></div>
         </div>
 
         <div class="col-md-3 main-content desktop-cart-col">
             <div class="cart-panel">
-                <h5>Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
+                <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
                 <div id="cartItemsList" class="mb-3">
                     <p class="cart-empty">Cart is empty.</p>
                 </div>
 
                 <div class="order-type-toggle">
-                    <button id="btnWalkIn" class="active" onclick="setOrderType('walkin')">Walk-In</button>
-                    <button id="btnPickup" onclick="setOrderType('pickup')">Pickup/Delivery</button>
+                    <button id="btnWalkIn" class="active" onclick="setOrderType('walkin')">👤 Walk-In</button>
+                    <button id="btnPickup" onclick="setOrderType('pickup')">🚚 Pickup/Delivery</button>
                 </div>
 
                 <div class="pickup-info" id="pickupInfo">
                     <div class="heading">
-                        <span>*</span> Pickup &amp; Delivery Details
+                        <span>🚚</span> Pickup &amp; Delivery Details
                     </div>
                     <div class="mb-2">
-                        <label class="form-label">Cellphone Number *</label>
+                        <label class="form-label">📱 Cellphone Number *</label>
                         <input type="tel" id="customerPhone" class="form-control" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" autocomplete="tel" oninput="validatePhone()">
                         <small id="phoneHint" style="font-size: 11px; color: #92400e; display: block; margin-top: 4px;">11 digits, starts with 09</small>
                     </div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Customer Name</label>
+                    <label class="form-label">👤 Customer Name</label>
                     <input type="text" id="customerName" class="form-control" placeholder="Enter customer name..." list="customerList" autocomplete="off">
                     <datalist id="customerList"></datalist>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Payment</label>
+                    <label class="form-label">💵 Payment</label>
                     <select id="paymentStatus" class="form-select">
-                        <option value="Paid">Pay Now</option>
-                        <option value="Pending">Pay Later</option>
+                        <option value="Paid">💵 Pay Now</option>
+                        <option value="Pending">⏳ Pay Later</option>
                     </select>
                 </div>
 
@@ -233,11 +303,11 @@
                     <span id="cartTotal">P0.00</span>
                 </div>
 
-                <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">Checkout</button>
+                <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
 
                 <div class="print-buttons" id="printButtons">
-                    <button class="btn-print" onclick="printReceipt('58')">Print 58mm</button>
-                    <button class="btn-print btn-print-80" onclick="printReceipt('80')">Print 80mm</button>
+                    <button class="btn-print" onclick="printReceipt('58')">🖨️ Print 58mm</button>
+                    <button class="btn-print btn-print-80" onclick="printReceipt('80')">🖨️ Print 80mm</button>
                 </div>
             </div>
         </div>
@@ -283,6 +353,42 @@
         return parts[0] ? parts[0].toUpperCase() : '';
     }
 
+    // ===== COLOR PALETTE — rotate through these for services =====
+    const colorClasses = ['bg-blue', 'bg-teal', 'bg-purple', 'bg-green', 'bg-indigo', 'bg-orange', 'bg-red', 'bg-pink', 'bg-amber', 'bg-cyan'];
+
+    // Smart color based on service name
+    function getColorForService(name) {
+        const n = (name || '').toLowerCase();
+        if (n.includes('wash') && n.includes('fold')) return 'bg-blue';
+        if (n.includes('wash') && n.includes('dry')) return 'bg-blue';
+        if (n.includes('wash')) return 'bg-teal';
+        if (n.includes('dry') && n.includes('spin')) return 'bg-indigo';
+        if (n.includes('dry')) return 'bg-purple';
+        if (n.includes('fold')) return 'bg-green';
+        if (n.includes('pickup') || n.includes('delivery')) return 'bg-orange';
+        if (n.includes('express')) return 'bg-red';
+        if (n.includes('iron')) return 'bg-amber';
+        if (n.includes('deluxe')) return 'bg-pink';
+        return 'bg-blue';
+    }
+
+    // Smart emoji based on service name (fallback if no icon saved)
+    function getEmojiForService(name, savedIcon) {
+        if (savedIcon && savedIcon.trim()) return savedIcon.trim();
+        const n = (name || '').toLowerCase();
+        if (n.includes('wash') && n.includes('fold')) return '🧺';
+        if (n.includes('wash') && n.includes('dry')) return '🧺';
+        if (n.includes('wash')) return '💧';
+        if (n.includes('spin')) return '🔄';
+        if (n.includes('dry')) return '💨';
+        if (n.includes('fold')) return '👕';
+        if (n.includes('pickup') || n.includes('delivery')) return '🚚';
+        if (n.includes('express')) return '⚡';
+        if (n.includes('iron')) return '👔';
+        if (n.includes('deluxe')) return '✨';
+        return '🧺';
+    }
+
     window.addEventListener('load', () => {
         const custInput = document.getElementById('customerName');
         if (custInput) setTimeout(() => custInput.focus(), 500);
@@ -324,10 +430,11 @@
         const phone = document.getElementById('customerPhone').value.trim();
         const hint = document.getElementById('phoneHint');
         if (phone.length === 0) { hint.style.color = '#92400e'; hint.innerText = '11 digits, starts with 09'; return false; }
-        if (!/^09\d{9}$/.test(phone)) { hint.style.color = '#dc2626'; hint.innerText = 'Invalid - must be 11 digits and start with 09'; return false; }
-        hint.style.color = '#059669'; hint.innerText = 'Valid number'; return true;
+        if (!/^09\d{9}$/.test(phone)) { hint.style.color = '#dc2626'; hint.innerText = '⚠️ Invalid — must be 11 digits and start with 09'; return false; }
+        hint.style.color = '#059669'; hint.innerText = '✅ Valid number'; return true;
     }
 
+    // ===== LOAD SERVICES =====
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
         .then(response => {
             if (response.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -339,18 +446,22 @@
             const visible = services.filter(s => !s.hidden);
             if (visible.length === 0) { container.innerHTML = '<div class="col-12 text-center text-muted py-3">No services available.</div>'; return; }
             visible.forEach(service => {
-                const color = service.color || '#1e40af';
                 const unit = service.unit_label || service.unit || 'kg';
-                let inner;
-                if (service.image_data) {
-                    inner = `<div class="service-thumb"><img src="${service.image_data}"><div class="overlay"><div class="name">${service.name}</div><div class="price">P${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
-                } else {
-                    inner = `<div class="service-thumb" style="background: ${color};"><div style="height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 8px; text-align: center;"><div class="name">${service.name}</div><div class="price">P${parseFloat(service.price).toFixed(2)} / ${unit}</div></div><div class="qty-badge" id="badge-${service.id}">0</div></div>`;
-                }
-                container.innerHTML += `<div class="col-6 col-md-4 mb-3"><div class="card service-card" id="svc-${service.id}" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service', ${service.id})">${inner}</div></div>`;
+                const emoji = getEmojiForService(service.name, service.icon);
+                const colorClass = getColorForService(service.name);
+                container.innerHTML += `
+                    <div class="col-6 col-md-4">
+                        <div class="service-card ${colorClass}" id="svc-${service.id}" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service', ${service.id})">
+                            <span class="emoji">${emoji}</span>
+                            <div class="name">${service.name}</div>
+                            <div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div>
+                            <div class="qty-badge" id="badge-${service.id}">0</div>
+                        </div>
+                    </div>`;
             });
         });
 
+    // ===== LOAD ADD-ONS =====
     fetch('/api/products', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(products => {
@@ -358,8 +469,23 @@
             const container = document.getElementById('addonsContainer');
             if (addons.length === 0) { container.innerHTML = '<div class="col-12 text-center text-muted py-3">No add-ons available.</div>'; return; }
             addons.forEach(p => {
-                const thumb = p.image_data ? `<div class="addon-thumb"><img src="${p.image_data}"></div>` : `<div class="addon-thumb">${p.icon || '*'}</div>`;
-                container.innerHTML += `<div class="col-12 col-md-6"><div class="addon-card" id="prod-${p.id}" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon', 'p${p.id}')">${thumb}<div class="flex-grow-1"><div class="addon-name">${p.name}</div><div class="addon-meta">${p.category || 'General'} - ${p.stock} in stock</div></div><div class="text-end"><div class="addon-price">P${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div><div class="qty-badge" id="badge-p${p.id}">0</div></div></div></div>`;
+                const thumb = p.image_data
+                    ? `<div class="addon-thumb"><img src="${p.image_data}"></div>`
+                    : `<div class="addon-thumb">${p.icon || '📦'}</div>`;
+                container.innerHTML += `
+                    <div class="col-12 col-md-6">
+                        <div class="addon-card" id="prod-${p.id}" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon', 'p${p.id}')">
+                            ${thumb}
+                            <div class="flex-grow-1">
+                                <div class="addon-name">${p.name}</div>
+                                <div class="addon-meta">${p.category || 'General'} • ${p.stock} in stock</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="addon-price">₱${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div>
+                                <div class="qty-badge" id="badge-p${p.id}">0</div>
+                            </div>
+                        </div>
+                    </div>`;
             });
         });
 
@@ -406,7 +532,7 @@
         document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
         cart.forEach(item => {
             document.querySelectorAll('.service-card, .addon-card').forEach(card => {
-                const cardName = card.querySelector('.name, .card-title, .addon-name');
+                const cardName = card.querySelector('.name, .addon-name');
                 if (cardName && cardName.innerText.trim() === item.name) {
                     card.classList.add('selected');
                     const badge = card.querySelector('.qty-badge');
@@ -430,19 +556,18 @@
                 total += itemTotal; itemCount += item.qty;
                 const qtyControls = item.isPickupFee
                     ? `<span style="font-size: 11px; color: #f59e0b; font-weight: 700;">FIXED</span>`
-                    : `<div class="qty-controls"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">-</button><span style="font-weight:600; min-width:18px; text-align:center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button></div>`;
+                    : `<div class="qty-controls"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">−</button><span style="font-weight:600; min-width:18px; text-align:center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button></div>`;
                 const rowStyle = item.isPickupFee ? 'style="background: #fffbeb; border-radius: 8px; padding: 10px 8px; border-left: 3px solid #f59e0b;"' : '';
-                const subText = item.isPickupFee ? 'Auto-added' : 'P' + item.price.toFixed(2) + ' x ' + item.qty;
-                list.innerHTML += `<div class="cart-item" ${rowStyle}><div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-sub">${subText}</div></div>${qtyControls}<div class="cart-item-price">P${itemTotal.toFixed(2)}</div></div>`;
+                const subText = item.isPickupFee ? 'Auto-added' : '₱' + item.price.toFixed(2) + ' × ' + item.qty;
+                list.innerHTML += `<div class="cart-item" ${rowStyle}><div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-sub">${subText}</div></div>${qtyControls}<div class="cart-item-price">₱${itemTotal.toFixed(2)}</div></div>`;
             });
         }
         countSpan.innerText = itemCount + ' items';
-        totalSpan.innerText = 'P' + total.toFixed(2);
+        totalSpan.innerText = '₱' + total.toFixed(2);
     }
 
     function checkout() {
         if (cart.length === 0) return alert("Cart is empty.");
-
         let customer = document.getElementById('customerName').value.trim();
         const paymentStatus = document.getElementById('paymentStatus').value;
         const customerPhone = document.getElementById('customerPhone').value.trim();
@@ -450,8 +575,8 @@
         const isPickup = orderType === 'pickup';
 
         if (isPickup) {
-            if (!customer) { document.getElementById('customerName').focus(); return alert('Customer name is required for Pickup & Delivery'); }
-            if (!/^09\d{9}$/.test(customerPhone)) { document.getElementById('customerPhone').focus(); return alert('Cellphone number is required (11 digits, starts with 09)\nExample: 09171234567'); }
+            if (!customer) { document.getElementById('customerName').focus(); return alert('⚠️ Customer name is required for Pickup & Delivery'); }
+            if (!/^09\d{9}$/.test(customerPhone)) { document.getElementById('customerPhone').focus(); return alert('⚠️ Cellphone number is required (11 digits, starts with 09)\nExample: 09171234567'); }
         } else {
             if (!customer) customer = 'Walk-In Customer';
         }
@@ -469,7 +594,7 @@
         })
         .then(res => res.json())
         .then(data => {
-            if (data.error) { alert('Error: ' + data.error); btn.innerText = 'Checkout'; btn.disabled = false; return; }
+            if (data.error) { alert('Error: ' + data.error); btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
             alert(data.message + ' (Cashier: ' + cashierName + ')');
             receiptData.orderId = data.orderId;
             receiptData.serviceFlow = data.serviceFlow;
@@ -480,14 +605,14 @@
             document.getElementById('customerName').value = '';
             document.querySelectorAll('.qty-badge').forEach(b => { b.innerText = '0'; b.style.display = 'none'; });
             document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
-            btn.innerText = 'Checkout'; btn.disabled = false;
+            btn.innerText = '✅ Checkout'; btn.disabled = false;
             document.getElementById('printButtons').style.display = 'block';
             document.getElementById('printButtons').scrollIntoView({ behavior: 'smooth', block: 'center' });
         })
-        .catch(() => { alert("Error saving order."); btn.innerText = 'Checkout'; btn.disabled = false; });
+        .catch(() => { alert("Error saving order."); btn.innerText = '✅ Checkout'; btn.disabled = false; });
     }
 
-    // ===== ASCII-ONLY HELPERS =====
+    // ===== ASCII HELPERS =====
     function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
     function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
     function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
@@ -519,7 +644,6 @@
         const shortDate = months[d.getMonth()] + ' ' + d.getDate() + ', ' + hrs + ':' + mins + ampm;
 
         let lines = [];
-
         lines.push(doubleDividerLine(size));
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
@@ -541,13 +665,11 @@
         lines.push(padRight('TOTAL', width - totalValue.length) + totalValue);
         lines.push(dividerLine(size));
         lines.push(center(statusLabel, width));
-
         if (order.pickupDelivery) {
             lines.push(dividerLine(size));
             lines.push('PICKUP & DELIVERY');
             lines.push('Tel: ' + (order.customerPhone || ''));
         }
-
         lines.push(dividerLine(size));
         lines.push('Track: laundry-pos-7lwy');
         lines.push('.onrender.com/login.html');
@@ -577,21 +699,17 @@
 
         lines.push(dividerLine(size));
         lines.push(center(statusLabel, width));
-
         if (order.pickupDelivery) {
             lines.push(dividerLine(size));
             lines.push('Tel: ' + (order.customerPhone || ''));
         }
-
         lines.push(dividerLine(size));
         lines.push(center('Thank you!', width));
-
         return lines.join('\n');
     }
 
     function printReceipt(size) {
         if (!lastOrder) return alert("No recent order to print.");
-
         if (isPhone) {
             const receiptText = buildReceiptText(size);
             const encoded = btoa(unescape(encodeURIComponent(receiptText)));
@@ -611,7 +729,6 @@
         const rawName = lastOrder.customer || 'Walk-In Customer';
         const customerFullName = toTitleCase(rawName);
         const shopFirstName = getFirstNameUpper(rawName);
-
         const isPaid = String(lastOrder.paymentStatus).toLowerCase() === 'paid';
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
         const payNote = isPaid ? '' : 'Please pay upon pickup.';
