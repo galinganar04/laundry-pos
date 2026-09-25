@@ -34,7 +34,7 @@
         .status-Ready { background-color: #d1fae5; color: #065f46; }
         .status-OutForDelivery { background-color: #fde68a; color: #78350f; }
         .status-Delivered { background-color: #dcfce7; color: #14532d; }
-        .action-btn { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid; cursor: pointer; white-space: nowrap; font-weight: 600; }
+        .action-btn { padding: 8px 12px; font-size: 14px; border-radius: 6px; border: 1px solid; cursor: pointer; white-space: nowrap; font-weight: 700; }
         .btn-status { background: #1e40af; color: white; border-color: #1e40af; }
         .btn-pay { background: #10b981; color: white; border-color: #10b981; }
         .btn-unpay { background: white; color: #92400e; border-color: #f59e0b; }
@@ -52,28 +52,124 @@
         .batch-bar.show { display: flex; }
         .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
 
-        /* MOBILE: cards */
+        /* =================================================
+           MOBILE: Clean, organized card layout
+           ================================================= */
         @media (max-width: 767px) {
             html, body { height: auto !important; overflow: visible !important; }
             .sidebar { display: none !important; }
             .orders-scroll-box { max-height: none; overflow: visible; }
-            .page-title { font-size: 18px; }
+            .page-title { font-size: 18px; margin-bottom: 8px; }
+            .col-md-10 { padding: 12px !important; }
+
+            /* Hide desktop table header */
             .orders-table thead { display: none; }
-            .orders-table, .orders-table tbody, .orders-table tr, .orders-table td { display: block; width: 100%; }
-            .orders-table tbody tr { background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 12px; padding: 12px; border: 1px solid #e2e8f0; position: relative; }
-            .orders-table tbody td { padding: 4px 0; border: none; background: transparent !important; text-align: left !important; }
-            .orders-table tbody td:nth-child(1) { position: absolute; top: 12px; right: 12px; width: auto; }
-            .orders-table tbody td:nth-child(2) { font-size: 18px; font-weight: 800; color: #1e40af; margin-bottom: 4px; padding-right: 40px; }
-            .orders-table tbody td:nth-child(3) { font-size: 12px; color: #64748b; margin-bottom: 8px; }
-            .orders-table tbody td:nth-child(4) { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-            .orders-table tbody td:nth-child(5) { display: inline-block; width: 50%; font-size: 16px; font-weight: 800; color: #1e293b; margin-bottom: 6px; vertical-align: middle; }
-            .orders-table tbody td:nth-child(6) { display: inline-block; width: 50%; text-align: right !important; margin-bottom: 6px; vertical-align: middle; }
-            .orders-table tbody td:nth-child(7) { margin-bottom: 10px; }
-            .orders-table tbody td:nth-child(8) { border-top: 1px solid #f1f5f9 !important; padding-top: 10px !important; margin-top: 6px; }
-            .orders-table tbody td:nth-child(8) > div { display: flex !important; flex-wrap: wrap; gap: 6px !important; justify-content: flex-start !important; }
-            .action-btn { font-size: 13px; padding: 8px 10px; flex: 1; min-width: 80px; }
-            .status-badge { font-size: 11px; padding: 5px 10px; }
-            .payment-badge { font-size: 11px; padding: 4px 10px; }
+
+            /* Convert each row into a card */
+            .orders-table, .orders-table tbody, .orders-table tr, .orders-table td {
+                display: block;
+                width: 100%;
+            }
+
+            .orders-table tbody tr {
+                background: white;
+                border-radius: 14px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+                margin-bottom: 14px;
+                padding: 14px 16px;
+                border: 1px solid #e2e8f0;
+                position: relative;
+            }
+
+            .orders-table tbody td {
+                padding: 0;
+                border: none;
+                background: transparent !important;
+                text-align: left !important;
+            }
+
+            /* --- ROW 1: Checkbox (top-right absolute) --- */
+            .orders-table tbody td:nth-child(1) {
+                position: absolute;
+                top: 14px;
+                right: 14px;
+                width: auto;
+            }
+
+            /* --- ROW 2: Order # + Pickup badge --- */
+            .orders-table tbody td:nth-child(2) {
+                font-size: 16px;
+                font-weight: 800;
+                color: #1e40af;
+                padding-right: 50px;
+                margin-bottom: 10px;
+            }
+
+            /* --- ROW 3: Date --- */
+            .orders-table tbody td:nth-child(3) {
+                font-size: 12px;
+                color: #94a3b8;
+                margin-bottom: 10px;
+            }
+
+            /* --- ROW 4: Customer name --- */
+            .orders-table tbody td:nth-child(4) {
+                font-size: 17px;
+                font-weight: 700;
+                color: #1e293b;
+                margin-bottom: 12px;
+            }
+
+            /* --- ROW 5+6: Total (left) + Payment (right) on same line --- */
+            .orders-table tbody td:nth-child(5) {
+                display: inline-block;
+                width: 50%;
+                font-size: 18px;
+                font-weight: 800;
+                color: #1e293b;
+                margin-bottom: 10px;
+                vertical-align: middle;
+            }
+            .orders-table tbody td:nth-child(6) {
+                display: inline-block;
+                width: 48%;
+                text-align: right !important;
+                margin-bottom: 10px;
+                vertical-align: middle;
+            }
+
+            /* --- ROW 7: Status badge --- */
+            .orders-table tbody td:nth-child(7) {
+                margin-bottom: 12px;
+            }
+
+            /* --- ROW 8: Action buttons --- */
+            .orders-table tbody td:nth-child(8) {
+                border-top: 1px solid #f1f5f9 !important;
+                padding-top: 12px !important;
+                margin-top: 4px;
+            }
+            .orders-table tbody td:nth-child(8) > div {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px !important;
+            }
+            .action-btn {
+                font-size: 13px;
+                padding: 10px 8px;
+                width: 100%;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+            /* Badges */
+            .status-badge { font-size: 12px; padding: 6px 12px; }
+            .payment-badge { font-size: 12px; padding: 5px 12px; }
+            .pickup-badge { font-size: 10px; padding: 3px 8px; }
+
+            /* Filter buttons tighter */
+            .panel { padding: 12px; border-radius: 12px; }
+            .filter-btn { font-size: 12px; padding: 6px 12px; }
         }
 
         [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; }
@@ -97,28 +193,28 @@
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
             <div class="text-center mb-4"><img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'"></div>
-            <a href="/">POS</a>
-            <a href="/dashboard.html">Dashboard</a>
-            <a href="/services.html">Services</a>
-            <a href="/products.html">Products</a>
-            <a href="/orders.html" class="active">Orders</a>
-            <a href="/replenishments.html">Replenishments</a>
-            <a href="/expenses.html">Expenses</a>
-            <a href="/customers.html">Customers</a>
-            <a href="/settings.html">Settings</a>
-            <a href="#" class="theme-toggle">Dark Mode</a>
-            <a href="#" onclick="logout()">Logout</a>
+            <a href="/">🧺 POS</a>
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/services.html">🧴 Services</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/orders.html" class="active">📋 Orders</a>
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
+            <a href="/customers.html">👥 Customers</a>
+            <a href="/settings.html">⚙️ Settings</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
         </div>
 
         <div class="col-md-10 p-4">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 class="page-title mb-0">Orders</h3>
-                <a href="/" class="btn btn-primary btn-sm">Back to POS</a>
+                <a href="/" class="btn btn-primary btn-sm">← POS</a>
             </div>
 
-            <div class="panel mb-4">
+            <div class="panel mb-3">
                 <div class="row g-2">
-                    <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="Search" oninput="debouncedLoad()"></div>
+                    <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search" oninput="debouncedLoad()"></div>
                     <div class="col-md-3"><input type="date" id="dateFrom" class="form-control" onchange="loadOrders()"></div>
                     <div class="col-md-3"><input type="date" id="dateTo" class="form-control" onchange="loadOrders()"></div>
                     <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
@@ -198,7 +294,7 @@
         const flow = order.service_flow || ['Received'];
         const currentStep = order.current_step || 0;
         const nextStep = currentStep + 1;
-        if (nextStep >= flow.length) return `<span class="text-muted small">Done</span>`;
+        if (nextStep >= flow.length) return ``;
         const nextStatus = flow[nextStep];
         let extra = nextStatus === 'Out for Delivery' ? `onclick="advanceWithRider(${order.id})"` : `onclick="advanceOrder(${order.id})"`;
         return `<button class="action-btn btn-status" ${extra}>Next: ${nextStatus}</button>`;
@@ -277,18 +373,18 @@
                     const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">Paid</button>`;
                     const status = o.status || 'Received';
                     const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">Delete</button>` : '';
-                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">Pickup</span>` : '';
+                    const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚 Pickup</span>` : '';
                     return `<tr>
                         <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
                         <td><span class="order-id">#${o.id}</span></td>
                         <td><span class="date-cell">${date}</span></td>
                         <td><span class="customer-name">${o.customer}</span>${pickupIcon}</td>
-                        <td class="text-end"><span class="total-cell">P${parseFloat(o.total).toFixed(2)}</span></td>
+                        <td class="text-end"><span class="total-cell">₱${parseFloat(o.total).toFixed(2)}</span></td>
                         <td><span class="badge ${payBadge} payment-badge">${o.payment_status}</span></td>
                         <td><span class="status-badge ${statusBadgeClass(status)}">${status}</span></td>
                         <td class="text-end">
                             <div class="d-inline-flex align-items-center gap-2">
-                                <button class="action-btn btn-print" onclick="reprintReceipt(${o.id}, '58')">Print</button>
+                                <button class="action-btn btn-print" onclick="reprintReceipt(${o.id}, '58')">🖨️ Print</button>
                                 ${nextStepButton(o)}
                                 ${payBtn}
                                 ${deleteBtnHtml}
@@ -324,7 +420,6 @@
             .then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
     }
 
-    // ===== ASCII-ONLY HELPERS =====
     function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
     function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
     function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
