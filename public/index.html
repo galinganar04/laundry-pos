@@ -15,7 +15,10 @@
     <style>
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; padding-top: 0; }
+
+        /* Prevent body shift when offline banner appears */
+        body.has-offline-banner { padding-top: 44px; }
 
         .topbar { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .topbar .logo-img { height: 38px; width: auto; background: rgba(255,255,255,0.15); border-radius: 6px; padding: 4px; }
@@ -36,74 +39,19 @@
         .search-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 15px; background: white; margin-bottom: 12px; }
         .search-input:focus { outline: none; border-color: #3b82f6; }
 
-        /* ============================================
-           SERVICE CARD — BIG EMOJI + GRADIENT
-           ============================================ */
-        .service-card {
-            cursor: pointer;
-            border: none;
-            border-radius: 16px;
-            padding: 22px 12px;
-            text-align: center;
-            color: white;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            position: relative;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-        }
-        .service-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.25);
-        }
-        .service-card:active {
-            transform: translateY(-2px) scale(0.98);
-        }
-        .service-card.selected {
-            outline: 4px solid #fbbf24;
-            outline-offset: -4px;
-        }
-        .service-card .emoji {
-            font-size: 60px;
-            line-height: 1;
-            display: block;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-            transition: transform 0.25s;
-        }
+        /* SERVICE CARD — BIG EMOJI + GRADIENT */
+        .service-card { cursor: pointer; border: none; border-radius: 16px; padding: 22px 12px; text-align: center; color: white; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+        .service-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.25); }
+        .service-card:active { transform: translateY(-2px) scale(0.98); }
+        .service-card.selected { outline: 4px solid #fbbf24; outline-offset: -4px; }
+        .service-card .emoji { font-size: 60px; line-height: 1; display: block; margin-bottom: 10px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transition: transform 0.25s; }
         .service-card:hover .emoji { transform: scale(1.15); }
         .service-card:active .emoji { transform: scale(1.05); }
-        .service-card .name {
-            font-weight: 800;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-            line-height: 1.2;
-        }
-        .service-card .price {
-            font-weight: 700;
-            font-size: 14px;
-            opacity: 0.95;
-        }
-        .service-card .qty-badge {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: #fbbf24;
-            color: #000;
-            font-size: 13px;
-            font-weight: 900;
-            padding: 4px 10px;
-            border-radius: 20px;
-            display: none;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
+        .service-card .name { font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; line-height: 1.2; }
+        .service-card .price { font-weight: 700; font-size: 14px; opacity: 0.95; }
+        .service-card .qty-badge { position: absolute; top: 8px; right: 8px; background: #fbbf24; color: #000; font-size: 13px; font-weight: 900; padding: 4px 10px; border-radius: 20px; display: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
         .service-card.selected .qty-badge { display: block; }
 
-        /* Color variants */
         .bg-blue   { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
         .bg-teal   { background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%); }
         .bg-purple { background: linear-gradient(135deg, #7e22ce 0%, #a855f7 100%); }
@@ -115,9 +63,7 @@
         .bg-amber  { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
         .bg-cyan   { background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%); }
 
-        /* ============================================
-           ADD-ON CARD
-           ============================================ */
+        /* ADD-ON CARD */
         .addon-card { cursor: pointer; border-radius: 14px; background: white; padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border: 2px solid #e5e7eb; transition: all 0.2s; position: relative; user-select: none; -webkit-tap-highlight-color: transparent; }
         .addon-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
         .addon-card.selected { border-color: #10b981; background: #f0fdf4; }
@@ -129,9 +75,7 @@
         .addon-card .qty-badge { background: #10b981; color: white; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: none; margin-top: 4px; }
         .addon-card.selected .qty-badge { display: inline-block; }
 
-        /* ============================================
-           CART PANEL
-           ============================================ */
+        /* CART PANEL */
         .cart-panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-top: 8px; }
         .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
         .cart-empty { color: #94a3b8; text-align: center; font-size: 13px; padding: 12px 0; }
@@ -315,6 +259,7 @@
 </div>
 
 <script src="/role-guard.js"></script>
+<script src="/offline-sync.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     const userName = localStorage.getItem('userName') || 'Unknown';
@@ -326,7 +271,7 @@
 
     let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: 'P' };
     fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
-        .then(res => res.json()).then(data => { if (data) shopSettings = data; });
+        .then(res => res.json()).then(data => { if (data) shopSettings = data; }).catch(() => {});
 
     let pickupServiceInfo = null;
     fetch('/api/pickup-service', { headers: { 'x-auth-token': authToken } })
@@ -338,7 +283,8 @@
         .then(res => res.json())
         .then(customers => {
             document.getElementById('customerList').innerHTML = customers.map(c => `<option value="${c.name}">${c.phone || ''}</option>`).join('');
-        });
+        })
+        .catch(() => {});
 
     let cart = [], total = 0, lastOrder = null;
     let orderType = 'walkin';
@@ -353,10 +299,8 @@
         return parts[0] ? parts[0].toUpperCase() : '';
     }
 
-    // ===== COLOR PALETTE — rotate through these for services =====
     const colorClasses = ['bg-blue', 'bg-teal', 'bg-purple', 'bg-green', 'bg-indigo', 'bg-orange', 'bg-red', 'bg-pink', 'bg-amber', 'bg-cyan'];
 
-    // Smart color based on service name
     function getColorForService(name) {
         const n = (name || '').toLowerCase();
         if (n.includes('wash') && n.includes('fold')) return 'bg-blue';
@@ -372,7 +316,6 @@
         return 'bg-blue';
     }
 
-    // Smart emoji based on service name (fallback if no icon saved)
     function getEmojiForService(name, savedIcon) {
         if (savedIcon && savedIcon.trim()) return savedIcon.trim();
         const n = (name || '').toLowerCase();
@@ -434,7 +377,6 @@
         hint.style.color = '#059669'; hint.innerText = '✅ Valid number'; return true;
     }
 
-    // ===== LOAD SERVICES =====
     fetch('/api/services', { headers: { 'x-auth-token': authToken } })
         .then(response => {
             if (response.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -459,9 +401,9 @@
                         </div>
                     </div>`;
             });
-        });
+        })
+        .catch(() => {});
 
-    // ===== LOAD ADD-ONS =====
     fetch('/api/products', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(products => {
@@ -469,9 +411,7 @@
             const container = document.getElementById('addonsContainer');
             if (addons.length === 0) { container.innerHTML = '<div class="col-12 text-center text-muted py-3">No add-ons available.</div>'; return; }
             addons.forEach(p => {
-                const thumb = p.image_data
-                    ? `<div class="addon-thumb"><img src="${p.image_data}"></div>`
-                    : `<div class="addon-thumb">${p.icon || '📦'}</div>`;
+                const thumb = p.image_data ? `<div class="addon-thumb"><img src="${p.image_data}"></div>` : `<div class="addon-thumb">${p.icon || '📦'}</div>`;
                 container.innerHTML += `
                     <div class="col-12 col-md-6">
                         <div class="addon-card" id="prod-${p.id}" onclick="addToCart('${p.name.replace(/'/g, "\\'")}', ${p.selling_price || p.cost_price || 0}, 'pc', 'addon', 'p${p.id}')">
@@ -487,7 +427,8 @@
                         </div>
                     </div>`;
             });
-        });
+        })
+        .catch(() => {});
 
     document.getElementById('searchBox').addEventListener('input', (e) => {
         const term = e.target.value.toLowerCase();
@@ -576,7 +517,7 @@
 
         if (isPickup) {
             if (!customer) { document.getElementById('customerName').focus(); return alert('⚠️ Customer name is required for Pickup & Delivery'); }
-            if (!/^09\d{9}$/.test(customerPhone)) { document.getElementById('customerPhone').focus(); return alert('⚠️ Cellphone number is required (11 digits, starts with 09)\nExample: 09171234567'); }
+            if (!/^09\d{9}$/.test(customerPhone)) { document.getElementById('customerPhone').focus(); return alert('⚠️ Cellphone number is required (11 digits, starts with 09)'); }
         } else {
             if (!customer) customer = 'Walk-In Customer';
         }
@@ -585,23 +526,64 @@
         const btn = document.getElementById('checkoutBtn');
         btn.innerText = 'Processing...'; btn.disabled = true;
 
-        const receiptData = { customer: formattedCustomer, total, items: JSON.parse(JSON.stringify(cart)), date: new Date().toLocaleString(), paymentStatus, pickupDelivery: isPickup, customerPhone: isPickup ? customerPhone : null };
+        const orderData = {
+            customer: formattedCustomer,
+            total: total,
+            cartItems: JSON.parse(JSON.stringify(cart)),
+            paymentStatus: paymentStatus,
+            cashierName: cashierName,
+            pickupDelivery: isPickup,
+            customerPhone: isPickup ? customerPhone : null
+        };
 
+        const isOnline = navigator.onLine;
+
+        if (!isOnline) {
+            // OFFLINE MODE — queue the order
+            const success = window.HawiSync.addToQueue(orderData);
+            if (!success) { btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
+            const receiptData = {
+                customer: formattedCustomer, total: total,
+                items: JSON.parse(JSON.stringify(cart)),
+                date: new Date().toLocaleString(),
+                paymentStatus: paymentStatus,
+                pickupDelivery: isPickup,
+                customerPhone: isPickup ? customerPhone : null,
+                orderId: 'OFFLINE', _offline: true
+            };
+            lastOrder = receiptData;
+            cart = []; updateCartUI(); setOrderType('walkin');
+            document.getElementById('customerName').value = '';
+            document.querySelectorAll('.qty-badge').forEach(b => { b.innerText = '0'; b.style.display = 'none'; });
+            document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
+            btn.innerText = '✅ Checkout'; btn.disabled = false;
+            window.HawiSync.showToast('📥 Order queued offline — will sync when online', 5000);
+            document.getElementById('printButtons').style.display = 'block';
+            document.getElementById('printButtons').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
+        // ONLINE MODE
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ customer: formattedCustomer, total, cartItems: cart, paymentStatus, cashierName, pickupDelivery: isPickup, customerPhone: isPickup ? customerPhone : null })
+            body: JSON.stringify(orderData)
         })
         .then(res => res.json())
         .then(data => {
             if (data.error) { alert('Error: ' + data.error); btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
             alert(data.message + ' (Cashier: ' + cashierName + ')');
-            receiptData.orderId = data.orderId;
-            receiptData.serviceFlow = data.serviceFlow;
+            const receiptData = {
+                customer: formattedCustomer, total: total,
+                items: JSON.parse(JSON.stringify(cart)),
+                date: new Date().toLocaleString(),
+                paymentStatus: paymentStatus,
+                pickupDelivery: isPickup,
+                customerPhone: isPickup ? customerPhone : null,
+                orderId: data.orderId, serviceFlow: data.serviceFlow
+            };
             lastOrder = receiptData;
-            cart = [];
-            updateCartUI();
-            setOrderType('walkin');
+            cart = []; updateCartUI(); setOrderType('walkin');
             document.getElementById('customerName').value = '';
             document.querySelectorAll('.qty-badge').forEach(b => { b.innerText = '0'; b.style.display = 'none'; });
             document.querySelectorAll('.service-card, .addon-card').forEach(c => c.classList.remove('selected'));
@@ -609,21 +591,21 @@
             document.getElementById('printButtons').style.display = 'block';
             document.getElementById('printButtons').scrollIntoView({ behavior: 'smooth', block: 'center' });
         })
-        .catch(() => { alert("Error saving order."); btn.innerText = '✅ Checkout'; btn.disabled = false; });
+        .catch(err => {
+            console.log('Checkout failed, queueing offline:', err);
+            window.HawiSync.addToQueue(orderData);
+            window.HawiSync.showToast('📥 Order queued offline — will sync when online', 5000);
+            cart = []; updateCartUI(); setOrderType('walkin');
+            document.getElementById('customerName').value = '';
+            btn.innerText = '✅ Checkout'; btn.disabled = false;
+        });
     }
 
     // ===== ASCII HELPERS =====
     function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
     function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
     function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
-    function center(str, len) {
-        str = String(str || '');
-        if (str.length >= len) return str.substring(0, len);
-        const totalPad = len - str.length;
-        const leftPad = Math.floor(totalPad / 2);
-        const rightPad = totalPad - leftPad;
-        return ' '.repeat(leftPad) + str + ' '.repeat(rightPad);
-    }
+    function center(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); const tp = len - str.length; const lp = Math.floor(tp / 2); const rp = tp - lp; return ' '.repeat(lp) + str + ' '.repeat(rp); }
     function formatMoney(n) { return 'P' + parseFloat(n || 0).toFixed(2); }
 
     function buildReceiptText(size) {
@@ -634,6 +616,7 @@
         const shopFirstName = getFirstNameUpper(rawName);
         const isPaid = String(order.paymentStatus).toLowerCase() === 'paid';
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
+        const offlineNote = order._offline ? '*** PENDING SYNC ***' : '';
 
         const d = new Date();
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -643,12 +626,18 @@
         hrs = hrs % 12 || 12;
         const shortDate = months[d.getMonth()] + ' ' + d.getDate() + ', ' + hrs + ':' + mins + ampm;
 
+        const orderId = order.orderId || 'PENDING';
+
         let lines = [];
         lines.push(doubleDividerLine(size));
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
         lines.push(doubleDividerLine(size));
-        lines.push('#' + order.orderId + ' - ' + shortDate);
+        if (offlineNote) {
+            lines.push(center(offlineNote, width));
+            lines.push(dividerLine(size));
+        }
+        lines.push('#' + orderId + ' - ' + shortDate);
         lines.push(customerFullName);
         lines.push(dividerLine(size));
 
@@ -688,7 +677,7 @@
         lines.push('');
         lines.push(center(shopFirstName, width));
         lines.push('');
-        lines.push('#' + order.orderId + ' - ' + shortDate);
+        lines.push('#' + orderId + ' - ' + shortDate);
         lines.push(dividerLine(size));
 
         order.items.forEach(item => {
@@ -705,6 +694,7 @@
         }
         lines.push(dividerLine(size));
         lines.push(center('Thank you!', width));
+
         return lines.join('\n');
     }
 
@@ -732,9 +722,11 @@
         const isPaid = String(lastOrder.paymentStatus).toLowerCase() === 'paid';
         const statusLabel = isPaid ? '*** PAID ***' : '*** PAY ON PICKUP ***';
         const payNote = isPaid ? '' : 'Please pay upon pickup.';
+        const offlineNote = lastOrder._offline ? '<div class="center bold">*** PENDING SYNC ***</div>' : '';
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const cur = 'P';
+        const orderId = lastOrder.orderId || 'PENDING';
 
         const itemsCustomerHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
@@ -753,7 +745,8 @@
                 <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
                 <div class="divider-solid"></div>
-                <div class="info">#${lastOrder.orderId} - ${lastOrder.date}</div>
+                ${offlineNote}
+                <div class="info">#${orderId} - ${lastOrder.date}</div>
                 <div class="info">${customerFullName}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
@@ -777,8 +770,9 @@
                 <div class="center big bold">${shopSettings.shop_name.toUpperCase()}</div>
                 <div class="center" style="font-size: ${fontSize - 1}px;">${shopSettings.tagline || ''}</div>
                 <div class="divider-solid"></div>
+                ${offlineNote}
                 <div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div>
-                <div class="info" style="text-align: left;">#${lastOrder.orderId} - ${lastOrder.date}</div>
+                <div class="info" style="text-align: left;">#${orderId} - ${lastOrder.date}</div>
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table>
                 <div class="divider"></div>
@@ -789,7 +783,7 @@
             </div>
         `;
 
-        const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${lastOrder.orderId}</title>
+        const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${orderId}</title>
             <style>
                 @page { size: ${pageWidth} auto; margin: 0; }
                 body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; }
@@ -827,9 +821,12 @@
         window.location.href = '/login.html';
     }
 
+    // Register service worker (with update)
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-            for (let registration of registrations) { registration.unregister(); }
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/service-worker.js').then(reg => {
+                reg.update();
+            }).catch(() => {});
         });
     }
 </script>

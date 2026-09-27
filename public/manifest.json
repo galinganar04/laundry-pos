@@ -1,7 +1,7 @@
 {
-    "name": "Hawi's Lovada Laundry POS",
+    "name": "Hawi's Lovada POS",
     "short_name": "Hawi's POS",
-    "description": "Point of Sale system for Hawi's Lovada Laundry Shop",
+    "description": "Point of Sale for Hawi's Lovada Laundry Shop",
     "start_url": "/",
     "display": "standalone",
     "orientation": "any",
@@ -23,23 +23,8 @@
         }
     ],
     "shortcuts": [
-        {
-            "name": "Point of Sale",
-            "short_name": "POS",
-            "url": "/",
-            "description": "Open Point of Sale"
-        },
-        {
-            "name": "Orders",
-            "short_name": "Orders",
-            "url": "/orders.html",
-            "description": "View Orders"
-        },
-        {
-            "name": "Dashboard",
-            "short_name": "Dashboard",
-            "url": "/dashboard.html",
-            "description": "View Dashboard"
-        }
+        { "name": "Point of Sale", "short_name": "POS", "url": "/", "description": "Open POS" },
+        { "name": "Orders", "short_name": "Orders", "url": "/orders.html", "description": "View Orders" },
+        { "name": "Dashboard", "short_name": "Dashboard", "url": "/dashboard.html", "description": "View Dashboard" }
     ]
 }
