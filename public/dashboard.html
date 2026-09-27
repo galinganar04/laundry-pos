@@ -6,61 +6,89 @@
     <link rel="icon" type="image/png" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
+        * { box-sizing: border-box; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; position: sticky; top: 0; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
-        .page-title { font-size: 22px; font-weight: 700; color: #0f172a; margin-bottom: 20px; }
-        .stat-card { background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-left: 4px solid #1e40af; }
-        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #475569; letter-spacing: 1.5px; font-weight: 700; }
-        .stat-card .value { font-size: 26px; font-weight: 800; color: #0f172a; margin-top: 4px; }
-        .stat-card.green { border-left-color: #10b981; }
-        .stat-card.orange { border-left-color: #f59e0b; }
-        .stat-card.blue { border-left-color: #3b82f6; }
-        .panel { background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-        .panel h5 { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
 
-        /* ROI Section */
-        .roi-section {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+        .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
+
+        /* Top stat cards */
+        .stat-card {
+            background: white;
             border-radius: 12px;
-            padding: 24px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border-left: 4px solid #1e40af;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .stat-card .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .stat-card .value {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.1;
+        }
+        .stat-card .sub {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        .stat-card.green { border-left-color: #10b981; }
+        .stat-card.blue { border-left-color: #3b82f6; }
+        .stat-card.orange { border-left-color: #f59e0b; }
+        .stat-card.purple { border-left-color: #8b5cf6; }
+
+        /* Section */
+        .section-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 24px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ROI section */
+        .roi-panel {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 14px;
+            padding: 22px;
             color: white;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(30,64,175,0.25);
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(30,64,175,0.25);
         }
-        .roi-section::after {
-            content: '';
-            position: absolute;
-            top: -50px; right: -50px;
-            width: 200px; height: 200px;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-            border-radius: 50%;
-        }
-        .roi-section .roi-heading {
+        .roi-panel .roi-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 16px;
-            position: relative;
-            z-index: 1;
             flex-wrap: wrap;
-            gap: 10px;
-        }
-        .roi-section .roi-heading h4 {
-            font-size: 16px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin: 0;
-            display: flex;
-            align-items: center;
             gap: 8px;
         }
-        .roi-section .roi-heading .btn-group-sm button {
+        .roi-panel .roi-head h4 {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin: 0;
+            text-transform: uppercase;
+        }
+        .roi-panel .roi-head button {
             background: rgba(255,255,255,0.15);
             color: white;
             border: 1px solid rgba(255,255,255,0.3);
@@ -71,78 +99,159 @@
             cursor: pointer;
             margin-left: 6px;
         }
-        .roi-section .roi-heading .btn-group-sm button:hover { background: rgba(255,255,255,0.25); }
+        .roi-panel .roi-head button:hover { background: rgba(255,255,255,0.25); }
 
-        .roi-grid {
+        .roi-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 14px;
-            position: relative;
-            z-index: 1;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
         }
-        .roi-tile {
+        .roi-stat {
             background: rgba(255,255,255,0.12);
             border-radius: 10px;
-            padding: 14px 16px;
+            padding: 12px 14px;
             border: 1px solid rgba(255,255,255,0.15);
         }
-        .roi-tile .lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; font-weight: 700; margin-bottom: 4px; }
-        .roi-tile .val { font-size: 20px; font-weight: 800; }
-        .roi-tile .sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+        .roi-stat .lbl {
+            font-size: 10px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            opacity: 0.85;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .roi-stat .val { font-size: 18px; font-weight: 800; }
+        .roi-stat .sub { font-size: 10px; opacity: 0.75; margin-top: 2px; }
 
+        .roi-big-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
         .roi-big {
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.18);
             border-radius: 12px;
-            padding: 20px;
+            padding: 18px;
             text-align: center;
             border: 2px solid rgba(255,255,255,0.3);
         }
-        .roi-big .lbl { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.9; font-weight: 700; }
-        .roi-big .val { font-size: 42px; font-weight: 900; line-height: 1; margin-top: 6px; }
-        .roi-big .sub { font-size: 12px; opacity: 0.85; margin-top: 6px; }
-        .roi-big.recovered { background: linear-gradient(135deg, rgba(16,185,129,0.35), rgba(16,185,129,0.2)); border-color: #10b981; }
+        .roi-big .lbl { font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; opacity: 0.9; font-weight: 700; }
+        .roi-big .val { font-size: 36px; font-weight: 900; line-height: 1; margin-top: 6px; }
+        .roi-big .sub { font-size: 11px; opacity: 0.85; margin-top: 6px; }
+        .roi-big.recovered { background: linear-gradient(135deg, rgba(16,185,129,0.4), rgba(16,185,129,0.25)); border-color: #10b981; }
 
-        .list-item {
+        /* Panels */
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 18px 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            height: 100%;
+        }
+        .panel h5 {
+            font-size: 14px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Asset/Capital lists */
+        .list-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 12px;
+            padding: 10px 4px;
             border-bottom: 1px solid #f1f5f9;
             font-size: 13px;
         }
-        .list-item:last-child { border-bottom: none; }
-        .list-item .name { font-weight: 700; color: #1e293b; }
-        .list-item .sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-        .list-item .value { font-weight: 800; color: #1e40af; }
-        .list-item .actions { display: flex; gap: 4px; margin-left: 8px; }
-        .list-item .actions button { background: white; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-        .list-item .actions button.del { color: #dc2626; border-color: #fecaca; }
+        .list-row:last-child { border-bottom: none; }
+        .list-row .name { font-weight: 700; color: #1e293b; font-size: 13px; }
+        .list-row .meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .list-row .amount { font-weight: 800; color: #1e40af; }
+        .list-row .btns { display: flex; gap: 4px; margin-left: 8px; }
+        .list-row .btns button {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+        .list-row .btns button.del { color: #dc2626; border-color: #fecaca; }
 
-        .modal-content { border-radius: 12px; border: none; }
-        .modal-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; border-radius: 12px 12px 0 0; }
-        .modal-header .btn-close { filter: invert(1); opacity: 0.85; }
+        /* Table */
+        .clean-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .clean-table thead th {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 10px 8px;
+            border-bottom: 2px solid #e2e8f0;
+            text-align: left;
+        }
+        .clean-table tbody td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #1e293b;
+        }
+        .clean-table tbody tr:hover { background: #f8fafc; }
+        .clean-table .num { text-align: right; font-weight: 700; }
 
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        /* Modals */
+        .modal-content { border-radius: 14px; border: none; }
+        .modal-header {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 14px 14px 0 0;
+            padding: 18px 22px;
+        }
+        .modal-header .btn-close { filter: invert(1); opacity: 0.9; }
+        .modal-body { padding: 22px; }
+
+        /* Dark mode */
         [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; }
-        [data-theme="dark"] .stat-card .value, [data-theme="dark"] .page-title { color: #ffffff !important; }
-        [data-theme="dark"] .stat-card .label { color: #94a3b8 !important; }
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .panel { background-color: #1e293b !important; }
+        [data-theme="dark"] .stat-card .value,
+        [data-theme="dark"] .page-title,
+        [data-theme="dark"] .section-title,
         [data-theme="dark"] .panel h5 { color: #ffffff !important; }
-        [data-theme="dark"] .list-item { border-color: #334155 !important; }
-        [data-theme="dark"] .list-item .name { color: #ffffff !important; }
-        [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .stat-card .label,
+        [data-theme="dark"] .stat-card .sub { color: #94a3b8 !important; }
+        [data-theme="dark"] .list-row { border-color: #334155 !important; }
+        [data-theme="dark"] .list-row .name { color: #ffffff !important; }
+        [data-theme="dark"] .clean-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .clean-table tbody td { color: #e2e8f0 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .clean-table tbody tr:hover { background: #0f172a !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .table { color: #e2e8f0 !important; }
-        [data-theme="dark"] .table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
-        [data-theme="dark"] .table td { border-color: #334155 !important; }
+        [data-theme="dark"] .modal-content { background-color: #1e293b !important; }
+        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
 
         @media (max-width: 767px) {
             .sidebar { display: none !important; }
-            .col-md-10 { padding: 12px !important; }
-            .roi-big .val { font-size: 32px; }
-            .page-title { font-size: 18px; }
+            .col-md-10 { padding: 14px !important; }
+            .page-title { font-size: 20px; }
+            .stat-card .value { font-size: 22px; }
+            .roi-big-wrap { grid-template-columns: 1fr; }
+            .roi-big .val { font-size: 30px; }
+            .roi-panel { padding: 18px; }
         }
     </style>
 </head>
@@ -156,11 +265,11 @@
             </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html" class="active">📊 Dashboard</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/products.html">📦 Products</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>            
             <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
+            <a href="/expenses.html" class="active">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/settings.html">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
@@ -168,118 +277,137 @@
         </div>
 
         <div class="col-md-10 p-4">
-            <h3 class="page-title">Sales Dashboard</h3>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-sub">Overview of your shop's performance</p>
 
-            <!-- Existing stat cards -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-3"><div class="stat-card green"><div class="label">Today's Revenue</div><div class="value" id="todayRevenue">₱0.00</div></div></div>
-                <div class="col-md-3"><div class="stat-card blue"><div class="label">Today's Orders</div><div class="value" id="todayOrders">0</div></div></div>
-                <div class="col-md-3"><div class="stat-card"><div class="label">All-Time Revenue</div><div class="value" id="allTimeRevenue">₱0.00</div></div></div>
-                <div class="col-md-3"><div class="stat-card orange"><div class="label">Pending Orders</div><div class="value" id="pendingOrders">0</div></div></div>
+            <!-- TOP STATS -->
+            <div class="row g-3 mb-2">
+                <div class="col-6 col-md-3">
+                    <div class="stat-card green">
+                        <div class="label">Today's Revenue</div>
+                        <div class="value" id="todayRevenue">₱0.00</div>
+                        <div class="sub" id="todayOrdersSub">0 orders</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card blue">
+                        <div class="label">All-Time Revenue</div>
+                        <div class="value" id="allTimeRevenue">₱0.00</div>
+                        <div class="sub" id="allTimeSub">0 orders</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card orange">
+                        <div class="label">Pending Payments</div>
+                        <div class="value" id="pendingOrders">0</div>
+                        <div class="sub">Unpaid orders</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="stat-card purple">
+                        <div class="label">Avg Order Value</div>
+                        <div class="value" id="avgOrder">₱0.00</div>
+                        <div class="sub">Per transaction</div>
+                    </div>
+                </div>
             </div>
 
-            <!-- ROI SECTION -->
-            <div class="roi-section" id="roiSection">
-                <div class="roi-heading">
-                    <h4>💎 Investment &amp; ROI</h4>
-                    <div class="btn-group-sm">
+            <!-- ROI -->
+            <div class="section-title">💰 Investment &amp; ROI</div>
+            <div class="roi-panel mb-4">
+                <div class="roi-head">
+                    <h4>Investment Overview</h4>
+                    <div>
                         <button onclick="openAssetModal()">+ Asset</button>
                         <button onclick="openCapitalModal()">+ Capital</button>
                     </div>
                 </div>
 
-                <div class="roi-grid mb-3">
-                    <div class="roi-tile">
-                        <div class="lbl">🏦 Capital Invested</div>
+                <div class="roi-stats">
+                    <div class="roi-stat">
+                        <div class="lbl">Capital</div>
                         <div class="val" id="roiCapital">₱0</div>
                         <div class="sub" id="roiCapitalCount">0 entries</div>
                     </div>
-                    <div class="roi-tile">
-                        <div class="lbl">🏗️ Assets Value</div>
+                    <div class="roi-stat">
+                        <div class="lbl">Assets</div>
                         <div class="val" id="roiAssets">₱0</div>
                         <div class="sub" id="roiAssetsCount">0 assets</div>
                     </div>
-                    <div class="roi-tile">
-                        <div class="lbl">📊 Total Investment</div>
+                    <div class="roi-stat">
+                        <div class="lbl">Total Invested</div>
                         <div class="val" id="roiTotalInvest">₱0</div>
                         <div class="sub">Capital + Assets</div>
                     </div>
-                    <div class="roi-tile">
-                        <div class="lbl">💵 Depreciation/mo</div>
+                    <div class="roi-stat">
+                        <div class="lbl">Depreciation/mo</div>
                         <div class="val" id="roiDepr">₱0</div>
                         <div class="sub">Auto-calculated</div>
                     </div>
-                    <div class="roi-tile">
-                        <div class="lbl">📈 All-Time Revenue</div>
-                        <div class="val" id="roiRevenue">₱0</div>
-                        <div class="sub">All orders</div>
-                    </div>
-                    <div class="roi-tile">
-                        <div class="lbl">📉 All-Time Expenses</div>
-                        <div class="val" id="roiExpenses">₱0</div>
-                        <div class="sub">Operating + Inventory</div>
+                    <div class="roi-stat">
+                        <div class="lbl">Net Profit</div>
+                        <div class="val" id="roiNetProfit">₱0</div>
+                        <div class="sub">Revenue − Expenses</div>
                     </div>
                 </div>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="roi-big" id="roiBig">
-                            <div class="lbl">🎯 Return on Investment</div>
-                            <div class="val" id="roiPercent">0%</div>
-                            <div class="sub" id="roiNetProfit">Net Profit: ₱0</div>
-                        </div>
+                <div class="roi-big-wrap">
+                    <div class="roi-big" id="roiBig">
+                        <div class="lbl">Return on Investment</div>
+                        <div class="val" id="roiPercent">0%</div>
+                        <div class="sub" id="roiNetProfitSub">Net Profit: ₱0</div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="roi-big" id="paybackBig">
-                            <div class="lbl">⏱️ Payback Period</div>
-                            <div class="val" id="paybackValue">—</div>
-                            <div class="sub" id="paybackSub">Loading...</div>
-                        </div>
+                    <div class="roi-big" id="paybackBig">
+                        <div class="lbl">Payback Period</div>
+                        <div class="val" id="paybackValue">—</div>
+                        <div class="sub" id="paybackSub">Loading...</div>
                     </div>
                 </div>
             </div>
 
-            <!-- ASSET + CAPITAL LISTS -->
+            <!-- ASSETS + CAPITAL -->
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <div class="panel">
                         <h5>🏗️ Your Assets <span class="badge bg-primary" id="assetBadge">0</span></h5>
-                        <div id="assetsList" style="max-height: 250px; overflow-y: auto;"></div>
+                        <div id="assetsList" style="max-height: 260px; overflow-y: auto;"></div>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="panel">
                         <h5>🏦 Capital Invested <span class="badge bg-success" id="capitalBadge">0</span></h5>
-                        <div id="capitalList" style="max-height: 250px; overflow-y: auto;"></div>
+                        <div id="capitalList" style="max-height: 260px; overflow-y: auto;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Chart -->
+            <!-- CHART -->
+            <div class="section-title">📈 Sales Performance</div>
             <div class="panel mb-4">
                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <h5 class="mb-0">📈 Sales Chart</h5>
+                    <h5 class="mb-0">Revenue Chart</h5>
                     <div>
                         <select id="yearSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()"></select>
                         <select id="monthSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()">
                             <option value="all">Whole Year</option>
-                            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
-                            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
-                            <option value="7">July</option><option value="8">August</option><option value="9">September</option>
-                            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                            <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+                            <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+                            <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+                            <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
                         </select>
                     </div>
                 </div>
-                <div id="weeklyChart" style="display:flex;align-items:flex-end;gap:12px;height:240px;padding:10px 0;border-bottom:2px solid #cbd5e1;overflow-x:auto;"></div>
+                <div id="weeklyChart" style="display:flex;align-items:flex-end;gap:12px;height:220px;padding:10px 0;border-bottom:2px solid #e2e8f0;overflow-x:auto;"></div>
             </div>
 
+            <!-- TOP SERVICES + RECENT ORDERS -->
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="panel">
                         <h5>Top Services</h5>
                         <div style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-sm mb-0">
-                                <thead><tr><th>Service</th><th class="text-end">Qty</th><th class="text-end">Revenue</th></tr></thead>
+                            <table class="clean-table">
+                                <thead><tr><th>Service</th><th class="num">Qty</th><th class="num">Revenue</th></tr></thead>
                                 <tbody id="topServicesTable"></tbody>
                             </table>
                         </div>
@@ -289,8 +417,8 @@
                     <div class="panel">
                         <h5>Recent Orders</h5>
                         <div style="max-height: 300px; overflow-y: auto;">
-                            <table class="table table-sm mb-0">
-                                <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Status</th></tr></thead>
+                            <table class="clean-table">
+                                <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr></thead>
                                 <tbody id="recentOrdersTable"></tbody>
                             </table>
                         </div>
@@ -421,33 +549,36 @@
         return '₱' + n.toFixed(0);
     }
 
-    // ===== DASHBOARD DATA =====
+    // ===== DASHBOARD STATS =====
     fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(data => {
             if (!data || data.error) return;
             document.getElementById('todayRevenue').innerText = '₱' + data.today.revenue.toFixed(2);
-            document.getElementById('todayOrders').innerText = data.today.orders;
+            document.getElementById('todayOrdersSub').innerText = data.today.orders + ' order' + (data.today.orders === 1 ? '' : 's');
             document.getElementById('allTimeRevenue').innerText = '₱' + data.allTime.revenue.toFixed(2);
+            document.getElementById('allTimeSub').innerText = data.allTime.orders + ' order' + (data.allTime.orders === 1 ? '' : 's');
             document.getElementById('pendingOrders').innerText = data.pending;
+            const avg = data.allTime.orders > 0 ? (data.allTime.revenue / data.allTime.orders) : 0;
+            document.getElementById('avgOrder').innerText = '₱' + avg.toFixed(2);
 
             const servicesTable = document.getElementById('topServicesTable');
             servicesTable.innerHTML = data.topServices.length === 0
-                ? '<tr><td colspan="3" class="text-muted text-center py-3">No sales yet.</td></tr>'
-                : data.topServices.map(s => `<tr><td>${s.service_name}</td><td class="text-end"><strong>${s.total_qty}</strong></td><td class="text-end"><strong>₱${parseFloat(s.total_revenue).toFixed(2)}</strong></td></tr>`).join('');
+                ? '<tr><td colspan="3" class="empty-state">No sales yet</td></tr>'
+                : data.topServices.map(s => `<tr><td>${s.service_name}</td><td class="num">${s.total_qty}</td><td class="num">₱${parseFloat(s.total_revenue).toFixed(2)}</td></tr>`).join('');
 
             const ordersTable = document.getElementById('recentOrdersTable');
             ordersTable.innerHTML = data.recentOrders.length === 0
-                ? '<tr><td colspan="5" class="text-muted text-center py-3">No orders yet.</td></tr>'
+                ? '<tr><td colspan="5" class="empty-state">No orders yet</td></tr>'
                 : data.recentOrders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const badge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
-                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
+                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="num">₱${parseFloat(o.total).toFixed(2)}</td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
                 }).join('');
         })
         .catch(() => {});
 
-    // ===== LOAD ROI =====
+    // ===== ROI =====
     function loadROI() {
         fetch('/api/roi', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -457,11 +588,10 @@
                 document.getElementById('roiAssets').innerText = shortPeso(d.totalAssets);
                 document.getElementById('roiTotalInvest').innerText = shortPeso(d.totalInvestment);
                 document.getElementById('roiDepr').innerText = shortPeso(d.monthlyDepreciation);
-                document.getElementById('roiRevenue').innerText = shortPeso(d.totalRevenue);
-                document.getElementById('roiExpenses').innerText = shortPeso(d.totalExpenses);
-                document.getElementById('roiNetProfit').innerText = 'Net Profit: ' + shortPeso(d.netProfit);
+                document.getElementById('roiNetProfit').innerText = shortPeso(d.netProfit);
                 document.getElementById('roiAssetsCount').innerText = d.assetCount + ' asset' + (d.assetCount === 1 ? '' : 's');
                 document.getElementById('roiPercent').innerText = d.roi.toFixed(1) + '%';
+                document.getElementById('roiNetProfitSub').innerText = 'Net Profit: ' + shortPeso(d.netProfit);
 
                 const roiBig = document.getElementById('roiBig');
                 roiBig.classList.toggle('recovered', d.netProfit >= d.totalInvestment);
@@ -483,7 +613,7 @@
             .catch(() => {});
     }
 
-    // ===== LOAD ASSETS =====
+    // ===== ASSETS =====
     function loadAssets() {
         fetch('/api/assets', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -492,18 +622,18 @@
                 document.getElementById('assetBadge').innerText = assets.length;
                 const list = document.getElementById('assetsList');
                 if (assets.length === 0) {
-                    list.innerHTML = '<p class="text-muted small text-center py-3">No assets yet. Click <strong>+ Asset</strong> above.</p>';
+                    list.innerHTML = '<div class="empty-state">No assets yet.<br>Click <strong>+ Asset</strong> above.</div>';
                     return;
                 }
                 list.innerHTML = assets.map(a => `
-                    <div class="list-item">
+                    <div class="list-row">
                         <div>
                             <div class="name">${a.name}</div>
-                            <div class="sub">${a.category} • Bought ${new Date(a.purchase_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+                            <div class="meta">${a.category} • ${new Date(a.purchase_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;">
-                            <span class="value">${peso(a.purchase_price)}</span>
-                            <div class="actions">
+                            <span class="amount">${peso(a.purchase_price)}</span>
+                            <div class="btns">
                                 <button onclick="editAsset(${a.id})">✏️</button>
                                 <button class="del" onclick="deleteAsset(${a.id}, '${a.name.replace(/'/g, "\\'")}')">🗑</button>
                             </div>
@@ -514,7 +644,7 @@
             .catch(() => {});
     }
 
-    // ===== LOAD CAPITAL =====
+    // ===== CAPITAL =====
     function loadCapital() {
         fetch('/api/capital', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -524,18 +654,18 @@
                 document.getElementById('roiCapitalCount').innerText = items.length + ' entr' + (items.length === 1 ? 'y' : 'ies');
                 const list = document.getElementById('capitalList');
                 if (items.length === 0) {
-                    list.innerHTML = '<p class="text-muted small text-center py-3">No capital entries yet. Click <strong>+ Capital</strong> above.</p>';
+                    list.innerHTML = '<div class="empty-state">No capital entries yet.<br>Click <strong>+ Capital</strong> above.</div>';
                     return;
                 }
                 list.innerHTML = items.map(c => `
-                    <div class="list-item">
+                    <div class="list-row">
                         <div>
                             <div class="name">${c.description}</div>
-                            <div class="sub">${c.category} • ${new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                            <div class="meta">${c.category} • ${new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:6px;">
-                            <span class="value" style="color:#10b981;">${peso(c.amount)}</span>
-                            <div class="actions">
+                            <span class="amount" style="color:#10b981;">${peso(c.amount)}</span>
+                            <div class="btns">
                                 <button onclick="editCapital(${c.id})">✏️</button>
                                 <button class="del" onclick="deleteCapital(${c.id}, '${c.description.replace(/'/g, "\\'")}')">🗑</button>
                             </div>
@@ -688,20 +818,20 @@
             .then(data => {
                 const chart = document.getElementById('weeklyChart');
                 if (!data || data.length === 0) {
-                    chart.innerHTML = '<div style="color:#94a3b8;padding:40px;text-align:center;width:100%;">📊 No sales for this period.</div>';
+                    chart.innerHTML = '<div class="empty-state" style="width:100%;">📊 No sales for this period.</div>';
                     return;
                 }
                 const maxRev = Math.max(...data.map(d => parseFloat(d.revenue)), 1);
                 chart.innerHTML = data.map(d => {
                     const revenue = parseFloat(d.revenue);
-                    const height = (revenue / maxRev) * 180;
+                    const height = (revenue / maxRev) * 160;
                     const dateObj = new Date(d.day);
                     const label = view === 'month' ? dateObj.toLocaleDateString('en-US', { month: 'short' }) : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     return `<div style="display:flex;flex-direction:column;align-items:center;min-width:70px;">
                         <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:6px;">₱${revenue.toFixed(0)}</div>
-                        <div style="width:42px;height:${Math.max(height,6)}px;background:linear-gradient(180deg,#3b82f6,#1e40af);border-radius:6px 6px 0 0;"></div>
+                        <div style="width:38px;height:${Math.max(height,6)}px;background:linear-gradient(180deg,#3b82f6,#1e40af);border-radius:6px 6px 0 0;"></div>
                         <div style="font-size:11px;font-weight:700;color:#0f172a;margin-top:8px;">${label}</div>
-                        <div style="font-size:10px;color:#475569;">${d.order_count} order${d.order_count === 1 ? '' : 's'}</div>
+                        <div style="font-size:10px;color:#64748b;">${d.order_count} order${d.order_count === 1 ? '' : 's'}</div>
                     </div>`;
                 }).join('');
             })
@@ -717,7 +847,6 @@
         window.location.href = '/login.html';
     }
 
-    // INIT
     loadROI();
     loadAssets();
     loadCapital();
