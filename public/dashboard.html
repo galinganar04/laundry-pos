@@ -13,23 +13,24 @@
             font-family: 'Segoe UI', sans-serif;
             margin: 0;
             padding: 0;
-        }
-
-        /* Simple scroll — no layout changes */
-        body {
-            overflow-y: auto;
             overflow-x: hidden;
+            overflow-y: auto;
+            height: auto;
+            min-height: 100%;
         }
 
-        /* Sidebar stays fixed */
+        /* Sidebar — fixed on desktop */
         .sidebar {
             background-color: #1e293b;
             color: white;
             height: 100vh;
             padding-top: 20px;
-            position: sticky;
+            position: fixed;
             top: 0;
+            left: 0;
+            width: 16.66667%;
             overflow-y: auto;
+            z-index: 100;
         }
         .sidebar::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-track { background: #0f172a; }
@@ -38,19 +39,22 @@
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
 
-        .col-md-10 { padding-bottom: 80px; }
+        /* Main content — pushed right of sidebar */
+        .main-content {
+            margin-left: 16.66667%;
+            padding: 24px 24px 100px;
+        }
 
         .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
         .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
 
-        /* Stats */
+        /* Stat cards */
         .stat-card {
             background: white;
             border-radius: 12px;
             padding: 18px 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             border-left: 4px solid #1e40af;
-            height: 100%;
         }
         .stat-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 6px; }
         .stat-card .value { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.1; }
@@ -142,7 +146,6 @@
             border-radius: 12px;
             padding: 18px 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            height: 100%;
         }
         .panel h5 {
             font-size: 14px;
@@ -229,7 +232,6 @@
             box-shadow: 0 4px 12px rgba(30,64,175,0.4);
             display: none;
             z-index: 999;
-            transition: opacity 0.2s;
         }
         #backToTop:hover { background: #1e3a8a; }
 
@@ -257,9 +259,9 @@
 
         @media (max-width: 767px) {
             .sidebar { display: none !important; }
-            .col-md-10 {
-                padding: 14px !important;
-                padding-bottom: 100px !important;
+            .main-content {
+                margin-left: 0 !important;
+                padding: 14px 14px 100px !important;
             }
             .page-title { font-size: 20px; }
             .stat-card .value { font-size: 22px; }
@@ -271,173 +273,167 @@
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="text-center mb-4">
-                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
-            </div>
-            <a href="/">🧺 POS</a>
+<!-- SIDEBAR -->
+<div class="sidebar d-none d-md-block">
+    <div class="text-center mb-4">
+        <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+    </div>
+    <a href="/">🧺 POS</a>
             <a href="/dashboard.html" class="active">📊 Dashboard</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/products.html">📦 Products</a>
             <a href="/services.html">🧴 Services</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>            
             <a href="/replenishments.html">📥 Replenishments</a>
             <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
             <a href="/settings.html">⚙️ Settings</a>
             <a href="#" class="theme-toggle">🌙 Dark Mode</a>
             <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-sub">Overview of your shop's performance</p>
+
+    <!-- TOP STATS -->
+    <div class="row g-3 mb-2">
+        <div class="col-6 col-md-3">
+            <div class="stat-card green">
+                <div class="label">Today's Revenue</div>
+                <div class="value" id="todayRevenue">₱0.00</div>
+                <div class="sub" id="todayOrdersSub">0 orders</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card blue">
+                <div class="label">All-Time Revenue</div>
+                <div class="value" id="allTimeRevenue">₱0.00</div>
+                <div class="sub" id="allTimeSub">0 orders</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card orange">
+                <div class="label">Pending Payments</div>
+                <div class="value" id="pendingOrders">0</div>
+                <div class="sub">Unpaid orders</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-card purple">
+                <div class="label">Avg Order Value</div>
+                <div class="value" id="avgOrder">₱0.00</div>
+                <div class="sub">Per transaction</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROI -->
+    <div class="section-title">💰 Investment &amp; ROI</div>
+    <div class="roi-panel mb-4">
+        <div class="roi-head">
+            <h4>Investment Overview</h4>
+            <div>
+                <button onclick="openAssetModal()">+ Asset</button>
+                <button onclick="openCapitalModal()">+ Capital</button>
+            </div>
         </div>
 
-        <div class="col-md-10 p-4">
-            <h1 class="page-title">Dashboard</h1>
-            <p class="page-sub">Overview of your shop's performance</p>
-
-            <!-- TOP STATS -->
-            <div class="row g-3 mb-2">
-                <div class="col-6 col-md-3">
-                    <div class="stat-card green">
-                        <div class="label">Today's Revenue</div>
-                        <div class="value" id="todayRevenue">₱0.00</div>
-                        <div class="sub" id="todayOrdersSub">0 orders</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-card blue">
-                        <div class="label">All-Time Revenue</div>
-                        <div class="value" id="allTimeRevenue">₱0.00</div>
-                        <div class="sub" id="allTimeSub">0 orders</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-card orange">
-                        <div class="label">Pending Payments</div>
-                        <div class="value" id="pendingOrders">0</div>
-                        <div class="sub">Unpaid orders</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-card purple">
-                        <div class="label">Avg Order Value</div>
-                        <div class="value" id="avgOrder">₱0.00</div>
-                        <div class="sub">Per transaction</div>
-                    </div>
-                </div>
+        <div class="roi-stats">
+            <div class="roi-stat">
+                <div class="lbl">Capital</div>
+                <div class="val" id="roiCapital">₱0</div>
+                <div class="sub" id="roiCapitalCount">0 entries</div>
             </div>
-
-            <!-- ROI -->
-            <div class="section-title">💰 Investment &amp; ROI</div>
-            <div class="roi-panel mb-4">
-                <div class="roi-head">
-                    <h4>Investment Overview</h4>
-                    <div>
-                        <button onclick="openAssetModal()">+ Asset</button>
-                        <button onclick="openCapitalModal()">+ Capital</button>
-                    </div>
-                </div>
-
-                <div class="roi-stats">
-                    <div class="roi-stat">
-                        <div class="lbl">Capital</div>
-                        <div class="val" id="roiCapital">₱0</div>
-                        <div class="sub" id="roiCapitalCount">0 entries</div>
-                    </div>
-                    <div class="roi-stat">
-                        <div class="lbl">Assets</div>
-                        <div class="val" id="roiAssets">₱0</div>
-                        <div class="sub" id="roiAssetsCount">0 assets</div>
-                    </div>
-                    <div class="roi-stat">
-                        <div class="lbl">Total Invested</div>
-                        <div class="val" id="roiTotalInvest">₱0</div>
-                        <div class="sub">Capital + Assets</div>
-                    </div>
-                    <div class="roi-stat">
-                        <div class="lbl">Depreciation/mo</div>
-                        <div class="val" id="roiDepr">₱0</div>
-                        <div class="sub">Auto-calculated</div>
-                    </div>
-                    <div class="roi-stat">
-                        <div class="lbl">Net Profit</div>
-                        <div class="val" id="roiNetProfit">₱0</div>
-                        <div class="sub">Revenue − Expenses</div>
-                    </div>
-                </div>
-
-                <div class="roi-big-wrap">
-                    <div class="roi-big" id="roiBig">
-                        <div class="lbl">Return on Investment</div>
-                        <div class="val" id="roiPercent">0%</div>
-                        <div class="sub" id="roiNetProfitSub">Net Profit: ₱0</div>
-                    </div>
-                    <div class="roi-big" id="paybackBig">
-                        <div class="lbl">Payback Period</div>
-                        <div class="val" id="paybackValue">—</div>
-                        <div class="sub" id="paybackSub">Loading...</div>
-                    </div>
-                </div>
+            <div class="roi-stat">
+                <div class="lbl">Assets</div>
+                <div class="val" id="roiAssets">₱0</div>
+                <div class="sub" id="roiAssetsCount">0 assets</div>
             </div>
-
-            <!-- ASSETS + CAPITAL -->
-            <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <div class="panel">
-                        <h5>🏗️ Your Assets <span class="badge bg-primary" id="assetBadge">0</span></h5>
-                        <div id="assetsList" style="max-height: 260px; overflow-y: auto;"></div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="panel">
-                        <h5>🏦 Capital Invested <span class="badge bg-success" id="capitalBadge">0</span></h5>
-                        <div id="capitalList" style="max-height: 260px; overflow-y: auto;"></div>
-                    </div>
-                </div>
+            <div class="roi-stat">
+                <div class="lbl">Total Invested</div>
+                <div class="val" id="roiTotalInvest">₱0</div>
+                <div class="sub">Capital + Assets</div>
             </div>
-
-            <!-- CHART -->
-            <div class="section-title">📈 Sales Performance</div>
-            <div class="panel mb-4">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <h5 class="mb-0">Revenue Chart</h5>
-                    <div>
-                        <select id="yearSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()"></select>
-                        <select id="monthSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()">
-                            <option value="all">Whole Year</option>
-                            <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
-                            <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
-                            <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
-                            <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="weeklyChart" style="display:flex;align-items:flex-end;gap:12px;height:220px;padding:10px 0;border-bottom:2px solid #e2e8f0;overflow-x:auto;"></div>
+            <div class="roi-stat">
+                <div class="lbl">Depreciation/mo</div>
+                <div class="val" id="roiDepr">₱0</div>
+                <div class="sub">Auto-calculated</div>
             </div>
+            <div class="roi-stat">
+                <div class="lbl">Net Profit</div>
+                <div class="val" id="roiNetProfit">₱0</div>
+                <div class="sub">Revenue − Expenses</div>
+            </div>
+        </div>
 
-            <!-- TOP SERVICES + RECENT ORDERS -->
-            <div class="row g-3">
-                <div class="col-md-5">
-                    <div class="panel">
-                        <h5>Top Services</h5>
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            <table class="clean-table">
-                                <thead><tr><th>Service</th><th class="num">Qty</th><th class="num">Revenue</th></tr></thead>
-                                <tbody id="topServicesTable"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-7">
-                    <div class="panel">
-                        <h5>Recent Orders</h5>
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            <table class="clean-table">
-                                <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr></thead>
-                                <tbody id="recentOrdersTable"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+        <div class="roi-big-wrap">
+            <div class="roi-big" id="roiBig">
+                <div class="lbl">Return on Investment</div>
+                <div class="val" id="roiPercent">0%</div>
+                <div class="sub" id="roiNetProfitSub">Net Profit: ₱0</div>
+            </div>
+            <div class="roi-big" id="paybackBig">
+                <div class="lbl">Payback Period</div>
+                <div class="val" id="paybackValue">—</div>
+                <div class="sub" id="paybackSub">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ASSETS + CAPITAL -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="panel">
+                <h5>🏗️ Your Assets <span class="badge bg-primary" id="assetBadge">0</span></h5>
+                <div id="assetsList"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="panel">
+                <h5>🏦 Capital Invested <span class="badge bg-success" id="capitalBadge">0</span></h5>
+                <div id="capitalList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="section-title">📈 Sales Performance</div>
+    <div class="panel mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <h5 class="mb-0">Revenue Chart</h5>
+            <div>
+                <select id="yearSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()"></select>
+                <select id="monthSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()">
+                    <option value="all">Whole Year</option>
+                    <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+                    <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+                    <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+                    <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+                </select>
+            </div>
+        </div>
+        <div id="weeklyChart" style="display:flex;align-items:flex-end;gap:12px;height:220px;padding:10px 0;border-bottom:2px solid #e2e8f0;overflow-x:auto;"></div>
+    </div>
+
+    <!-- TOP SERVICES + RECENT ORDERS -->
+    <div class="row g-3">
+        <div class="col-md-5">
+            <div class="panel">
+                <h5>Top Services</h5>
+                <table class="clean-table">
+                    <thead><tr><th>Service</th><th class="num">Qty</th><th class="num">Revenue</th></tr></thead>
+                    <tbody id="topServicesTable"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="panel">
+                <h5>Recent Orders</h5>
+                <table class="clean-table">
+                    <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr></thead>
+                    <tbody id="recentOrdersTable"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -558,15 +554,14 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function shortPeso(n) {
         n = parseFloat(n) || 0;
         if (n >= 1000000) return '₱' + (n / 1000000).toFixed(2) + 'M';
         if (n >= 1000) return '₱' + (n / 1000).toFixed(1) + 'K';
         return '₱' + n.toFixed(0);
     }
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-    // ===== DASHBOARD STATS =====
     fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(data => {
@@ -579,13 +574,11 @@
             const avg = data.allTime.orders > 0 ? (data.allTime.revenue / data.allTime.orders) : 0;
             document.getElementById('avgOrder').innerText = '₱' + avg.toFixed(2);
 
-            const servicesTable = document.getElementById('topServicesTable');
-            servicesTable.innerHTML = data.topServices.length === 0
+            document.getElementById('topServicesTable').innerHTML = data.topServices.length === 0
                 ? '<tr><td colspan="3" class="empty-state">No sales yet</td></tr>'
                 : data.topServices.map(s => `<tr><td>${s.service_name}</td><td class="num">${s.total_qty}</td><td class="num">₱${parseFloat(s.total_revenue).toFixed(2)}</td></tr>`).join('');
 
-            const ordersTable = document.getElementById('recentOrdersTable');
-            ordersTable.innerHTML = data.recentOrders.length === 0
+            document.getElementById('recentOrdersTable').innerHTML = data.recentOrders.length === 0
                 ? '<tr><td colspan="5" class="empty-state">No orders yet</td></tr>'
                 : data.recentOrders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
@@ -595,7 +588,6 @@
         })
         .catch(() => {});
 
-    // ===== ROI =====
     function loadROI() {
         fetch('/api/roi', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -610,8 +602,7 @@
                 document.getElementById('roiPercent').innerText = d.roi.toFixed(1) + '%';
                 document.getElementById('roiNetProfitSub').innerText = 'Net Profit: ' + shortPeso(d.netProfit);
 
-                const roiBig = document.getElementById('roiBig');
-                roiBig.classList.toggle('recovered', d.netProfit >= d.totalInvestment);
+                document.getElementById('roiBig').classList.toggle('recovered', d.netProfit >= d.totalInvestment);
 
                 const paybackBig = document.getElementById('paybackBig');
                 if (d.paybackRecovered) {
@@ -630,7 +621,6 @@
             .catch(() => {});
     }
 
-    // ===== ASSETS =====
     function loadAssets() {
         fetch('/api/assets', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -661,7 +651,6 @@
             .catch(() => {});
     }
 
-    // ===== CAPITAL =====
     function loadCapital() {
         fetch('/api/capital', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -693,7 +682,6 @@
             .catch(() => {});
     }
 
-    // ===== ASSET MODAL =====
     function openAssetModal() {
         document.getElementById('assetModalTitle').innerText = 'Add Asset';
         document.getElementById('assetId').value = '';
@@ -756,7 +744,6 @@
             .then(() => { loadAssets(); loadROI(); });
     }
 
-    // ===== CAPITAL MODAL =====
     function openCapitalModal() {
         document.getElementById('capitalModalTitle').innerText = 'Add Capital';
         document.getElementById('capitalId').value = '';
@@ -813,7 +800,6 @@
             .then(() => { loadCapital(); loadROI(); });
     }
 
-    // ===== CHART =====
     function loadYears() {
         fetch('/api/dashboard/years', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -864,7 +850,6 @@
         window.location.href = '/login.html';
     }
 
-    // Show back-to-top when scrolled
     window.addEventListener('scroll', () => {
         document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
     });
