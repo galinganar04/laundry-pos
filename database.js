@@ -47,8 +47,34 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_history JSONB DEFAULT '[]'::jsonb;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMPTZ DEFAULT NOW();`);
 
-        // NEW: Archive support
+        // Archive support
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;`);
+
+        // ===== NEW: Service Flow Types table =====
+        await pool.query(`CREATE TABLE IF NOT EXISTS service_flows (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            flow_key TEXT NOT NULL UNIQUE,
+            steps JSONB NOT NULL,
+            is_custom BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );`);
+
+        // Seed default flow types
+        const defaultFlows = [
+            { name: 'Wash + Dry + Fold', key: 'wash_dry_fold', steps: ['Received', 'Washing', 'Drying', 'Folding', 'Done (Ready to Pickup)'] },
+            { name: 'Wash + Dry', key: 'wash_dry', steps: ['Received', 'Washing', 'Drying', 'Done (Ready to Pickup)'] },
+            { name: 'Wash Only', key: 'wash_only', steps: ['Received', 'Washing', 'Done (Ready to Pickup)'] },
+            { name: 'Dry Only (Spin & Dry)', key: 'dry_only', steps: ['Received', 'Spin & Dry', 'Done (Ready to Pickup)'] },
+            { name: 'Fold Only', key: 'fold_only', steps: ['Received', 'Folding', 'Done (Ready to Pickup)'] },
+            { name: 'Pickup / Delivery Only', key: 'pickup_delivery', steps: ['Received', 'Done (Ready to Pickup)'] }
+        ];
+        for (const f of defaultFlows) {
+            await pool.query(
+                `INSERT INTO service_flows (name, flow_key, steps, is_custom) VALUES ($1, $2, $3, FALSE) ON CONFLICT (flow_key) DO NOTHING`,
+                [f.name, f.key, JSON.stringify(f.steps)]
+            );
+        }
 
         await pool.query(`UPDATE services SET service_type = 'wash_dry_fold' WHERE service_type IS NULL OR service_type = 'Per Load';`);
 
@@ -87,6 +113,38 @@ async function getServices() {
 async function getPickupService() {
     const result = await pool.query("SELECT * FROM services WHERE status = 'Available' AND (LOWER(name) LIKE '%pickup%' OR LOWER(name) LIKE '%delivery%') LIMIT 1");
     return result.rows[0] || null;
+}
+
+// ===== SERVICE FLOWS =====
+async function getAllServiceFlows() {
+    const result = await pool.query("SELECT * FROM service_flows ORDER BY is_custom ASC, id ASC");
+    return result.rows;
+}
+
+async function addServiceFlow(name, steps) {
+    // Generate flow_key from name (lowercase, underscore)
+    const flow_key = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + Date.now().toString(36);
+    const result = await pool.query(
+        `INSERT INTO service_flows (name, flow_key, steps, is_custom) VALUES ($1, $2, $3, TRUE) RETURNING *`,
+        [name, flow_key, JSON.stringify(steps)]
+    );
+    return result.rows[0];
+}
+
+async function updateServiceFlow(id, name, steps) {
+    await pool.query(
+        `UPDATE service_flows SET name = $1, steps = $2 WHERE id = $3 AND is_custom = TRUE`,
+        [name, JSON.stringify(steps), id]
+    );
+}
+
+async function deleteServiceFlow(id) {
+    await pool.query(`DELETE FROM service_flows WHERE id = $1 AND is_custom = TRUE`, [id]);
+}
+
+async function getServiceFlowByKey(flow_key) {
+    const result = await pool.query("SELECT * FROM service_flows WHERE flow_key = $1", [flow_key]);
+    return result.rows[0];
 }
 
 async function addService(data) {
@@ -215,10 +273,7 @@ async function archiveBatch(ids) {
 }
 
 async function cleanupOldArchive() {
-    // Delete archived orders older than 7 days
-    const result = await pool.query(
-        "DELETE FROM orders WHERE archived_at IS NOT NULL AND archived_at < NOW() - INTERVAL '7 days' RETURNING id"
-    );
+    const result = await pool.query("DELETE FROM orders WHERE archived_at IS NOT NULL AND archived_at < NOW() - INTERVAL '7 days' RETURNING id");
     return result.rowCount;
 }
 
@@ -230,8 +285,7 @@ async function deleteOrder(id) {
     if (orderResult.rows.length === 0) return;
     const order = orderResult.rows[0];
     const archivedResult = await pool.query(
-        `INSERT INTO archived_orders (original_id, date, customer, total, payment_status, status, cashier_name)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        `INSERT INTO archived_orders (original_id, date, customer, total, payment_status, status, cashier_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
         [order.id, order.date, order.customer, order.total, order.payment_status, order.status, order.cashier_name]
     );
     const archivedId = archivedResult.rows[0].id;
@@ -274,8 +328,7 @@ async function getCustomerOrders(name) {
 
 async function getReportSummary(dateFrom, dateTo) {
     const result = await pool.query(`
-        SELECT COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_revenue,
-            COALESCE(AVG(total), 0) AS avg_order_value,
+        SELECT COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_revenue, COALESCE(AVG(total), 0) AS avg_order_value,
             COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN total ELSE 0 END), 0) AS unpaid_revenue
         FROM (
             SELECT total, payment_status FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
@@ -456,6 +509,7 @@ async function updateUserRole(id, role) { await pool.query("UPDATE users SET rol
 
 module.exports = {
     pool, getServices, addService, updateService, deleteService, getPickupService,
+    getAllServiceFlows, addServiceFlow, updateServiceFlow, deleteServiceFlow, getServiceFlowByKey,
     saveOrder, getOrders, getArchivedOrders, getOrderById,
     archiveOrder, restoreOrder, archiveBatch, cleanupOldArchive,
     markAsPaid, markAsUnpaid, deleteOrder, updateOrderStatus,

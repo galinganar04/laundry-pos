@@ -1,0 +1,20 @@
+[33mff044c8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m PWA + offline mode with auto-sync
+[33m62f6fd0[m Add Archive feature with 7-day auto-cleanup
+[33ma4124ec[m Mobile: clean organized order cards
+[33m1342ca9[m Big emoji service buttons with gradient backgrounds
+[33m8022962[m Fix RawBT: ASCII-only receipt characters
+[33ma52f354[m Mobile: orders as stacked cards, print always visible
+[33me690721[m Fix orders page mobile: default to All + debug info
+[33m8cf6892[m RawBT mobile print + compact receipt + shop copy layout
+[33m1707ac1[m Receipt name format: Title Case / First Name caps + blank customer field
+[33mcd76c30[m Update products page
+[33md1b7504[m Hidden pickup service with auto-add fee
+[33me8c8c44[m Hidden pickup service with auto-add fee
+[33m36c1b0d[m Add explicit Walk-In / Pickup toggle on cart
+[33m463425a[m Fix cache + add pickup auto-detect + phone validation
+[33m08d0652[m Auto-detect pickup/delivery service + phone validation
+[33mcb9dd6d[m Login: Employee/Customer tab toggle
+[33m1d5e391[m Part 3: dynamic order status + public tracking
+[33mcbdb36f[m Part 2: pickup & delivery + service flow
+[33m3765d27[m Add order status flow schema
+[33m19613a7[m Mobile: single-scroll POS layout with search filter

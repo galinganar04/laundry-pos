@@ -13,19 +13,25 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = 'shop1234';
 const sessions = new Map();
 
+// ===== SERVICE FLOW LOGIC =====
 function buildServiceFlow(cartItems, hasPickupDelivery) {
     const names = cartItems.filter(i => !i.isPickupFee).map(i => (i.name || '').toLowerCase());
     const hasWash = names.some(n => n.includes('wash'));
     const hasDry = names.some(n => n.includes('dry'));
     const hasFold = names.some(n => n.includes('fold'));
+    const hasSpin = names.some(n => n.includes('spin'));
+    const hasIron = names.some(n => n.includes('iron'));
 
     const flow = ['Received'];
 
-    if (hasDry && !hasWash && !hasFold) {
+    if (hasSpin) {
+        flow.push('Spin & Dry');
+    } else if (hasDry && !hasWash && !hasFold && !hasIron) {
         flow.push('Spin & Dry');
     } else {
         if (hasWash) flow.push('Washing');
         if (hasDry) flow.push('Drying');
+        if (hasIron) flow.push('Ironing');
         if (hasFold) flow.push('Folding');
     }
 
@@ -211,8 +217,7 @@ app.put('/api/users/me/security', requireAuth, async (req, res) => {
         const ok = await bcrypt.compare(current_password, user.password_hash);
         if (!ok) return res.status(401).json({ error: 'Current password is wrong' });
         const ans_hash = await bcrypt.hash(security_answer.toLowerCase().trim(), 10);
-        await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3",
-            [security_question, ans_hash, session.userId]);
+        await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3", [security_question, ans_hash, session.userId]);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -278,6 +283,40 @@ app.delete('/api/users/:id', requireAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ===== SERVICE FLOWS =====
+app.get('/api/service-flows', requireAuth, async (req, res) => {
+    try { res.json(await db.getAllServiceFlows()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/service-flows', requireAuth, async (req, res) => {
+    const { name, steps } = req.body;
+    if (!name || !Array.isArray(steps) || steps.length < 2) {
+        return res.status(400).json({ error: 'Name and at least 2 steps are required' });
+    }
+    try {
+        const flow = await db.addServiceFlow(name.trim(), steps);
+        res.json({ success: true, flow });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/service-flows/:id', requireAuth, async (req, res) => {
+    const { name, steps } = req.body;
+    if (!name || !Array.isArray(steps) || steps.length < 2) {
+        return res.status(400).json({ error: 'Name and at least 2 steps are required' });
+    }
+    try {
+        await db.updateServiceFlow(req.params.id, name.trim(), steps);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/service-flows/:id', requireAuth, async (req, res) => {
+    try {
+        await db.deleteServiceFlow(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ===== SERVICES =====
 app.get('/api/services', requireAuth, async (req, res) => {
     try { res.json(await db.getServices()); } catch (err) { res.status(500).json({ error: err.message }); }
@@ -310,7 +349,7 @@ app.delete('/api/services/:id', requireAuth, async (req, res) => {
 
 // ===== CHECKOUT =====
 app.post('/api/checkout', requireAuth, async (req, res) => {
-    const { customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone } = req.body;
+    const { customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone, offlineId } = req.body;
     try {
         if (!cartItems || cartItems.length === 0) return res.status(400).json({ error: 'Cart is empty' });
         if (pickupDelivery) {
@@ -323,7 +362,7 @@ app.post('/api/checkout', requireAuth, async (req, res) => {
         }
         const serviceFlow = buildServiceFlow(cartItems, pickupDelivery);
         const orderId = await db.saveOrder(customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone, serviceFlow);
-        res.json({ message: "Order saved successfully!", orderId, serviceFlow });
+        res.json({ message: offlineId ? "Offline order synced!" : "Order saved successfully!", orderId, serviceFlow });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -332,6 +371,21 @@ app.get('/api/orders', requireAuth, async (req, res) => {
     try {
         const { filter = 'all', search = '', dateFrom = '', dateTo = '' } = req.query;
         res.json(await db.getOrders(filter, search, dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/orders/archive', requireAuth, async (req, res) => {
+    try {
+        const { search = '' } = req.query;
+        const orders = await db.getArchivedOrders('all', search);
+        res.json(orders);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/archive/cleanup', requireAuth, async (req, res) => {
+    try {
+        const deleted = await db.cleanupOldArchive();
+        res.json({ success: true, deleted });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -354,12 +408,18 @@ app.put('/api/orders/:id/unpay', requireAuth, async (req, res) => {
 });
 app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
     const { status } = req.body;
-    const validStatuses = ['Received', 'Washing', 'Drying', 'Folding', 'Spin & Dry', 'Done (Ready to Pickup)', 'Out for Delivery', 'Delivered', 'Ready', 'Picked Up'];
-    if (!validStatuses.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     try { await db.updateOrderStatus(req.params.id, status); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/orders/:id', requireAuth, async (req, res) => {
     try { await db.deleteOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/:id/archive', requireAuth, async (req, res) => {
+    try { await db.archiveOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/orders/:id/restore', requireAuth, async (req, res) => {
+    try { await db.restoreOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/orders/:id/next-status', requireAuth, async (req, res) => {
@@ -410,43 +470,17 @@ app.post('/api/orders/batch/unpay', requireAuth, async (req, res) => {
     try { for (const id of ids) await db.markAsUnpaid(id); res.json({ success: true, count: ids.length }); }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
-// ===== ARCHIVE =====
-app.get('/api/orders/archive', requireAuth, async (req, res) => {
-    try {
-        const { search = '' } = req.query;
-        const orders = await db.getArchivedOrders('all', search);
-        res.json(orders);
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/orders/:id/archive', requireAuth, async (req, res) => {
-    try {
-        await db.archiveOrder(req.params.id);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-app.post('/api/orders/:id/restore', requireAuth, async (req, res) => {
-    try {
-        await db.restoreOrder(req.params.id);
-        res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
 app.post('/api/orders/batch/archive', requireAuth, async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
-    try {
-        const count = await db.archiveBatch(ids);
-        res.json({ success: true, count });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    try { const count = await db.archiveBatch(ids); res.json({ success: true, count }); }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
-
-app.post('/api/orders/archive/cleanup', requireAuth, async (req, res) => {
-    try {
-        const deleted = await db.cleanupOldArchive();
-        res.json({ success: true, deleted });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+app.post('/api/orders/batch/delete', requireAuth, async (req, res) => {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
+    try { for (const id of ids) await db.deleteOrder(id); res.json({ success: true, count: ids.length }); }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== CUSTOMERS =====
@@ -680,8 +714,7 @@ app.put('/api/users/me/change-password-verified', requireAuth, async (req, res) 
         await db.updateUserPassword(session.userId, hash);
         if (update_security && security_question && security_answer) {
             const ans_hash = await bcrypt.hash(security_answer.toLowerCase().trim(), 10);
-            await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3",
-                [security_question, ans_hash, session.userId]);
+            await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3", [security_question, ans_hash, session.userId]);
         }
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
