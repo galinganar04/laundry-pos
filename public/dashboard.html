@@ -7,16 +7,45 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; position: sticky; top: 0; }
+        html { scroll-behavior: smooth; }
+        html, body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .container-fluid { min-height: 100vh; overflow: visible; }
+        .row { min-height: 100vh; overflow: visible; }
+
+        .sidebar {
+            background-color: #1e293b;
+            color: white;
+            height: 100vh;
+            padding-top: 20px;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+        }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
 
+        .col-md-10 { overflow: visible; padding-bottom: 80px; }
+
         .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
         .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
 
-        /* Top stat cards */
+        /* Stats */
         .stat-card {
             background: white;
             border-radius: 12px;
@@ -28,31 +57,14 @@
             flex-direction: column;
             justify-content: center;
         }
-        .stat-card .label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #64748b;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-        .stat-card .value {
-            font-size: 26px;
-            font-weight: 800;
-            color: #0f172a;
-            line-height: 1.1;
-        }
-        .stat-card .sub {
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
+        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 6px; }
+        .stat-card .value { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.1; }
+        .stat-card .sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
         .stat-card.green { border-left-color: #10b981; }
         .stat-card.blue { border-left-color: #3b82f6; }
         .stat-card.orange { border-left-color: #f59e0b; }
         .stat-card.purple { border-left-color: #8b5cf6; }
 
-        /* Section */
         .section-title {
             font-size: 14px;
             font-weight: 800;
@@ -65,7 +77,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* ROI section */
+        /* ROI panel */
         .roi-panel {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             border-radius: 14px;
@@ -113,22 +125,11 @@
             padding: 12px 14px;
             border: 1px solid rgba(255,255,255,0.15);
         }
-        .roi-stat .lbl {
-            font-size: 10px;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            opacity: 0.85;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
+        .roi-stat .lbl { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.85; font-weight: 700; margin-bottom: 4px; }
         .roi-stat .val { font-size: 18px; font-weight: 800; }
         .roi-stat .sub { font-size: 10px; opacity: 0.75; margin-top: 2px; }
 
-        .roi-big-wrap {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+        .roi-big-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .roi-big {
             background: rgba(255,255,255,0.18);
             border-radius: 12px;
@@ -141,7 +142,6 @@
         .roi-big .sub { font-size: 11px; opacity: 0.85; margin-top: 6px; }
         .roi-big.recovered { background: linear-gradient(135deg, rgba(16,185,129,0.4), rgba(16,185,129,0.25)); border-color: #10b981; }
 
-        /* Panels */
         .panel {
             background: white;
             border-radius: 12px;
@@ -159,7 +159,6 @@
             justify-content: space-between;
         }
 
-        /* Asset/Capital lists */
         .list-row {
             display: flex;
             justify-content: space-between;
@@ -183,7 +182,6 @@
         }
         .list-row .btns button.del { color: #dc2626; border-color: #fecaca; }
 
-        /* Table */
         .clean-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .clean-table thead th {
             font-size: 11px;
@@ -203,7 +201,6 @@
         .clean-table tbody tr:hover { background: #f8fafc; }
         .clean-table .num { text-align: right; font-weight: 700; }
 
-        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 30px 20px;
@@ -211,7 +208,6 @@
             font-size: 13px;
         }
 
-        /* Modals */
         .modal-content { border-radius: 14px; border: none; }
         .modal-header {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -222,8 +218,28 @@
         .modal-header .btn-close { filter: invert(1); opacity: 0.9; }
         .modal-body { padding: 22px; }
 
+        /* Back to top button */
+        #backToTop {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #1e40af;
+            color: white;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(30,64,175,0.4);
+            display: none;
+            z-index: 999;
+            transition: opacity 0.2s;
+        }
+        #backToTop:hover { background: #1e3a8a; }
+
         /* Dark mode */
-        [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
+        [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
@@ -245,13 +261,32 @@
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
 
         @media (max-width: 767px) {
+            html, body {
+                overflow-y: auto !important;
+                height: auto !important;
+                min-height: 100vh !important;
+            }
             .sidebar { display: none !important; }
-            .col-md-10 { padding: 14px !important; }
+            .col-md-10 {
+                padding: 14px !important;
+                padding-bottom: 100px !important;
+            }
+            .container-fluid, .row {
+                overflow: visible !important;
+                height: auto !important;
+            }
             .page-title { font-size: 20px; }
             .stat-card .value { font-size: 22px; }
             .roi-big-wrap { grid-template-columns: 1fr; }
             .roi-big .val { font-size: 30px; }
             .roi-panel { padding: 18px; }
+        }
+
+        @media (min-width: 768px) {
+            .col-md-10 {
+                max-height: none;
+                overflow: visible;
+            }
         }
     </style>
 </head>
@@ -428,6 +463,9 @@
         </div>
     </div>
 </div>
+
+<!-- BACK TO TOP -->
+<button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Back to top">↑</button>
 
 <!-- ASSET MODAL -->
 <div class="modal fade" id="assetModal" tabindex="-1">
@@ -846,6 +884,11 @@
         localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
+
+    // Show back-to-top when scrolled
+    window.addEventListener('scroll', () => {
+        document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
 
     loadROI();
     loadAssets();
