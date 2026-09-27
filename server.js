@@ -525,15 +525,60 @@ app.get('/api/reports', requireAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ===== ASSETS =====
+app.get('/api/assets', requireAuth, async (req, res) => {
+    try { res.json(await db.getAssets()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/assets', requireAuth, async (req, res) => {
+    if (!req.body.name) return res.status(400).json({ error: 'Name is required' });
+    if (!req.body.purchase_price || parseFloat(req.body.purchase_price) <= 0) return res.status(400).json({ error: 'Purchase price is required' });
+    try { const asset = await db.addAsset(req.body); res.json({ success: true, asset }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/assets/:id', requireAuth, async (req, res) => {
+    if (!req.body.name) return res.status(400).json({ error: 'Name is required' });
+    try { await db.updateAsset(req.params.id, req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/assets/:id', requireAuth, async (req, res) => {
+    try { await db.deleteAsset(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== CAPITAL =====
+app.get('/api/capital', requireAuth, async (req, res) => {
+    try { res.json(await db.getCapital()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/capital', requireAuth, async (req, res) => {
+    if (!req.body.description) return res.status(400).json({ error: 'Description is required' });
+    if (!req.body.amount || parseFloat(req.body.amount) <= 0) return res.status(400).json({ error: 'Amount is required' });
+    try { const capital = await db.addCapital(req.body); res.json({ success: true, capital }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/capital/:id', requireAuth, async (req, res) => {
+    if (!req.body.description) return res.status(400).json({ error: 'Description is required' });
+    try { await db.updateCapital(req.params.id, req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/capital/:id', requireAuth, async (req, res) => {
+    try { await db.deleteCapital(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== ROI =====
+app.get('/api/roi', requireAuth, async (req, res) => {
+    try { res.json(await db.getROIData()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ===== DASHBOARD =====
 app.get('/api/dashboard', requireAuth, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
-        const todayOrders = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE date LIKE $1", [today + '%']);
+        const todayOrders = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE date LIKE $1 AND archived_at IS NULL", [today + '%']);
         const allTime = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders");
-        const pending = await db.pool.query("SELECT COUNT(*) AS count FROM orders WHERE payment_status = 'Pending'");
+        const pending = await db.pool.query("SELECT COUNT(*) AS count FROM orders WHERE payment_status = 'Pending' AND archived_at IS NULL");
         const topServices = await db.pool.query("SELECT service_name, SUM(quantity) AS total_qty, SUM(quantity * price) AS total_revenue FROM order_items GROUP BY service_name ORDER BY total_qty DESC LIMIT 5");
-        const recentOrders = await db.pool.query("SELECT id, date, customer, total, payment_status FROM orders ORDER BY id DESC LIMIT 10");
+        const recentOrders = await db.pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE archived_at IS NULL ORDER BY id DESC LIMIT 10");
         res.json({
             today: { orders: parseInt(todayOrders.rows[0].count), revenue: parseFloat(todayOrders.rows[0].revenue) },
             allTime: { orders: parseInt(allTime.rows[0].count), revenue: parseFloat(allTime.rows[0].revenue) },
@@ -561,10 +606,10 @@ app.get('/api/dashboard/chart', requireAuth, async (req, res) => {
         const view = req.query.view || 'month';
         let query, params;
         if (view === 'month' || month === 'all') {
-            query = `SELECT DATE_TRUNC('month', date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 GROUP BY DATE_TRUNC('month', date::timestamptz) ORDER BY day ASC`;
+            query = `SELECT DATE_TRUNC('month', date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 AND archived_at IS NULL GROUP BY DATE_TRUNC('month', date::timestamptz) ORDER BY day ASC`;
             params = [year];
         } else {
-            query = `SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 AND EXTRACT(MONTH FROM date::timestamptz) = $2 GROUP BY DATE(date::timestamptz) ORDER BY day ASC`;
+            query = `SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 AND EXTRACT(MONTH FROM date::timestamptz) = $2 AND archived_at IS NULL GROUP BY DATE(date::timestamptz) ORDER BY day ASC`;
             params = [year, parseInt(month)];
         }
         const result = await db.pool.query(query, params);

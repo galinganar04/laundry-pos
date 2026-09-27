@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/logo.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
         .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
         .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
@@ -20,86 +20,130 @@
         .stat-card.blue { border-left-color: #3b82f6; }
         .panel { background: #ffffff; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
         .panel h5 { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 12px; }
-        .table { font-size: 14px; color: #0f172a !important; margin-bottom: 0; }
-        .table thead th {
-            font-size: 12px; text-transform: uppercase; color: #1e293b !important;
-            font-weight: 800; letter-spacing: 1px; border-bottom: 2px solid #cbd5e1;
-            padding: 12px 10px; background: #e2e8f0 !important; position: sticky; top: 0; z-index: 2;
-        }
-        .table tbody td { padding: 12px 10px; border-color: #e2e8f0; vertical-align: middle; color: #0f172a !important; font-weight: 600 !important; background: #ffffff; }
-        .table tbody tr:nth-child(even) td { background: #f8fafc; }
-        .table tbody tr:hover td { background: #e0e7ff !important; }
-        .table strong { color: #0f172a !important; font-weight: 800 !important; }
-        .service-name, .customer-name, .order-id { color: #0f172a !important; font-weight: 800 !important; }
-        .date-text { color: #334155 !important; font-weight: 600 !important; font-size: 13px; }
-        .table .badge { font-size: 12px; padding: 5px 10px; font-weight: 700; }
-        .scroll-box { max-height: 300px; overflow-y: scroll; overflow-x: hidden; border: 1px solid #e2e8f0; border-radius: 8px; }
-        .scroll-box::-webkit-scrollbar { width: 10px; }
-        .scroll-box::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
-        .scroll-box::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 8px; }
 
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px; }
-        .chart-header h5 { margin-bottom: 0; }
-        .chart-filters { display: flex; gap: 8px; flex-wrap: wrap; }
-        .chart-filters select {
-            padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1;
-            background: white; font-size: 13px; font-weight: 600; color: #1e293b; cursor: pointer;
+        /* ROI Section */
+        .roi-section {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            border-radius: 12px;
+            padding: 24px;
+            color: white;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(30,64,175,0.25);
+            position: relative;
+            overflow: hidden;
         }
-        .chart-summary { font-size: 13px; color: #334155; font-weight: 600; margin-bottom: 10px; }
+        .roi-section::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .roi-section .roi-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .roi-section .roi-heading h4 {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .roi-section .roi-heading .btn-group-sm button {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 6px;
+        }
+        .roi-section .roi-heading .btn-group-sm button:hover { background: rgba(255,255,255,0.25); }
 
-        .chart-area {
-            display: flex; align-items: flex-end; justify-content: center;
-            gap: 12px; height: 240px; padding: 10px 0 0 0;
-            border-bottom: 2px solid #cbd5e1; position: relative; overflow-x: auto;
+        .roi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 14px;
+            position: relative;
+            z-index: 1;
         }
-        .chart-area::-webkit-scrollbar { height: 8px; }
-        .chart-area::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        .chart-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 70px; cursor: pointer; }
-        .chart-col .chart-value { font-size: 12px; font-weight: 800; color: #0f172a; margin-bottom: 6px; background: #f1f5f9; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
-        .chart-col .chart-bar-wrap { width: 100%; display: flex; justify-content: center; align-items: flex-end; height: 150px; }
-        .chart-col .chart-bar {
-            width: 42px; min-height: 6px;
-            background: linear-gradient(180deg, #3b82f6 0%, #1e40af 100%);
-            border-radius: 6px 6px 0 0;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 6px rgba(30,64,175,0.3);
+        .roi-tile {
+            background: rgba(255,255,255,0.12);
+            border-radius: 10px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.15);
         }
-        .chart-col:hover .chart-bar {
-            background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%);
-            box-shadow: 0 4px 12px rgba(30,64,175,0.5);
+        .roi-tile .lbl { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; font-weight: 700; margin-bottom: 4px; }
+        .roi-tile .val { font-size: 20px; font-weight: 800; }
+        .roi-tile .sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+        .roi-big {
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid rgba(255,255,255,0.3);
         }
-        .chart-col .chart-label { font-size: 12px; font-weight: 700; color: #0f172a; margin-top: 8px; white-space: nowrap; }
-        .chart-col .chart-sub { font-size: 11px; color: #475569; font-weight: 600; margin-top: 2px; white-space: nowrap; }
-        .chart-empty { text-align: center; color: #94a3b8; padding: 40px; font-size: 14px; width: 100%; }
+        .roi-big .lbl { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.9; font-weight: 700; }
+        .roi-big .val { font-size: 42px; font-weight: 900; line-height: 1; margin-top: 6px; }
+        .roi-big .sub { font-size: 12px; opacity: 0.85; margin-top: 6px; }
+        .roi-big.recovered { background: linear-gradient(135deg, rgba(16,185,129,0.35), rgba(16,185,129,0.2)); border-color: #10b981; }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 13px;
+        }
+        .list-item:last-child { border-bottom: none; }
+        .list-item .name { font-weight: 700; color: #1e293b; }
+        .list-item .sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+        .list-item .value { font-weight: 800; color: #1e40af; }
+        .list-item .actions { display: flex; gap: 4px; margin-left: 8px; }
+        .list-item .actions button { background: white; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+        .list-item .actions button.del { color: #dc2626; border-color: #fecaca; }
+
+        .modal-content { border-radius: 12px; border: none; }
+        .modal-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; border-radius: 12px 12px 0 0; }
+        .modal-header .btn-close { filter: invert(1); opacity: 0.85; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a:hover { background-color: rgba(59,130,246,0.15) !important; color: white !important; }
         [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; }
-        [data-theme="dark"] .stat-card .value { color: #ffffff !important; }
+        [data-theme="dark"] .stat-card .value, [data-theme="dark"] .page-title { color: #ffffff !important; }
         [data-theme="dark"] .stat-card .label { color: #94a3b8 !important; }
-        [data-theme="dark"] .table { color: #f1f5f9 !important; }
-        [data-theme="dark"] .table thead th { color: #f1f5f9 !important; border-color: #475569 !important; background: #0f172a !important; }
-        [data-theme="dark"] .table tbody td { border-color: #334155 !important; color: #ffffff !important; background: #1e293b !important; }
-        [data-theme="dark"] .table tbody tr:nth-child(even) td { background: #16223b !important; color: #ffffff !important; }
-        [data-theme="dark"] .table tbody tr:hover td { background: #1e3a8a !important; color: #ffffff !important; }
-        [data-theme="dark"] .table strong, [data-theme="dark"] .service-name, [data-theme="dark"] .customer-name, [data-theme="dark"] .order-id { color: #ffffff !important; }
-        [data-theme="dark"] .date-text { color: #e2e8f0 !important; }
-        [data-theme="dark"] .page-title, [data-theme="dark"] .panel h5 { color: #ffffff !important; }
-        [data-theme="dark"] .text-muted { color: #cbd5e1 !important; }
-        [data-theme="dark"] .scroll-box { border-color: #334155; }
-        [data-theme="dark"] .scroll-box::-webkit-scrollbar-track { background: #1e293b; }
-        [data-theme="dark"] .scroll-box::-webkit-scrollbar-thumb { background: #475569; }
-        [data-theme="dark"] .chart-filters select { background: #334155; border-color: #475569; color: #ffffff; }
-        [data-theme="dark"] .chart-summary { color: #e2e8f0 !important; }
-        [data-theme="dark"] .chart-area { border-color: #334155; }
-        [data-theme="dark"] .chart-col .chart-value { background: #334155; color: #ffffff !important; }
-        [data-theme="dark"] .chart-col .chart-label { color: #ffffff !important; }
-        [data-theme="dark"] .chart-col .chart-sub { color: #cbd5e1 !important; }
-        [data-theme="dark"] .chart-empty { color: #cbd5e1; }
+        [data-theme="dark"] .panel h5 { color: #ffffff !important; }
+        [data-theme="dark"] .list-item { border-color: #334155 !important; }
+        [data-theme="dark"] .list-item .name { color: #ffffff !important; }
+        [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .table { color: #e2e8f0 !important; }
+        [data-theme="dark"] .table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .table td { border-color: #334155 !important; }
+
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .col-md-10 { padding: 12px !important; }
+            .roi-big .val { font-size: 32px; }
+            .page-title { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
@@ -112,9 +156,9 @@
             </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html" class="active">📊 Dashboard</a>
-            <a href="/services.html">🧴 Services</a>  
+            <a href="/orders.html">📋 Orders</a>
             <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>            
+            <a href="/services.html">🧴 Services</a>
             <a href="/replenishments.html">📥 Replenishments</a>
             <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
@@ -126,6 +170,7 @@
         <div class="col-md-10 p-4">
             <h3 class="page-title">Sales Dashboard</h3>
 
+            <!-- Existing stat cards -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3"><div class="stat-card green"><div class="label">Today's Revenue</div><div class="value" id="todayRevenue">₱0.00</div></div></div>
                 <div class="col-md-3"><div class="stat-card blue"><div class="label">Today's Orders</div><div class="value" id="todayOrders">0</div></div></div>
@@ -133,40 +178,109 @@
                 <div class="col-md-3"><div class="stat-card orange"><div class="label">Pending Orders</div><div class="value" id="pendingOrders">0</div></div></div>
             </div>
 
+            <!-- ROI SECTION -->
+            <div class="roi-section" id="roiSection">
+                <div class="roi-heading">
+                    <h4>💎 Investment &amp; ROI</h4>
+                    <div class="btn-group-sm">
+                        <button onclick="openAssetModal()">+ Asset</button>
+                        <button onclick="openCapitalModal()">+ Capital</button>
+                    </div>
+                </div>
+
+                <div class="roi-grid mb-3">
+                    <div class="roi-tile">
+                        <div class="lbl">🏦 Capital Invested</div>
+                        <div class="val" id="roiCapital">₱0</div>
+                        <div class="sub" id="roiCapitalCount">0 entries</div>
+                    </div>
+                    <div class="roi-tile">
+                        <div class="lbl">🏗️ Assets Value</div>
+                        <div class="val" id="roiAssets">₱0</div>
+                        <div class="sub" id="roiAssetsCount">0 assets</div>
+                    </div>
+                    <div class="roi-tile">
+                        <div class="lbl">📊 Total Investment</div>
+                        <div class="val" id="roiTotalInvest">₱0</div>
+                        <div class="sub">Capital + Assets</div>
+                    </div>
+                    <div class="roi-tile">
+                        <div class="lbl">💵 Depreciation/mo</div>
+                        <div class="val" id="roiDepr">₱0</div>
+                        <div class="sub">Auto-calculated</div>
+                    </div>
+                    <div class="roi-tile">
+                        <div class="lbl">📈 All-Time Revenue</div>
+                        <div class="val" id="roiRevenue">₱0</div>
+                        <div class="sub">All orders</div>
+                    </div>
+                    <div class="roi-tile">
+                        <div class="lbl">📉 All-Time Expenses</div>
+                        <div class="val" id="roiExpenses">₱0</div>
+                        <div class="sub">Operating + Inventory</div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="roi-big" id="roiBig">
+                            <div class="lbl">🎯 Return on Investment</div>
+                            <div class="val" id="roiPercent">0%</div>
+                            <div class="sub" id="roiNetProfit">Net Profit: ₱0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="roi-big" id="paybackBig">
+                            <div class="lbl">⏱️ Payback Period</div>
+                            <div class="val" id="paybackValue">—</div>
+                            <div class="sub" id="paybackSub">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ASSET + CAPITAL LISTS -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="panel">
+                        <h5>🏗️ Your Assets <span class="badge bg-primary" id="assetBadge">0</span></h5>
+                        <div id="assetsList" style="max-height: 250px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="panel">
+                        <h5>🏦 Capital Invested <span class="badge bg-success" id="capitalBadge">0</span></h5>
+                        <div id="capitalList" style="max-height: 250px; overflow-y: auto;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart -->
             <div class="panel mb-4">
-                <div class="chart-header">
-                    <h5>Sales Chart</h5>
-                    <div class="chart-filters">
-                        <select id="yearSelect" onchange="loadChart()"></select>
-                        <select id="monthSelect" onchange="onMonthChange()">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="mb-0">📈 Sales Chart</h5>
+                    <div>
+                        <select id="yearSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()"></select>
+                        <select id="monthSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()">
                             <option value="all">Whole Year</option>
-                            <option value="1">January</option>
-                            <option value="2">February</option>
-                            <option value="3">March</option>
-                            <option value="4">April</option>
-                            <option value="5">May</option>
-                            <option value="6">June</option>
-                            <option value="7">July</option>
-                            <option value="8">August</option>
-                            <option value="9">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
+                            <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                            <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                            <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                            <option value="10">October</option><option value="11">November</option><option value="12">December</option>
                         </select>
                     </div>
                 </div>
-                <div class="chart-summary" id="chartSummary">Loading...</div>
-                <div id="weeklyChart" class="chart-area"></div>
+                <div id="weeklyChart" style="display:flex;align-items:flex-end;gap:12px;height:240px;padding:10px 0;border-bottom:2px solid #cbd5e1;overflow-x:auto;"></div>
             </div>
 
             <div class="row g-3">
                 <div class="col-md-5">
                     <div class="panel">
                         <h5>Top Services</h5>
-                        <div class="scroll-box">
-                            <table class="table">
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm mb-0">
                                 <thead><tr><th>Service</th><th class="text-end">Qty</th><th class="text-end">Revenue</th></tr></thead>
-                                <tbody id="topServicesTable"><tr><td colspan="3" class="text-muted text-center py-3">No data yet.</td></tr></tbody>
+                                <tbody id="topServicesTable"></tbody>
                             </table>
                         </div>
                     </div>
@@ -174,10 +288,10 @@
                 <div class="col-md-7">
                     <div class="panel">
                         <h5>Recent Orders</h5>
-                        <div class="scroll-box">
-                            <table class="table">
+                        <div style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm mb-0">
                                 <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="text-end">Total</th><th>Status</th></tr></thead>
-                                <tbody id="recentOrdersTable"><tr><td colspan="5" class="text-muted text-center py-3">No orders yet.</td></tr></tbody>
+                                <tbody id="recentOrdersTable"></tbody>
                             </table>
                         </div>
                     </div>
@@ -187,45 +301,372 @@
     </div>
 </div>
 
+<!-- ASSET MODAL -->
+<div class="modal fade" id="assetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assetModalTitle">Add Asset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="assetId">
+                <div class="mb-3">
+                    <label class="form-label small">Asset Name *</label>
+                    <input type="text" id="aName" class="form-control" placeholder="e.g., Washing Machine">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Category</label>
+                    <select id="aCategory" class="form-select">
+                        <option>Equipment</option>
+                        <option>Furniture</option>
+                        <option>Electronics</option>
+                        <option>Vehicle</option>
+                        <option>Fixtures</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small">Purchase Price (₱) *</label>
+                        <input type="number" id="aPrice" class="form-control" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small">Salvage Value (₱)</label>
+                        <input type="number" id="aSalvage" class="form-control" placeholder="0.00" step="0.01" value="0">
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small">Purchase Date</label>
+                        <input type="date" id="aDate" class="form-control">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small">Useful Life (months)</label>
+                        <input type="number" id="aLife" class="form-control" value="60">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Notes</label>
+                    <input type="text" id="aNotes" class="form-control" placeholder="Optional">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAsset()">💾 Save Asset</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CAPITAL MODAL -->
+<div class="modal fade" id="capitalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="capitalModalTitle">Add Capital</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="capitalId">
+                <div class="mb-3">
+                    <label class="form-label small">Description *</label>
+                    <input type="text" id="cDesc" class="form-control" placeholder="e.g., Initial Cash Investment">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Amount (₱) *</label>
+                    <input type="number" id="cAmount" class="form-control" placeholder="0.00" step="0.01">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small">Category</label>
+                        <select id="cCategory" class="form-select">
+                            <option>Startup</option>
+                            <option>Deposit</option>
+                            <option>Permit</option>
+                            <option>Renovation</option>
+                            <option>Equipment</option>
+                            <option>Cash Injection</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small">Date</label>
+                        <input type="date" id="cDate" class="form-control">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Notes</label>
+                    <input type="text" id="cNotes" class="form-control" placeholder="Optional">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCapital()">💾 Save Capital</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    // ===== Main dashboard numbers =====
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function shortPeso(n) {
+        n = parseFloat(n) || 0;
+        if (n >= 1000000) return '₱' + (n / 1000000).toFixed(2) + 'M';
+        if (n >= 1000) return '₱' + (n / 1000).toFixed(1) + 'K';
+        return '₱' + n.toFixed(0);
+    }
+
+    // ===== DASHBOARD DATA =====
     fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
-        .then(res => {
-            if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
-            return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
-            if (!data) return;
+            if (!data || data.error) return;
             document.getElementById('todayRevenue').innerText = '₱' + data.today.revenue.toFixed(2);
             document.getElementById('todayOrders').innerText = data.today.orders;
             document.getElementById('allTimeRevenue').innerText = '₱' + data.allTime.revenue.toFixed(2);
             document.getElementById('pendingOrders').innerText = data.pending;
 
             const servicesTable = document.getElementById('topServicesTable');
-            if (data.topServices.length === 0) {
-                servicesTable.innerHTML = '<tr><td colspan="3" class="text-muted text-center py-3">No sales yet.</td></tr>';
-            } else {
-                servicesTable.innerHTML = data.topServices.map(s => `
-                    <tr><td><span class="service-name">${s.service_name}</span></td><td class="text-end"><strong>${s.total_qty}</strong></td><td class="text-end"><strong>₱${parseFloat(s.total_revenue).toFixed(2)}</strong></td></tr>
-                `).join('');
-            }
+            servicesTable.innerHTML = data.topServices.length === 0
+                ? '<tr><td colspan="3" class="text-muted text-center py-3">No sales yet.</td></tr>'
+                : data.topServices.map(s => `<tr><td>${s.service_name}</td><td class="text-end"><strong>${s.total_qty}</strong></td><td class="text-end"><strong>₱${parseFloat(s.total_revenue).toFixed(2)}</strong></td></tr>`).join('');
 
             const ordersTable = document.getElementById('recentOrdersTable');
-            if (data.recentOrders.length === 0) {
-                ordersTable.innerHTML = '<tr><td colspan="5" class="text-muted text-center py-3">No orders yet.</td></tr>';
-            } else {
-                ordersTable.innerHTML = data.recentOrders.map(o => {
+            ordersTable.innerHTML = data.recentOrders.length === 0
+                ? '<tr><td colspan="5" class="text-muted text-center py-3">No orders yet.</td></tr>'
+                : data.recentOrders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const badge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
-                    return `<tr><td><span class="order-id">#${o.id}</span></td><td><span class="date-text">${date}</span></td><td><span class="customer-name">${o.customer}</span></td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
+                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="text-end"><strong>₱${parseFloat(o.total).toFixed(2)}</strong></td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
                 }).join('');
-            }
-        });
+        })
+        .catch(() => {});
 
-    // ===== Years dropdown =====
+    // ===== LOAD ROI =====
+    function loadROI() {
+        fetch('/api/roi', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(d => {
+                if (!d || d.error) return;
+                document.getElementById('roiCapital').innerText = shortPeso(d.totalCapital);
+                document.getElementById('roiAssets').innerText = shortPeso(d.totalAssets);
+                document.getElementById('roiTotalInvest').innerText = shortPeso(d.totalInvestment);
+                document.getElementById('roiDepr').innerText = shortPeso(d.monthlyDepreciation);
+                document.getElementById('roiRevenue').innerText = shortPeso(d.totalRevenue);
+                document.getElementById('roiExpenses').innerText = shortPeso(d.totalExpenses);
+                document.getElementById('roiNetProfit').innerText = 'Net Profit: ' + shortPeso(d.netProfit);
+                document.getElementById('roiAssetsCount').innerText = d.assetCount + ' asset' + (d.assetCount === 1 ? '' : 's');
+                document.getElementById('roiPercent').innerText = d.roi.toFixed(1) + '%';
+
+                const roiBig = document.getElementById('roiBig');
+                roiBig.classList.toggle('recovered', d.netProfit >= d.totalInvestment);
+
+                const paybackBig = document.getElementById('paybackBig');
+                if (d.paybackRecovered) {
+                    paybackBig.classList.add('recovered');
+                    document.getElementById('paybackValue').innerText = '✅';
+                    document.getElementById('paybackSub').innerText = 'Investment recovered!';
+                } else if (d.paybackMonths > 0) {
+                    paybackBig.classList.remove('recovered');
+                    document.getElementById('paybackValue').innerText = Math.ceil(d.paybackMonths) + ' mo';
+                    document.getElementById('paybackSub').innerText = 'At current rate';
+                } else {
+                    document.getElementById('paybackValue').innerText = '—';
+                    document.getElementById('paybackSub').innerText = 'No profit yet';
+                }
+            })
+            .catch(() => {});
+    }
+
+    // ===== LOAD ASSETS =====
+    function loadAssets() {
+        fetch('/api/assets', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(assets => {
+                if (!Array.isArray(assets)) assets = [];
+                document.getElementById('assetBadge').innerText = assets.length;
+                const list = document.getElementById('assetsList');
+                if (assets.length === 0) {
+                    list.innerHTML = '<p class="text-muted small text-center py-3">No assets yet. Click <strong>+ Asset</strong> above.</p>';
+                    return;
+                }
+                list.innerHTML = assets.map(a => `
+                    <div class="list-item">
+                        <div>
+                            <div class="name">${a.name}</div>
+                            <div class="sub">${a.category} • Bought ${new Date(a.purchase_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span class="value">${peso(a.purchase_price)}</span>
+                            <div class="actions">
+                                <button onclick="editAsset(${a.id})">✏️</button>
+                                <button class="del" onclick="deleteAsset(${a.id}, '${a.name.replace(/'/g, "\\'")}')">🗑</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(() => {});
+    }
+
+    // ===== LOAD CAPITAL =====
+    function loadCapital() {
+        fetch('/api/capital', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(items => {
+                if (!Array.isArray(items)) items = [];
+                document.getElementById('capitalBadge').innerText = items.length;
+                document.getElementById('roiCapitalCount').innerText = items.length + ' entr' + (items.length === 1 ? 'y' : 'ies');
+                const list = document.getElementById('capitalList');
+                if (items.length === 0) {
+                    list.innerHTML = '<p class="text-muted small text-center py-3">No capital entries yet. Click <strong>+ Capital</strong> above.</p>';
+                    return;
+                }
+                list.innerHTML = items.map(c => `
+                    <div class="list-item">
+                        <div>
+                            <div class="name">${c.description}</div>
+                            <div class="sub">${c.category} • ${new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span class="value" style="color:#10b981;">${peso(c.amount)}</span>
+                            <div class="actions">
+                                <button onclick="editCapital(${c.id})">✏️</button>
+                                <button class="del" onclick="deleteCapital(${c.id}, '${c.description.replace(/'/g, "\\'")}')">🗑</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            })
+            .catch(() => {});
+    }
+
+    // ===== ASSET MODAL =====
+    function openAssetModal() {
+        document.getElementById('assetModalTitle').innerText = 'Add Asset';
+        document.getElementById('assetId').value = '';
+        document.getElementById('aName').value = '';
+        document.getElementById('aCategory').value = 'Equipment';
+        document.getElementById('aPrice').value = '';
+        document.getElementById('aSalvage').value = '0';
+        document.getElementById('aDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('aLife').value = '60';
+        document.getElementById('aNotes').value = '';
+        new bootstrap.Modal(document.getElementById('assetModal')).show();
+    }
+
+    function editAsset(id) {
+        fetch('/api/assets', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(assets => {
+                const a = assets.find(x => x.id === id);
+                if (!a) return;
+                document.getElementById('assetModalTitle').innerText = 'Edit Asset';
+                document.getElementById('assetId').value = a.id;
+                document.getElementById('aName').value = a.name;
+                document.getElementById('aCategory').value = a.category || 'Equipment';
+                document.getElementById('aPrice').value = a.purchase_price;
+                document.getElementById('aSalvage').value = a.salvage_value || 0;
+                document.getElementById('aDate').value = a.purchase_date ? a.purchase_date.split('T')[0] : '';
+                document.getElementById('aLife').value = a.useful_life_months || 60;
+                document.getElementById('aNotes').value = a.notes || '';
+                new bootstrap.Modal(document.getElementById('assetModal')).show();
+            });
+    }
+
+    function saveAsset() {
+        const id = document.getElementById('assetId').value;
+        const data = {
+            name: document.getElementById('aName').value.trim(),
+            category: document.getElementById('aCategory').value,
+            purchase_price: document.getElementById('aPrice').value,
+            purchase_date: document.getElementById('aDate').value,
+            useful_life_months: document.getElementById('aLife').value,
+            salvage_value: document.getElementById('aSalvage').value,
+            notes: document.getElementById('aNotes').value.trim()
+        };
+        if (!data.name) return alert('Asset name is required');
+        if (!data.purchase_price || parseFloat(data.purchase_price) <= 0) return alert('Please enter a valid purchase price');
+        const url = id ? `/api/assets/${id}` : '/api/assets';
+        const method = id ? 'PUT' : 'POST';
+        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(res => {
+                if (res.error) return alert('Error: ' + res.error);
+                bootstrap.Modal.getInstance(document.getElementById('assetModal')).hide();
+                loadAssets(); loadROI();
+            });
+    }
+
+    function deleteAsset(id, name) {
+        if (!confirm(`Delete asset "${name}"?`)) return;
+        fetch('/api/assets/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
+            .then(() => { loadAssets(); loadROI(); });
+    }
+
+    // ===== CAPITAL MODAL =====
+    function openCapitalModal() {
+        document.getElementById('capitalModalTitle').innerText = 'Add Capital';
+        document.getElementById('capitalId').value = '';
+        document.getElementById('cDesc').value = '';
+        document.getElementById('cAmount').value = '';
+        document.getElementById('cCategory').value = 'Startup';
+        document.getElementById('cDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('cNotes').value = '';
+        new bootstrap.Modal(document.getElementById('capitalModal')).show();
+    }
+
+    function editCapital(id) {
+        fetch('/api/capital', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(items => {
+                const c = items.find(x => x.id === id);
+                if (!c) return;
+                document.getElementById('capitalModalTitle').innerText = 'Edit Capital';
+                document.getElementById('capitalId').value = c.id;
+                document.getElementById('cDesc').value = c.description;
+                document.getElementById('cAmount').value = c.amount;
+                document.getElementById('cCategory').value = c.category || 'Startup';
+                document.getElementById('cDate').value = c.date ? c.date.split('T')[0] : '';
+                document.getElementById('cNotes').value = c.notes || '';
+                new bootstrap.Modal(document.getElementById('capitalModal')).show();
+            });
+    }
+
+    function saveCapital() {
+        const id = document.getElementById('capitalId').value;
+        const data = {
+            description: document.getElementById('cDesc').value.trim(),
+            amount: document.getElementById('cAmount').value,
+            category: document.getElementById('cCategory').value,
+            date: document.getElementById('cDate').value,
+            notes: document.getElementById('cNotes').value.trim()
+        };
+        if (!data.description) return alert('Description is required');
+        if (!data.amount || parseFloat(data.amount) <= 0) return alert('Please enter a valid amount');
+        const url = id ? `/api/capital/${id}` : '/api/capital';
+        const method = id ? 'PUT' : 'POST';
+        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(res => {
+                if (res.error) return alert('Error: ' + res.error);
+                bootstrap.Modal.getInstance(document.getElementById('capitalModal')).hide();
+                loadCapital(); loadROI();
+            });
+    }
+
+    function deleteCapital(id, desc) {
+        if (!confirm(`Delete capital entry "${desc}"?`)) return;
+        fetch('/api/capital/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
+            .then(() => { loadCapital(); loadROI(); });
+    }
+
+    // ===== CHART =====
     function loadYears() {
         fetch('/api/dashboard/years', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -234,77 +675,53 @@
                 sel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
                 sel.value = years[years.length - 1];
                 loadChart();
-            });
-    }
-
-    function onMonthChange() {
-        loadChart();
+            })
+            .catch(() => {});
     }
 
     function loadChart() {
         const year = document.getElementById('yearSelect').value;
         const month = document.getElementById('monthSelect').value;
         const view = (month === 'all') ? 'month' : 'day';
-
         fetch(`/api/dashboard/chart?year=${year}&month=${month}&view=${view}`, { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
             .then(data => {
-                if (data.error) {
-                    document.getElementById('weeklyChart').innerHTML = '<div class="chart-empty">Error: ' + data.error + '</div>';
+                const chart = document.getElementById('weeklyChart');
+                if (!data || data.length === 0) {
+                    chart.innerHTML = '<div style="color:#94a3b8;padding:40px;text-align:center;width:100%;">📊 No sales for this period.</div>';
                     return;
                 }
-                renderChart(data, view, month, year);
-            });
+                const maxRev = Math.max(...data.map(d => parseFloat(d.revenue)), 1);
+                chart.innerHTML = data.map(d => {
+                    const revenue = parseFloat(d.revenue);
+                    const height = (revenue / maxRev) * 180;
+                    const dateObj = new Date(d.day);
+                    const label = view === 'month' ? dateObj.toLocaleDateString('en-US', { month: 'short' }) : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    return `<div style="display:flex;flex-direction:column;align-items:center;min-width:70px;">
+                        <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:6px;">₱${revenue.toFixed(0)}</div>
+                        <div style="width:42px;height:${Math.max(height,6)}px;background:linear-gradient(180deg,#3b82f6,#1e40af);border-radius:6px 6px 0 0;"></div>
+                        <div style="font-size:11px;font-weight:700;color:#0f172a;margin-top:8px;">${label}</div>
+                        <div style="font-size:10px;color:#475569;">${d.order_count} order${d.order_count === 1 ? '' : 's'}</div>
+                    </div>`;
+                }).join('');
+            })
+            .catch(() => {});
     }
-
-    function renderChart(data, view, month, year) {
-        const chart = document.getElementById('weeklyChart');
-        const summary = document.getElementById('chartSummary');
-        const monthName = month === 'all' ? 'Whole Year' : new Date(year, month - 1).toLocaleString('en-US', { month: 'long' });
-
-        if (!data || data.length === 0) {
-            chart.innerHTML = `<div class="chart-empty">📊 No sales for ${monthName} ${year}.<br><small>Try another period.</small></div>`;
-            summary.innerText = `Showing ${monthName} ${year} — no data`;
-            return;
-        }
-
-        const totalRevenue = data.reduce((sum, d) => sum + parseFloat(d.revenue), 0);
-        const totalOrders = data.reduce((sum, d) => sum + parseInt(d.order_count), 0);
-        summary.innerHTML = `Showing <strong>${monthName} ${year}</strong> — Total: <strong>₱${totalRevenue.toFixed(2)}</strong> • ${totalOrders} order${totalOrders === 1 ? '' : 's'}`;
-
-        const maxRevenue = Math.max(...data.map(d => parseFloat(d.revenue)), 1);
-
-        chart.innerHTML = data.map(day => {
-            const revenue = parseFloat(day.revenue);
-            const height = (revenue / maxRevenue) * 140;
-            const dateObj = new Date(day.day);
-            let topLabel, subLabel;
-            if (view === 'month') {
-                topLabel = dateObj.toLocaleDateString('en-US', { month: 'short' });
-                subLabel = day.order_count + ' order' + (day.order_count === 1 ? '' : 's');
-            } else {
-                topLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                subLabel = day.order_count + ' order' + (day.order_count === 1 ? '' : 's');
-            }
-            return `
-                <div class="chart-col" title="${dateObj.toLocaleDateString()}: ₱${revenue.toFixed(2)} (${day.order_count} orders)">
-                    <div class="chart-value">₱${revenue.toFixed(0)}</div>
-                    <div class="chart-bar-wrap"><div class="chart-bar" style="height: ${Math.max(height, 6)}px;"></div></div>
-                    <div class="chart-label">${topLabel}</div>
-                    <div class="chart-sub">${subLabel}</div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    loadYears();
 
     function logout() {
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
+
+    // INIT
+    loadROI();
+    loadAssets();
+    loadCapital();
+    loadYears();
 </script>
 <script src="/role-guard.js"></script>
 <script src="/theme.js"></script>

@@ -31,7 +31,7 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS si_or_number TEXT;`);
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS account TEXT DEFAULT 'Operating Expense';`);
 
-        // Archived orders (legacy)
+        // Archived orders
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_orders (id SERIAL PRIMARY KEY, original_id INTEGER, date TEXT NOT NULL, customer TEXT NOT NULL, total NUMERIC NOT NULL, payment_status TEXT NOT NULL, status TEXT, cashier_name TEXT, archived_at TIMESTAMPTZ DEFAULT NOW());`);
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_order_items (id SERIAL PRIMARY KEY, archived_order_id INTEGER REFERENCES archived_orders(id), service_name TEXT, quantity INTEGER, price NUMERIC);`);
 
@@ -46,11 +46,9 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS rider_name TEXT;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_history JSONB DEFAULT '[]'::jsonb;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMPTZ DEFAULT NOW();`);
-
-        // Archive support
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;`);
 
-        // ===== NEW: Service Flow Types table =====
+        // Service Flows
         await pool.query(`CREATE TABLE IF NOT EXISTS service_flows (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
@@ -60,7 +58,6 @@ async function initDatabase() {
             created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
-        // Seed default flow types
         const defaultFlows = [
             { name: 'Wash + Dry + Fold', key: 'wash_dry_fold', steps: ['Received', 'Washing', 'Drying', 'Folding', 'Done (Ready to Pickup)'] },
             { name: 'Wash + Dry', key: 'wash_dry', steps: ['Received', 'Washing', 'Drying', 'Done (Ready to Pickup)'] },
@@ -75,6 +72,31 @@ async function initDatabase() {
                 [f.name, f.key, JSON.stringify(f.steps)]
             );
         }
+
+        // Assets
+        await pool.query(`CREATE TABLE IF NOT EXISTS assets (
+            id SERIAL PRIMARY KEY,
+            name TEXT NOT NULL,
+            category TEXT DEFAULT 'Equipment',
+            purchase_price NUMERIC NOT NULL DEFAULT 0,
+            purchase_date DATE DEFAULT CURRENT_DATE,
+            useful_life_months INTEGER DEFAULT 60,
+            salvage_value NUMERIC DEFAULT 0,
+            notes TEXT,
+            status TEXT DEFAULT 'Active',
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );`);
+
+        // Capital Investments
+        await pool.query(`CREATE TABLE IF NOT EXISTS capital_investments (
+            id SERIAL PRIMARY KEY,
+            description TEXT NOT NULL,
+            amount NUMERIC NOT NULL DEFAULT 0,
+            category TEXT DEFAULT 'Startup',
+            date DATE DEFAULT CURRENT_DATE,
+            notes TEXT,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );`);
 
         await pool.query(`UPDATE services SET service_type = 'wash_dry_fold' WHERE service_type IS NULL OR service_type = 'Per Load';`);
 
@@ -100,6 +122,7 @@ async function initDatabase() {
 
 initDatabase();
 
+// ===== SERVICES =====
 async function getServices() {
     const result = await pool.query("SELECT * FROM services WHERE status = 'Available' ORDER BY id ASC");
     const services = result.rows;
@@ -115,14 +138,12 @@ async function getPickupService() {
     return result.rows[0] || null;
 }
 
-// ===== SERVICE FLOWS =====
 async function getAllServiceFlows() {
     const result = await pool.query("SELECT * FROM service_flows ORDER BY is_custom ASC, id ASC");
     return result.rows;
 }
 
 async function addServiceFlow(name, steps) {
-    // Generate flow_key from name (lowercase, underscore)
     const flow_key = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + Date.now().toString(36);
     const result = await pool.query(
         `INSERT INTO service_flows (name, flow_key, steps, is_custom) VALUES ($1, $2, $3, TRUE) RETURNING *`,
@@ -132,10 +153,7 @@ async function addServiceFlow(name, steps) {
 }
 
 async function updateServiceFlow(id, name, steps) {
-    await pool.query(
-        `UPDATE service_flows SET name = $1, steps = $2 WHERE id = $3 AND is_custom = TRUE`,
-        [name, JSON.stringify(steps), id]
-    );
+    await pool.query(`UPDATE service_flows SET name = $1, steps = $2 WHERE id = $3 AND is_custom = TRUE`, [name, JSON.stringify(steps), id]);
 }
 
 async function deleteServiceFlow(id) {
@@ -186,6 +204,7 @@ async function deleteService(id) {
     await pool.query("DELETE FROM services WHERE id = $1", [id]);
 }
 
+// ===== ORDERS =====
 async function saveOrder(customer, total, cartItems, paymentStatus, cashierName, pickupDelivery = false, customerPhone = null, serviceFlow = ['Received']) {
     const date = new Date().toISOString();
     const status = paymentStatus || 'Pending';
@@ -258,28 +277,19 @@ async function getOrderById(id) {
     return result.rows[0];
 }
 
-async function archiveOrder(id) {
-    await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = $1", [id]);
-}
-
-async function restoreOrder(id) {
-    await pool.query("UPDATE orders SET archived_at = NULL WHERE id = $1", [id]);
-}
-
+async function archiveOrder(id) { await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = $1", [id]); }
+async function restoreOrder(id) { await pool.query("UPDATE orders SET archived_at = NULL WHERE id = $1", [id]); }
 async function archiveBatch(ids) {
     if (!ids || ids.length === 0) return 0;
     await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = ANY($1::int[])", [ids]);
     return ids.length;
 }
-
 async function cleanupOldArchive() {
     const result = await pool.query("DELETE FROM orders WHERE archived_at IS NOT NULL AND archived_at < NOW() - INTERVAL '7 days' RETURNING id");
     return result.rowCount;
 }
-
 async function markAsPaid(id) { await pool.query("UPDATE orders SET payment_status = 'Paid' WHERE id = $1", [id]); }
 async function markAsUnpaid(id) { await pool.query("UPDATE orders SET payment_status = 'Pending' WHERE id = $1", [id]); }
-
 async function deleteOrder(id) {
     const orderResult = await pool.query("SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name FROM orders WHERE id = $1", [id]);
     if (orderResult.rows.length === 0) return;
@@ -304,6 +314,7 @@ async function updateOrderStatus(id, status, step = null, history = null, riderN
     );
 }
 
+// ===== CUSTOMERS =====
 async function getCustomers(search) {
     let query = "SELECT * FROM customers";
     const params = [];
@@ -326,6 +337,7 @@ async function getCustomerOrders(name) {
     return result.rows;
 }
 
+// ===== REPORTS =====
 async function getReportSummary(dateFrom, dateTo) {
     const result = await pool.query(`
         SELECT COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_revenue, COALESCE(AVG(total), 0) AS avg_order_value,
@@ -373,6 +385,7 @@ async function getReportTopCustomers(dateFrom, dateTo) {
     return result.rows;
 }
 
+// ===== SETTINGS =====
 async function getAllSettings() {
     const result = await pool.query("SELECT key, value FROM settings");
     const settings = {};
@@ -385,12 +398,14 @@ async function updateSettings(data) {
     }
 }
 
+// ===== CASHIERS =====
 async function getCashiers() { const result = await pool.query("SELECT id, name, active, created_at FROM cashiers ORDER BY id ASC"); return result.rows; }
 async function addCashier(name, pin) { const result = await pool.query("INSERT INTO cashiers (name, pin) VALUES ($1, $2) RETURNING id", [name, pin]); return result.rows[0].id; }
 async function updateCashierPin(id, newPin) { await pool.query("UPDATE cashiers SET pin = $1 WHERE id = $2", [newPin, id]); }
 async function deleteCashier(id) { await pool.query("DELETE FROM cashiers WHERE id = $1", [id]); }
 async function findCashierByPin(pin) { const result = await pool.query("SELECT id, name FROM cashiers WHERE pin = $1 AND active = TRUE", [pin]); return result.rows[0]; }
 
+// ===== PRODUCTS =====
 async function getProducts(search, category) {
     const conditions = [];
     const params = [];
@@ -423,6 +438,7 @@ async function getReplenishments() {
 }
 async function getLowStockProducts() { const result = await pool.query("SELECT id, name, stock, low_limit FROM products WHERE stock <= low_limit"); return result.rows; }
 
+// ===== EXPENSES =====
 async function getExpenses(search, category, dateFrom, dateTo) {
     const conditions = [];
     const params = [];
@@ -486,7 +502,160 @@ async function getLedgerStats(dateFrom, dateTo) {
     return { total, count, highest: parseFloat(row.highest) || 0, average: count > 0 ? total / count : 0 };
 }
 
-// ====== USERS ======
+// ===== ASSETS =====
+async function getAssets() {
+    const result = await pool.query("SELECT * FROM assets WHERE status != 'Retired' ORDER BY purchase_date DESC, id DESC");
+    return result.rows;
+}
+
+async function addAsset(data) {
+    const result = await pool.query(
+        `INSERT INTO assets (name, category, purchase_price, purchase_date, useful_life_months, salvage_value, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [data.name, data.category || 'Equipment', parseFloat(data.purchase_price) || 0,
+         data.purchase_date || new Date().toISOString().split('T')[0],
+         parseInt(data.useful_life_months) || 60, parseFloat(data.salvage_value) || 0, data.notes || '']
+    );
+    return result.rows[0];
+}
+
+async function updateAsset(id, data) {
+    await pool.query(
+        `UPDATE assets SET name = $1, category = $2, purchase_price = $3, purchase_date = $4, useful_life_months = $5, salvage_value = $6, notes = $7 WHERE id = $8`,
+        [data.name, data.category || 'Equipment', parseFloat(data.purchase_price) || 0,
+         data.purchase_date, parseInt(data.useful_life_months) || 60, parseFloat(data.salvage_value) || 0, data.notes || '', id]
+    );
+}
+
+async function deleteAsset(id) {
+    await pool.query("DELETE FROM assets WHERE id = $1", [id]);
+}
+
+// ===== CAPITAL =====
+async function getCapital() {
+    const result = await pool.query("SELECT * FROM capital_investments ORDER BY date DESC, id DESC");
+    return result.rows;
+}
+
+async function addCapital(data) {
+    const result = await pool.query(
+        `INSERT INTO capital_investments (description, amount, category, date, notes)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [data.description, parseFloat(data.amount) || 0, data.category || 'Startup',
+         data.date || new Date().toISOString().split('T')[0], data.notes || '']
+    );
+    return result.rows[0];
+}
+
+async function updateCapital(id, data) {
+    await pool.query(
+        `UPDATE capital_investments SET description = $1, amount = $2, category = $3, date = $4, notes = $5 WHERE id = $6`,
+        [data.description, parseFloat(data.amount) || 0, data.category || 'Startup', data.date, data.notes || '', id]
+    );
+}
+
+async function deleteCapital(id) {
+    await pool.query("DELETE FROM capital_investments WHERE id = $1", [id]);
+}
+
+// ===== ROI =====
+async function getROIData() {
+    // Total capital invested
+    const capitalRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments");
+    const totalCapital = parseFloat(capitalRes.rows[0].total) || 0;
+
+    // Total assets value (purchase price)
+    const assetsRes = await pool.query("SELECT * FROM assets WHERE status = 'Active'");
+    const assets = assetsRes.rows;
+    let totalAssets = 0;
+    let monthlyDepreciation = 0;
+
+    const now = new Date();
+    for (const a of assets) {
+        const price = parseFloat(a.purchase_price) || 0;
+        const salvage = parseFloat(a.salvage_value) || 0;
+        const lifeMonths = parseInt(a.useful_life_months) || 60;
+        totalAssets += price;
+
+        // Months since purchase
+        const purchaseDate = new Date(a.purchase_date);
+        const monthsOwned = Math.floor((now - purchaseDate) / (30 * 24 * 60 * 60 * 1000));
+        const totalDepreciation = Math.max(0, price - salvage);
+        const monthlyDep = totalDepreciation / lifeMonths;
+
+        // Only count depreciation while asset is within its useful life
+        if (monthsOwned < lifeMonths) {
+            monthlyDepreciation += monthlyDep;
+        }
+    }
+
+    // Total revenue (all orders + archived)
+    const revRes = await pool.query(`
+        SELECT COALESCE(SUM(total), 0) AS total FROM (
+            SELECT total FROM orders WHERE archived_at IS NULL
+            UNION ALL
+            SELECT total FROM archived_orders
+        ) c
+    `);
+    const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
+
+    // Total expenses
+    const expRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses");
+    const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
+
+    // Total replenishment costs (cost of goods)
+    const repRes = await pool.query("SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments");
+    const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
+
+    // Total investment
+    const totalInvestment = totalCapital + totalAssets;
+
+    // Total depreciation to date (only for active assets within useful life)
+    let totalDepreciationToDate = 0;
+    for (const a of assets) {
+        const price = parseFloat(a.purchase_price) || 0;
+        const salvage = parseFloat(a.salvage_value) || 0;
+        const lifeMonths = parseInt(a.useful_life_months) || 60;
+        const purchaseDate = new Date(a.purchase_date);
+        const monthsOwned = Math.floor((now - purchaseDate) / (30 * 24 * 60 * 60 * 1000));
+        const totalDep = Math.max(0, price - salvage);
+        const monthsToCount = Math.min(monthsOwned, lifeMonths);
+        totalDepreciationToDate += (totalDep / lifeMonths) * monthsToCount;
+    }
+
+    // Net profit
+    const netProfit = totalRevenue - totalExpenses - totalReplenish - totalDepreciationToDate;
+
+    // ROI
+    const roi = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
+
+    // Payback - months to recover investment
+    // Based on average monthly net profit
+    const monthsActive = await pool.query(`
+        SELECT EXTRACT(EPOCH FROM (NOW() - MIN(date::timestamptz)))/2629800 AS months FROM orders
+    `);
+    const activeMonths = Math.max(1, parseFloat(monthsActive.rows[0].months) || 1);
+    const avgMonthlyProfit = netProfit / activeMonths;
+    const paybackMonths = avgMonthlyProfit > 0 ? totalInvestment / avgMonthlyProfit : 0;
+
+    return {
+        totalCapital,
+        totalAssets,
+        totalInvestment,
+        monthlyDepreciation,
+        totalDepreciationToDate,
+        totalRevenue,
+        totalExpenses: totalExpenses + totalReplenish,
+        netProfit,
+        roi,
+        paybackMonths,
+        activeMonths,
+        assetCount: assets.length,
+        paybackRecovered: netProfit >= totalInvestment
+    };
+}
+
+// ===== USERS =====
 async function getUserByUsername(username) { const result = await pool.query("SELECT * FROM users WHERE username = $1", [username]); return result.rows[0]; }
 async function getUserByEmail(email) { const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]); return result.rows[0]; }
 async function getUserById(id) { const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]); return result.rows[0]; }
@@ -521,6 +690,9 @@ module.exports = {
     replenishProduct, getReplenishments, getLowStockProducts,
     getExpenses, getExpenseCategories, addExpense, updateExpense, deleteExpense,
     getUnifiedLedger, getLedgerStats,
+    getAssets, addAsset, updateAsset, deleteAsset,
+    getCapital, addCapital, updateCapital, deleteCapital,
+    getROIData,
     getUserByUsername, getUserByEmail, getUserById, getAllUsers, getUserCount,
     createUser, updateUserPassword, updateLastLogin, setResetToken,
     getUserByResetToken, clearResetToken, deleteUser, updateUserRole
