@@ -54,7 +54,7 @@
             border-left: 4px solid #1e40af;
         }
         .stat-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 6px; }
-        .stat-card .value { font-size: 26px; font-weight: 800; color: #0f172a; line-height: 1.1; }
+        .stat-card .value { font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1.1; }
         .stat-card .sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
         .stat-card.green { border-left-color: #10b981; }
         .stat-card.blue { border-left-color: #3b82f6; }
@@ -110,7 +110,7 @@
 
         .roi-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
             gap: 12px;
             margin-bottom: 12px;
         }
@@ -121,7 +121,7 @@
             border: 1px solid rgba(255,255,255,0.15);
         }
         .roi-stat .lbl { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.85; font-weight: 700; margin-bottom: 4px; }
-        .roi-stat .val { font-size: 18px; font-weight: 800; }
+        .roi-stat .val { font-size: 17px; font-weight: 800; word-break: break-all; }
         .roi-stat .sub { font-size: 10px; opacity: 0.75; margin-top: 2px; }
 
         .roi-big-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -133,7 +133,7 @@
             border: 2px solid rgba(255,255,255,0.3);
         }
         .roi-big .lbl { font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; opacity: 0.9; font-weight: 700; }
-        .roi-big .val { font-size: 36px; font-weight: 900; line-height: 1; margin-top: 6px; }
+        .roi-big .val { font-size: 32px; font-weight: 900; line-height: 1; margin-top: 6px; }
         .roi-big .sub { font-size: 11px; opacity: 0.85; margin-top: 6px; }
         .roi-big.recovered { background: linear-gradient(135deg, rgba(16,185,129,0.4), rgba(16,185,129,0.25)); border-color: #10b981; }
 
@@ -255,9 +255,10 @@
             .sidebar { display: none !important; }
             .main-content { margin-left: 0 !important; padding: 14px 14px 100px !important; }
             .page-title { font-size: 20px; }
-            .stat-card .value { font-size: 22px; }
+            .stat-card .value { font-size: 18px; }
+            .roi-stat .val { font-size: 15px; }
             .roi-big-wrap { grid-template-columns: 1fr; }
-            .roi-big .val { font-size: 30px; }
+            .roi-big .val { font-size: 26px; }
             .roi-panel { padding: 18px; }
         }
     </style>
@@ -268,17 +269,17 @@
     <div class="text-center mb-4">
         <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
     </div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html" class="active">📊 Dashboard</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>            
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/customers.html">👥 Customers</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html" class="active">📊 Dashboard</a>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/orders.html">📋 Orders</a>    
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <a href="/expenses.html">💰 Expenses</a>
+    <a href="/customers.html">👥 Customers</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
 </div>
 
 <div class="main-content">
@@ -329,27 +330,27 @@
         <div class="roi-stats">
             <div class="roi-stat">
                 <div class="lbl">Capital</div>
-                <div class="val" id="roiCapital">₱0</div>
+                <div class="val" id="roiCapital">₱0.00</div>
                 <div class="sub" id="roiCapitalCount">0 entries</div>
             </div>
             <div class="roi-stat">
                 <div class="lbl">Assets</div>
-                <div class="val" id="roiAssets">₱0</div>
+                <div class="val" id="roiAssets">₱0.00</div>
                 <div class="sub" id="roiAssetsCount">0 assets</div>
             </div>
             <div class="roi-stat">
                 <div class="lbl">Total Invested</div>
-                <div class="val" id="roiTotalInvest">₱0</div>
+                <div class="val" id="roiTotalInvest">₱0.00</div>
                 <div class="sub">Capital + Assets</div>
             </div>
             <div class="roi-stat">
                 <div class="lbl">Depreciation/mo</div>
-                <div class="val" id="roiDepr">₱0</div>
+                <div class="val" id="roiDepr">₱0.00</div>
                 <div class="sub">Auto-calculated</div>
             </div>
             <div class="roi-stat">
                 <div class="lbl">Net Profit</div>
-                <div class="val" id="roiNetProfit">₱0</div>
+                <div class="val" id="roiNetProfit">₱0.00</div>
                 <div class="sub">Revenue − Expenses</div>
             </div>
         </div>
@@ -358,7 +359,7 @@
             <div class="roi-big" id="roiBig">
                 <div class="lbl">Return on Investment</div>
                 <div class="val" id="roiPercent">0%</div>
-                <div class="sub" id="roiNetProfitSub">Net Profit: ₱0</div>
+                <div class="sub" id="roiNetProfitSub">Net Profit: ₱0.00</div>
             </div>
             <div class="roi-big" id="paybackBig">
                 <div class="lbl">Payback Period</div>
@@ -535,18 +536,13 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    // ===== MONEY FORMATTERS WITH COMMAS =====
+    // ===== FORMATTERS WITH COMMAS + CENTS EVERYWHERE =====
     function peso(n) {
-        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    function shortPeso(n) {
-        n = parseFloat(n) || 0;
-        if (n >= 1000000) return '₱' + (n / 1000000).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'M';
-        if (n >= 1000) return '₱' + (n / 1000).toLocaleString('en-PH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'K';
-        return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const v = parseFloat(n) || 0;
+        return '₱' + v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
     function num(n) {
-        return parseFloat(n || 0).toLocaleString('en-PH');
+        return (parseFloat(n) || 0).toLocaleString('en-PH');
     }
 
     fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
@@ -580,14 +576,14 @@
             .then(res => res.json())
             .then(d => {
                 if (!d || d.error) return;
-                document.getElementById('roiCapital').innerText = shortPeso(d.totalCapital);
-                document.getElementById('roiAssets').innerText = shortPeso(d.totalAssets);
-                document.getElementById('roiTotalInvest').innerText = shortPeso(d.totalInvestment);
-                document.getElementById('roiDepr').innerText = shortPeso(d.monthlyDepreciation);
-                document.getElementById('roiNetProfit').innerText = shortPeso(d.netProfit);
+                document.getElementById('roiCapital').innerText = peso(d.totalCapital);
+                document.getElementById('roiAssets').innerText = peso(d.totalAssets);
+                document.getElementById('roiTotalInvest').innerText = peso(d.totalInvestment);
+                document.getElementById('roiDepr').innerText = peso(d.monthlyDepreciation);
+                document.getElementById('roiNetProfit').innerText = peso(d.netProfit);
                 document.getElementById('roiAssetsCount').innerText = num(d.assetCount) + ' asset' + (d.assetCount === 1 ? '' : 's');
                 document.getElementById('roiPercent').innerText = d.roi.toFixed(1) + '%';
-                document.getElementById('roiNetProfitSub').innerText = 'Net Profit: ' + shortPeso(d.netProfit);
+                document.getElementById('roiNetProfitSub').innerText = 'Net Profit: ' + peso(d.netProfit);
 
                 document.getElementById('roiBig').classList.toggle('recovered', d.netProfit >= d.totalInvestment);
 
@@ -818,7 +814,7 @@
                     const dateObj = new Date(d.day);
                     const label = view === 'month' ? dateObj.toLocaleDateString('en-US', { month: 'short' }) : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     return `<div style="display:flex;flex-direction:column;align-items:center;min-width:70px;">
-                        <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:6px;">${peso(revenue).replace('.00', '')}</div>
+                        <div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:6px;white-space:nowrap;">${peso(revenue)}</div>
                         <div style="width:38px;height:${Math.max(height,6)}px;background:linear-gradient(180deg,#3b82f6,#1e40af);border-radius:6px 6px 0 0;"></div>
                         <div style="font-size:11px;font-weight:700;color:#0f172a;margin-top:8px;">${label}</div>
                         <div style="font-size:10px;color:#64748b;">${num(d.order_count)} order${d.order_count === 1 ? '' : 's'}</div>
