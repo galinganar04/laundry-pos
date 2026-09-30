@@ -16,7 +16,6 @@
         .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
         .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
 
-        /* Filter chips */
         .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
         .filter-chip {
             background: white;
@@ -27,34 +26,19 @@
             font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s;
         }
         .filter-chip:hover { border-color: #1e40af; color: #1e40af; }
         .filter-chip.active { background: #1e40af; color: white; border-color: #1e40af; }
 
-        /* Stat cards */
         .stat-card {
             background: white;
             border-radius: 12px;
             padding: 18px 20px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             border-left: 4px solid #dc2626;
-            height: 100%;
         }
-        .stat-card .label {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #64748b;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-        .stat-card .value {
-            font-size: 24px;
-            font-weight: 800;
-            color: #dc2626;
-            line-height: 1.1;
-        }
+        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 6px; }
+        .stat-card .value { font-size: 24px; font-weight: 800; color: #dc2626; line-height: 1.1; }
         .stat-card .sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
         .stat-card.yellow { border-left-color: #f59e0b; }
         .stat-card.yellow .value { color: #f59e0b; }
@@ -63,7 +47,6 @@
         .stat-card.purple { border-left-color: #8b5cf6; }
         .stat-card.purple .value { color: #8b5cf6; }
 
-        /* Panel */
         .panel {
             background: white;
             border-radius: 12px;
@@ -71,7 +54,6 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
 
-        /* Search */
         .search-wrap { position: relative; }
         .search-wrap input {
             width: 100%;
@@ -82,15 +64,8 @@
             background: white;
         }
         .search-wrap input:focus { outline: none; border-color: #3b82f6; }
-        .search-icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #94a3b8;
-        }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
 
-        /* Table */
         .exp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .exp-table thead th {
             font-size: 11px;
@@ -134,23 +109,11 @@
         }
         .exp-table .actions button.del { color: #dc2626; border-color: #fecaca; }
 
-        .empty-state {
-            text-align: center;
-            padding: 50px 20px;
-            color: #94a3b8;
-            font-size: 13px;
-        }
+        .empty-state { text-align: center; padding: 50px 20px; color: #94a3b8; font-size: 13px; }
 
-        .btn-primary {
-            background: #1e40af;
-            border-color: #1e40af;
-            font-weight: 600;
-            padding: 10px 18px;
-            border-radius: 10px;
-        }
+        .btn-primary { background: #1e40af; border-color: #1e40af; font-weight: 600; padding: 10px 18px; border-radius: 10px; }
         .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
 
-        /* Modals */
         .modal-content { border-radius: 14px; border: none; }
         .modal-header {
             background: linear-gradient(135deg, #1e40af, #3b82f6);
@@ -161,7 +124,6 @@
         .modal-header .btn-close { filter: invert(1); opacity: 0.9; }
         .modal-body { padding: 22px; }
 
-        /* Dark mode */
         [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
@@ -233,7 +195,6 @@
                 <button class="btn btn-primary" onclick="openExpenseModal()">+ Add Expense</button>
             </div>
 
-            <!-- FILTERS -->
             <div class="filter-chips">
                 <button class="filter-chip active" data-period="all" onclick="setPeriod('all', this)">All Time</button>
                 <button class="filter-chip" data-period="today" onclick="setPeriod('today', this)">Today</button>
@@ -242,7 +203,6 @@
                 <button class="filter-chip" data-period="year" onclick="setPeriod('year', this)">This Year</button>
             </div>
 
-            <!-- STATS -->
             <div class="row g-3 mb-4">
                 <div class="col-6 col-md-3">
                     <div class="stat-card">
@@ -255,7 +215,7 @@
                     <div class="stat-card yellow">
                         <div class="label">Highest Single</div>
                         <div class="value" id="statHighest">₱0.00</div>
-                        <div class="sub" id="statHighestSub">—</div>
+                        <div class="sub">—</div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -274,7 +234,6 @@
                 </div>
             </div>
 
-            <!-- SEARCH -->
             <div class="panel mb-3">
                 <div class="search-wrap">
                     <span class="search-icon">🔍</span>
@@ -282,7 +241,6 @@
                 </div>
             </div>
 
-            <!-- TABLE -->
             <div class="panel p-0">
                 <div style="overflow-x: auto;">
                     <table class="exp-table">
@@ -306,7 +264,6 @@
     </div>
 </div>
 
-<!-- ADD/EDIT EXPENSE MODAL -->
 <div class="modal fade" id="expenseModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -320,15 +277,9 @@
                     <label class="form-label small">Category *</label>
                     <input type="text" id="eCategory" class="form-control" placeholder="e.g., Rent, Electricity, Salary" list="categoryList">
                     <datalist id="categoryList">
-                        <option value="Rent">
-                        <option value="Electricity">
-                        <option value="Water">
-                        <option value="Salary">
-                        <option value="Gas / Fuel">
-                        <option value="Supplies">
-                        <option value="Maintenance">
-                        <option value="Marketing">
-                        <option value="Other">
+                        <option value="Rent"><option value="Electricity"><option value="Water">
+                        <option value="Salary"><option value="Gas / Fuel"><option value="Supplies">
+                        <option value="Maintenance"><option value="Marketing"><option value="Other">
                     </datalist>
                 </div>
                 <div class="row g-3 mb-3">
@@ -382,6 +333,12 @@
 
     let currentPeriod = 'all';
     let searchTimeout;
+
+    // ===== FORMATTERS WITH COMMAS =====
+    function peso(n) {
+        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function num(n) { return parseFloat(n || 0).toLocaleString('en-PH'); }
 
     function toISO(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 
@@ -453,7 +410,7 @@
                         </td>
                         <td>${siOr}</td>
                         <td>${sourceBadge}</td>
-                        <td class="amount">₱${parseFloat(e.amount).toFixed(2)}</td>
+                        <td class="amount">${peso(e.amount)}</td>
                         <td class="actions">${actions}</td>
                     </tr>`;
                 }).join('');
@@ -471,10 +428,10 @@
             .then(res => res.json())
             .then(data => {
                 if (!data) return;
-                document.getElementById('statTotal').innerText = '₱' + (data.total || 0).toFixed(2);
-                document.getElementById('statHighest').innerText = '₱' + (data.highest || 0).toFixed(2);
-                document.getElementById('statAvg').innerText = '₱' + (data.average || 0).toFixed(2);
-                document.getElementById('statCount').innerText = data.count || 0;
+                document.getElementById('statTotal').innerText = peso(data.total);
+                document.getElementById('statHighest').innerText = peso(data.highest);
+                document.getElementById('statAvg').innerText = peso(data.average);
+                document.getElementById('statCount').innerText = num(data.count);
             })
             .catch(() => {});
     }

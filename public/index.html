@@ -16,8 +16,6 @@
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; padding-top: 0; }
-
-        /* Prevent body shift when offline banner appears */
         body.has-offline-banner { padding-top: 44px; }
 
         .topbar { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
@@ -39,7 +37,6 @@
         .search-input { width: 100%; padding: 12px 16px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 15px; background: white; margin-bottom: 12px; }
         .search-input:focus { outline: none; border-color: #3b82f6; }
 
-        /* SERVICE CARD — BIG EMOJI + GRADIENT */
         .service-card { cursor: pointer; border: none; border-radius: 16px; padding: 22px 12px; text-align: center; color: white; transition: transform 0.25s ease, box-shadow 0.25s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: relative; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
         .service-card:hover { transform: translateY(-6px) scale(1.02); box-shadow: 0 12px 24px rgba(0,0,0,0.25); }
         .service-card:active { transform: translateY(-2px) scale(0.98); }
@@ -63,7 +60,6 @@
         .bg-amber  { background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%); }
         .bg-cyan   { background: linear-gradient(135deg, #0e7490 0%, #06b6d4 100%); }
 
-        /* ADD-ON CARD */
         .addon-card { cursor: pointer; border-radius: 14px; background: white; padding: 14px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; border: 2px solid #e5e7eb; transition: all 0.2s; position: relative; user-select: none; -webkit-tap-highlight-color: transparent; }
         .addon-card:hover { border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.15); }
         .addon-card.selected { border-color: #10b981; background: #f0fdf4; }
@@ -75,7 +71,6 @@
         .addon-card .qty-badge { background: #10b981; color: white; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: none; margin-top: 4px; }
         .addon-card.selected .qty-badge { display: inline-block; }
 
-        /* CART PANEL */
         .cart-panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-top: 8px; }
         .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
         .cart-empty { color: #94a3b8; text-align: center; font-size: 13px; padding: 12px 0; }
@@ -87,7 +82,7 @@
         .qty-controls { display: flex; align-items: center; gap: 6px; }
         .qty-btn { border: 1px solid #e2e8f0; background: white; width: 30px; height: 30px; border-radius: 6px; font-size: 15px; font-weight: 700; cursor: pointer; color: #475569; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .qty-btn:hover { background: #f1f5f9; }
-        .cart-item-price { font-weight: 700; color: #1e40af; min-width: 70px; text-align: right; flex-shrink: 0; }
+        .cart-item-price { font-weight: 700; color: #1e40af; min-width: 80px; text-align: right; flex-shrink: 0; }
 
         .form-label { font-size: 12px; color: #475569; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
         .form-control, .form-select { border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; font-size: 15px; width: 100%; }
@@ -244,7 +239,7 @@
 
                 <div class="cart-total-row">
                     <span>Total</span>
-                    <span id="cartTotal">P0.00</span>
+                    <span id="cartTotal">₱0.00</span>
                 </div>
 
                 <button class="btn-checkout" id="checkoutBtn" onclick="checkout()">✅ Checkout</button>
@@ -268,6 +263,12 @@
 
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
     const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // ===== MONEY FORMATTERS WITH COMMAS =====
+    function peso(n) {
+        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function num(n) { return parseFloat(n || 0).toLocaleString('en-PH'); }
 
     let shopSettings = { shop_name: "Hawi's Lovada", tagline: 'Clean. Fresh. Wash with Love.', address: '', phone: '', facebook: '', tin: '', currency: 'P' };
     fetch('/api/settings', { headers: { 'x-auth-token': authToken } })
@@ -298,8 +299,6 @@
         const parts = (str || '').trim().split(/\s+/);
         return parts[0] ? parts[0].toUpperCase() : '';
     }
-
-    const colorClasses = ['bg-blue', 'bg-teal', 'bg-purple', 'bg-green', 'bg-indigo', 'bg-orange', 'bg-red', 'bg-pink', 'bg-amber', 'bg-cyan'];
 
     function getColorForService(name) {
         const n = (name || '').toLowerCase();
@@ -396,7 +395,7 @@
                         <div class="service-card ${colorClass}" id="svc-${service.id}" onclick="addToCart('${service.name.replace(/'/g, "\\'")}', ${service.price}, '${unit}', 'service', ${service.id})">
                             <span class="emoji">${emoji}</span>
                             <div class="name">${service.name}</div>
-                            <div class="price">₱${parseFloat(service.price).toFixed(2)} / ${unit}</div>
+                            <div class="price">${peso(service.price)} / ${unit}</div>
                             <div class="qty-badge" id="badge-${service.id}">0</div>
                         </div>
                     </div>`;
@@ -418,10 +417,10 @@
                             ${thumb}
                             <div class="flex-grow-1">
                                 <div class="addon-name">${p.name}</div>
-                                <div class="addon-meta">${p.category || 'General'} • ${p.stock} in stock</div>
+                                <div class="addon-meta">${p.category || 'General'} • ${num(p.stock)} in stock</div>
                             </div>
                             <div class="text-end">
-                                <div class="addon-price">₱${parseFloat(p.selling_price || p.cost_price || 0).toFixed(2)}</div>
+                                <div class="addon-price">${peso(p.selling_price || p.cost_price || 0)}</div>
                                 <div class="qty-badge" id="badge-p${p.id}">0</div>
                             </div>
                         </div>
@@ -499,12 +498,12 @@
                     ? `<span style="font-size: 11px; color: #f59e0b; font-weight: 700;">FIXED</span>`
                     : `<div class="qty-controls"><button class="qty-btn" onclick="decreaseQty('${item.name.replace(/'/g, "\\'")}')">−</button><span style="font-weight:600; min-width:18px; text-align:center;">${item.qty}</span><button class="qty-btn" onclick="increaseQty('${item.name.replace(/'/g, "\\'")}')">+</button></div>`;
                 const rowStyle = item.isPickupFee ? 'style="background: #fffbeb; border-radius: 8px; padding: 10px 8px; border-left: 3px solid #f59e0b;"' : '';
-                const subText = item.isPickupFee ? 'Auto-added' : '₱' + item.price.toFixed(2) + ' × ' + item.qty;
-                list.innerHTML += `<div class="cart-item" ${rowStyle}><div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-sub">${subText}</div></div>${qtyControls}<div class="cart-item-price">₱${itemTotal.toFixed(2)}</div></div>`;
+                const subText = item.isPickupFee ? 'Auto-added' : peso(item.price) + ' × ' + item.qty;
+                list.innerHTML += `<div class="cart-item" ${rowStyle}><div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-sub">${subText}</div></div>${qtyControls}<div class="cart-item-price">${peso(itemTotal)}</div></div>`;
             });
         }
-        countSpan.innerText = itemCount + ' items';
-        totalSpan.innerText = '₱' + total.toFixed(2);
+        countSpan.innerText = num(itemCount) + ' items';
+        totalSpan.innerText = peso(total);
     }
 
     function checkout() {
@@ -539,7 +538,6 @@
         const isOnline = navigator.onLine;
 
         if (!isOnline) {
-            // OFFLINE MODE — queue the order
             const success = window.HawiSync.addToQueue(orderData);
             if (!success) { btn.innerText = '✅ Checkout'; btn.disabled = false; return; }
             const receiptData = {
@@ -563,7 +561,6 @@
             return;
         }
 
-        // ONLINE MODE
         fetch('/api/checkout', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
@@ -601,12 +598,11 @@
         });
     }
 
-    // ===== ASCII HELPERS =====
     function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
     function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
     function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
     function center(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); const tp = len - str.length; const lp = Math.floor(tp / 2); const rp = tp - lp; return ' '.repeat(lp) + str + ' '.repeat(rp); }
-    function formatMoney(n) { return 'P' + parseFloat(n || 0).toFixed(2); }
+    function formatMoneyPlain(n) { return parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
     function buildReceiptText(size) {
         const width = size === '58' ? 32 : 48;
@@ -642,15 +638,15 @@
         lines.push(dividerLine(size));
 
         order.items.forEach(item => {
-            const nameMax = width - 14;
+            const nameMax = width - 16;
             const name = item.name.length > nameMax ? item.name.substring(0, nameMax - 1) + '.' : item.name;
-            const amtPart = formatMoney(item.price * item.qty);
+            const amtPart = 'P' + formatMoneyPlain(item.price * item.qty);
             const nameQty = name + ' x' + item.qty;
             lines.push(padRight(nameQty, width - amtPart.length) + amtPart);
         });
 
         lines.push(dividerLine(size));
-        const totalValue = formatMoney(order.total);
+        const totalValue = 'P' + formatMoneyPlain(order.total);
         lines.push(padRight('TOTAL', width - totalValue.length) + totalValue);
         lines.push(dividerLine(size));
         lines.push(center(statusLabel, width));
@@ -725,12 +721,12 @@
         const offlineNote = lastOrder._offline ? '<div class="center bold">*** PENDING SYNC ***</div>' : '';
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
-        const cur = 'P';
+        const cur = '₱';
         const orderId = lastOrder.orderId || 'PENDING';
 
         const itemsCustomerHtml = lastOrder.items.map(item => {
             const nameTrunc = item.name.length > (size === '58' ? 16 : 28) ? item.name.substring(0, size === '58' ? 15 : 27) + '.' : item.name;
-            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.qty}</td><td style="text-align:right;">${cur}${(item.price * item.qty).toFixed(2)}</td></tr>`;
+            return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.qty}</td><td style="text-align:right;">${peso(item.price * item.qty)}</td></tr>`;
         }).join('');
 
         const itemsShopHtml = lastOrder.items.map(item => {
@@ -751,7 +747,7 @@
                 <div class="divider"></div>
                 <table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table>
                 <div class="divider"></div>
-                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${lastOrder.total.toFixed(2)}</td></tr></table>
+                <table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${peso(lastOrder.total)}</td></tr></table>
                 <div class="divider"></div>
                 <div class="status">${statusLabel}</div>
                 ${payNote ? `<div class="center">${payNote}</div>` : ''}
@@ -821,7 +817,6 @@
         window.location.href = '/login.html';
     }
 
-    // Register service worker (with update)
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/service-worker.js').then(reg => {

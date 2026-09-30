@@ -53,21 +53,14 @@
         [data-theme="dark"] .dropdown-menu { background-color: #1e293b !important; border-color: #334155 !important; }
         [data-theme="dark"] .dropdown-item { color: #e2e8f0 !important; }
 
-        /* Force all outline buttons visible */
         .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
         .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
         .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
-        .btn-outline-warning:hover { background: #f59e0b !important; color: white !important; }
         .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
-        .btn-outline-primary:hover { background: #1e40af !important; color: white !important; }
         .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
-        .btn-outline-success:hover { background: #10b981 !important; color: white !important; }
         .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
-        .btn-outline-dark:hover { background: #1e293b !important; color: white !important; }
         .btn-outline-info { color: #155e75 !important; border-color: #06b6d4 !important; background: #cffafe !important; font-weight: 600 !important; }
-        .btn-outline-info:hover { background: #06b6d4 !important; color: white !important; }
         .btn-outline-danger { color: #991b1b !important; border-color: #ef4444 !important; background: #fee2e2 !important; font-weight: 600 !important; }
-        .btn-outline-danger:hover { background: #dc2626 !important; color: white !important; }
         [data-theme="dark"] .btn-outline-secondary { color: #e2e8f0 !important; border-color: #475569 !important; background: #334155 !important; }
         [data-theme="dark"] .btn-outline-warning { color: #fbbf24 !important; border-color: #92400e !important; background: #422006 !important; }
         [data-theme="dark"] .btn-outline-primary { color: #93c5fd !important; border-color: #1e40af !important; background: #1e3a8a !important; }
@@ -82,14 +75,14 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-2 sidebar d-none d-md-block">
-        <div class="text-center mb-4">
-        <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+            <div class="text-center mb-4">
+                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
             </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html" class="active">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>            
+            <a href="/orders.html">📋 Orders</a>
             <a href="/replenishments.html">📥 Replenishments</a>
             <a href="/expenses.html">💰 Expenses</a>
             <a href="/customers.html">👥 Customers</a>
@@ -121,8 +114,8 @@
                             <th style="width: 80px;">Image</th>
                             <th>Product Details</th>
                             <th style="width: 120px;">Category</th>
-                            <th class="text-end" style="width: 120px;">Cost Price</th>
-                            <th class="text-end" style="width: 120px;">Selling Price</th>
+                            <th class="text-end" style="width: 130px;">Cost Price</th>
+                            <th class="text-end" style="width: 130px;">Selling Price</th>
                             <th class="text-center" style="width: 130px;">Current Stock</th>
                             <th class="text-center" style="width: 100px;">Low Limit</th>
                             <th class="text-end" style="width: 120px;">Actions</th>
@@ -191,6 +184,14 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
+    // ===== MONEY FORMATTERS WITH COMMAS =====
+    function peso(n) {
+        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    function num(n) {
+        return parseFloat(n || 0).toLocaleString('en-PH');
+    }
+
     let searchTimeout;
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadProducts(), 300); }
 
@@ -215,7 +216,7 @@
                     const isLow = p.stock <= p.low_limit;
                     const isOut = p.stock === 0;
                     let sc = ''; if (isOut) sc = 'out'; else if (isLow) sc = 'low';
-                    return `<tr><td>${renderThumb(p)}</td><td><div class="product-name">${p.name}</div><div class="product-desc">${p.description || 'No description.'}</div></td><td><span class="category-text">${p.category || 'General'}</span></td><td class="text-end price-text">₱${parseFloat(p.cost_price).toFixed(2)}</td><td class="text-end price-text">₱${parseFloat(p.selling_price).toFixed(2)}</td><td class="text-center"><span class="stock-pill ${sc}">${p.stock} pc</span></td><td class="low-limit-text">${p.low_limit}</td><td class="text-end"><div class="dropdown"><button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="editProduct(${p.id}); return false;">✏️ Edit</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li></ul></div></td></tr>`;
+                    return `<tr><td>${renderThumb(p)}</td><td><div class="product-name">${p.name}</div><div class="product-desc">${p.description || 'No description.'}</div></td><td><span class="category-text">${p.category || 'General'}</span></td><td class="text-end price-text">${peso(p.cost_price)}</td><td class="text-end price-text">${peso(p.selling_price)}</td><td class="text-center"><span class="stock-pill ${sc}">${num(p.stock)} pc</span></td><td class="low-limit-text">${num(p.low_limit)}</td><td class="text-end"><div class="dropdown"><button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="editProduct(${p.id}); return false;">✏️ Edit</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li></ul></div></td></tr>`;
                 }).join('');
             });
     }
@@ -235,7 +236,7 @@
             .then(items => {
                 const alertBox = document.getElementById('lowStockAlert');
                 if (items.length === 0) { alertBox.innerHTML = ''; return; }
-                alertBox.innerHTML = `<div class="alert alert-warning">⚠️ <strong>Low Stock:</strong> ${items.map(i => `${i.name} (${i.stock} left)`).join(' • ')}</div>`;
+                alertBox.innerHTML = `<div class="alert alert-warning">⚠️ <strong>Low Stock:</strong> ${items.map(i => `${i.name} (${num(i.stock)} left)`).join(' • ')}</div>`;
             });
     }
 

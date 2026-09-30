@@ -19,7 +19,6 @@
             min-height: 100%;
         }
 
-        /* Sidebar — fixed on desktop */
         .sidebar {
             background-color: #1e293b;
             color: white;
@@ -39,7 +38,6 @@
         .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
         .sidebar a.active { background-color: #3b82f6; color: white; }
 
-        /* Main content — pushed right of sidebar */
         .main-content {
             margin-left: 16.66667%;
             padding: 24px 24px 100px;
@@ -48,7 +46,6 @@
         .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
         .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
 
-        /* Stat cards */
         .stat-card {
             background: white;
             border-radius: 12px;
@@ -76,7 +73,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* ROI panel */
         .roi-panel {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             border-radius: 14px;
@@ -116,7 +112,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         .roi-stat {
             background: rgba(255,255,255,0.12);
@@ -216,7 +212,6 @@
         .modal-header .btn-close { filter: invert(1); opacity: 0.9; }
         .modal-body { padding: 22px; }
 
-        /* Back to top button */
         #backToTop {
             position: fixed;
             bottom: 24px;
@@ -235,7 +230,6 @@
         }
         #backToTop:hover { background: #1e3a8a; }
 
-        /* Dark mode */
         [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
@@ -259,10 +253,7 @@
 
         @media (max-width: 767px) {
             .sidebar { display: none !important; }
-            .main-content {
-                margin-left: 0 !important;
-                padding: 14px 14px 100px !important;
-            }
+            .main-content { margin-left: 0 !important; padding: 14px 14px 100px !important; }
             .page-title { font-size: 20px; }
             .stat-card .value { font-size: 22px; }
             .roi-big-wrap { grid-template-columns: 1fr; }
@@ -273,12 +264,11 @@
 </head>
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar d-none d-md-block">
     <div class="text-center mb-4">
         <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
     </div>
-    <a href="/">🧺 POS</a>
+            <a href="/">🧺 POS</a>
             <a href="/dashboard.html" class="active">📊 Dashboard</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html">📦 Products</a>
@@ -291,12 +281,10 @@
             <a href="#" onclick="logout()">🚪 Logout</a>
 </div>
 
-<!-- MAIN CONTENT -->
 <div class="main-content">
     <h1 class="page-title">Dashboard</h1>
     <p class="page-sub">Overview of your shop's performance</p>
 
-    <!-- TOP STATS -->
     <div class="row g-3 mb-2">
         <div class="col-6 col-md-3">
             <div class="stat-card green">
@@ -328,7 +316,6 @@
         </div>
     </div>
 
-    <!-- ROI -->
     <div class="section-title">💰 Investment &amp; ROI</div>
     <div class="roi-panel mb-4">
         <div class="roi-head">
@@ -381,7 +368,6 @@
         </div>
     </div>
 
-    <!-- ASSETS + CAPITAL -->
     <div class="row g-3 mb-4">
         <div class="col-md-6">
             <div class="panel">
@@ -397,7 +383,6 @@
         </div>
     </div>
 
-    <!-- CHART -->
     <div class="section-title">📈 Sales Performance</div>
     <div class="panel mb-4">
         <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
@@ -416,7 +401,6 @@
         <div id="weeklyChart" style="display:flex;align-items:flex-end;gap:12px;height:220px;padding:10px 0;border-bottom:2px solid #e2e8f0;overflow-x:auto;"></div>
     </div>
 
-    <!-- TOP SERVICES + RECENT ORDERS -->
     <div class="row g-3">
         <div class="col-md-5">
             <div class="panel">
@@ -439,10 +423,8 @@
     </div>
 </div>
 
-<!-- BACK TO TOP -->
 <button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Back to top">↑</button>
 
-<!-- ASSET MODAL -->
 <div class="modal fade" id="assetModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -500,7 +482,6 @@
     </div>
 </div>
 
-<!-- CAPITAL MODAL -->
 <div class="modal fade" id="capitalModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -554,36 +535,42 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
+    // ===== MONEY FORMATTERS WITH COMMAS =====
+    function peso(n) {
+        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
     function shortPeso(n) {
         n = parseFloat(n) || 0;
-        if (n >= 1000000) return '₱' + (n / 1000000).toFixed(2) + 'M';
-        if (n >= 1000) return '₱' + (n / 1000).toFixed(1) + 'K';
-        return '₱' + n.toFixed(0);
+        if (n >= 1000000) return '₱' + (n / 1000000).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + 'M';
+        if (n >= 1000) return '₱' + (n / 1000).toLocaleString('en-PH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + 'K';
+        return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function num(n) {
+        return parseFloat(n || 0).toLocaleString('en-PH');
+    }
 
     fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
         .then(data => {
             if (!data || data.error) return;
-            document.getElementById('todayRevenue').innerText = '₱' + data.today.revenue.toFixed(2);
-            document.getElementById('todayOrdersSub').innerText = data.today.orders + ' order' + (data.today.orders === 1 ? '' : 's');
-            document.getElementById('allTimeRevenue').innerText = '₱' + data.allTime.revenue.toFixed(2);
-            document.getElementById('allTimeSub').innerText = data.allTime.orders + ' order' + (data.allTime.orders === 1 ? '' : 's');
-            document.getElementById('pendingOrders').innerText = data.pending;
+            document.getElementById('todayRevenue').innerText = peso(data.today.revenue);
+            document.getElementById('todayOrdersSub').innerText = num(data.today.orders) + ' order' + (data.today.orders === 1 ? '' : 's');
+            document.getElementById('allTimeRevenue').innerText = peso(data.allTime.revenue);
+            document.getElementById('allTimeSub').innerText = num(data.allTime.orders) + ' order' + (data.allTime.orders === 1 ? '' : 's');
+            document.getElementById('pendingOrders').innerText = num(data.pending);
             const avg = data.allTime.orders > 0 ? (data.allTime.revenue / data.allTime.orders) : 0;
-            document.getElementById('avgOrder').innerText = '₱' + avg.toFixed(2);
+            document.getElementById('avgOrder').innerText = peso(avg);
 
             document.getElementById('topServicesTable').innerHTML = data.topServices.length === 0
                 ? '<tr><td colspan="3" class="empty-state">No sales yet</td></tr>'
-                : data.topServices.map(s => `<tr><td>${s.service_name}</td><td class="num">${s.total_qty}</td><td class="num">₱${parseFloat(s.total_revenue).toFixed(2)}</td></tr>`).join('');
+                : data.topServices.map(s => `<tr><td>${s.service_name}</td><td class="num">${num(s.total_qty)}</td><td class="num">${peso(s.total_revenue)}</td></tr>`).join('');
 
             document.getElementById('recentOrdersTable').innerHTML = data.recentOrders.length === 0
                 ? '<tr><td colspan="5" class="empty-state">No orders yet</td></tr>'
                 : data.recentOrders.map(o => {
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const badge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
-                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="num">₱${parseFloat(o.total).toFixed(2)}</td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
+                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="num">${peso(o.total)}</td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
                 }).join('');
         })
         .catch(() => {});
@@ -598,7 +585,7 @@
                 document.getElementById('roiTotalInvest').innerText = shortPeso(d.totalInvestment);
                 document.getElementById('roiDepr').innerText = shortPeso(d.monthlyDepreciation);
                 document.getElementById('roiNetProfit').innerText = shortPeso(d.netProfit);
-                document.getElementById('roiAssetsCount').innerText = d.assetCount + ' asset' + (d.assetCount === 1 ? '' : 's');
+                document.getElementById('roiAssetsCount').innerText = num(d.assetCount) + ' asset' + (d.assetCount === 1 ? '' : 's');
                 document.getElementById('roiPercent').innerText = d.roi.toFixed(1) + '%';
                 document.getElementById('roiNetProfitSub').innerText = 'Net Profit: ' + shortPeso(d.netProfit);
 
@@ -626,7 +613,7 @@
             .then(res => res.json())
             .then(assets => {
                 if (!Array.isArray(assets)) assets = [];
-                document.getElementById('assetBadge').innerText = assets.length;
+                document.getElementById('assetBadge').innerText = num(assets.length);
                 const list = document.getElementById('assetsList');
                 if (assets.length === 0) {
                     list.innerHTML = '<div class="empty-state">No assets yet.<br>Click <strong>+ Asset</strong> above.</div>';
@@ -656,8 +643,8 @@
             .then(res => res.json())
             .then(items => {
                 if (!Array.isArray(items)) items = [];
-                document.getElementById('capitalBadge').innerText = items.length;
-                document.getElementById('roiCapitalCount').innerText = items.length + ' entr' + (items.length === 1 ? 'y' : 'ies');
+                document.getElementById('capitalBadge').innerText = num(items.length);
+                document.getElementById('roiCapitalCount').innerText = num(items.length) + ' entr' + (items.length === 1 ? 'y' : 'ies');
                 const list = document.getElementById('capitalList');
                 if (items.length === 0) {
                     list.innerHTML = '<div class="empty-state">No capital entries yet.<br>Click <strong>+ Capital</strong> above.</div>';
@@ -831,10 +818,10 @@
                     const dateObj = new Date(d.day);
                     const label = view === 'month' ? dateObj.toLocaleDateString('en-US', { month: 'short' }) : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                     return `<div style="display:flex;flex-direction:column;align-items:center;min-width:70px;">
-                        <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:6px;">₱${revenue.toFixed(0)}</div>
+                        <div style="font-size:11px;font-weight:700;color:#1e293b;margin-bottom:6px;">${peso(revenue).replace('.00', '')}</div>
                         <div style="width:38px;height:${Math.max(height,6)}px;background:linear-gradient(180deg,#3b82f6,#1e40af);border-radius:6px 6px 0 0;"></div>
                         <div style="font-size:11px;font-weight:700;color:#0f172a;margin-top:8px;">${label}</div>
-                        <div style="font-size:10px;color:#64748b;">${d.order_count} order${d.order_count === 1 ? '' : 's'}</div>
+                        <div style="font-size:10px;color:#64748b;">${num(d.order_count)} order${d.order_count === 1 ? '' : 's'}</div>
                     </div>`;
                 }).join('');
             })
