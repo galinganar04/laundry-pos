@@ -13,7 +13,6 @@ const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = 'shop1234';
 const sessions = new Map();
 
-// ===== SERVICE FLOW LOGIC =====
 function buildServiceFlow(cartItems, hasPickupDelivery) {
     const names = cartItems.filter(i => !i.isPickupFee).map(i => (i.name || '').toLowerCase());
     const hasWash = names.some(n => n.includes('wash'));
@@ -318,6 +317,14 @@ app.delete('/api/service-flows/:id', requireAuth, async (req, res) => {
 });
 
 // ===== SERVICES =====
+app.get('/api/services/public', async (req, res) => {
+    try {
+        const all = await db.getServices();
+        const publicServices = all.filter(s => !s.hidden).map(s => ({ id: s.id, name: s.name, price: parseFloat(s.price) }));
+        res.json(publicServices);
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.get('/api/services', requireAuth, async (req, res) => {
     try { res.json(await db.getServices()); } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -532,7 +539,6 @@ app.get('/api/assets', requireAuth, async (req, res) => {
 
 app.post('/api/assets', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: 'Name is required' });
-    if (!req.body.purchase_price || parseFloat(req.body.purchase_price) <= 0) return res.status(400).json({ error: 'Purchase price is required' });
     try { const asset = await db.addAsset(req.body); res.json({ success: true, asset }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -552,7 +558,6 @@ app.get('/api/capital', requireAuth, async (req, res) => {
 
 app.post('/api/capital', requireAuth, async (req, res) => {
     if (!req.body.description) return res.status(400).json({ error: 'Description is required' });
-    if (!req.body.amount || parseFloat(req.body.amount) <= 0) return res.status(400).json({ error: 'Amount is required' });
     try { const capital = await db.addCapital(req.body); res.json({ success: true, capital }); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -568,6 +573,45 @@ app.delete('/api/capital/:id', requireAuth, async (req, res) => {
 // ===== ROI =====
 app.get('/api/roi', requireAuth, async (req, res) => {
     try { res.json(await db.getROIData()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== BOOKINGS =====
+app.post('/api/bookings', async (req, res) => {
+    const { customer_name, customer_phone, customer_address, service_type, preferred_date, preferred_time, notes } = req.body;
+    if (!customer_name || !customer_phone || !customer_address || !preferred_date || !preferred_time) {
+        return res.status(400).json({ error: 'Name, phone, address, date, and time are required' });
+    }
+    if (!/^09\d{9}$/.test(customer_phone)) {
+        return res.status(400).json({ error: 'Cellphone must be 11 digits starting with 09' });
+    }
+    try {
+        const booking = await db.addBooking({ customer_name, customer_phone, customer_address, service_type, preferred_date, preferred_time, notes });
+        res.json({ success: true, booking });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/bookings', requireAuth, async (req, res) => {
+    try {
+        const { filter = 'upcoming' } = req.query;
+        res.json(await db.getBookings(filter));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/bookings/:id/status', requireAuth, async (req, res) => {
+    const { status } = req.body;
+    const valid = ['Pending', 'Confirmed', 'Picked Up', 'Cancelled'];
+    if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' });
+    try {
+        await db.updateBookingStatus(req.params.id, status);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
+    try {
+        await db.deleteBooking(req.params.id);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== DASHBOARD =====

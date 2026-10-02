@@ -145,105 +145,72 @@
         }
         .signup-banner a { color: #1e40af; font-weight: 700; text-decoration: underline; }
 
-        .track-header {
-            text-align: center;
-            margin-bottom: 18px;
+        .customer-actions {
+            margin-top: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-        .track-header .icon {
-            font-size: 36px;
-            margin-bottom: 6px;
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            transition: all 0.2s;
         }
-        .track-header h3 {
+        .action-btn.track {
+            background: #eff6ff;
             color: #1e40af;
-            font-size: 17px;
-            font-weight: 800;
-            margin: 0 0 4px;
+            border: 2px solid #bfdbfe;
         }
-        .track-header p {
-            color: #64748b;
-            font-size: 12px;
-            margin: 0;
-        }
-        .btn-track {
+        .action-btn.track:hover {
             background: #1e40af;
             color: white;
-            border: none;
-            padding: 14px;
-            font-weight: 700;
-            width: 100%;
-            border-radius: 10px;
-            margin-top: 16px;
-            font-size: 15px;
-            cursor: pointer;
+            border-color: #1e40af;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(30,64,175,0.2);
         }
-        .btn-track:hover { background: #1e3a8a; }
-        .btn-track:disabled { opacity: 0.6; cursor: not-allowed; }
-        .track-error {
-            color: #dc2626;
-            font-size: 13px;
-            margin-top: 10px;
-            padding: 10px;
-            background: #fee2e2;
-            border-radius: 8px;
-            display: none;
-            text-align: center;
+        .action-btn.book {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 2px solid #a7f3d0;
         }
-
-        #trackResult { display: none; margin-top: 16px; }
-        .result-status-banner {
-            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        .action-btn.book:hover {
+            background: #10b981;
             color: white;
-            padding: 14px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 12px;
+            border-color: #10b981;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(16,185,129,0.2);
         }
-        .result-status-banner .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; font-weight: 700; }
-        .result-status-banner .val { font-size: 20px; font-weight: 800; margin-top: 2px; }
-        .result-info-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #f1f5f9; }
-        .result-info-row:last-of-type { border-bottom: none; }
-        .result-info-row .lbl { color: #64748b; font-weight: 600; }
-        .result-info-row .val { color: #1e293b; font-weight: 700; }
+        .action-btn .arrow { font-size: 18px; }
 
-        .timeline-wrap { overflow-x: auto; padding: 14px 0 6px; -webkit-overflow-scrolling: touch; }
-        .timeline-wrap::-webkit-scrollbar { height: 5px; }
-        .timeline-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        .timeline { display: flex; align-items: flex-start; min-width: min-content; padding: 0 4px; }
-        .step { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; min-width: 74px; }
-        .step-circle {
-            width: 32px; height: 32px; border-radius: 50%;
-            background: #e2e8f0; color: #94a3b8;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 12px;
-            border: 2px solid #e2e8f0;
-            z-index: 2;
-        }
-        .step.completed .step-circle { background: #10b981; color: white; border-color: #10b981; }
-        .step.current .step-circle { background: #1e40af; color: white; border-color: #1e40af; box-shadow: 0 0 0 5px rgba(30,64,175,0.15); animation: pulse 1.5s infinite; }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(30,64,175,0.4); }
-            70% { box-shadow: 0 0 0 8px rgba(30,64,175,0); }
-            100% { box-shadow: 0 0 0 0 rgba(30,64,175,0); }
-        }
-        .step-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-align: center; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.3px; max-width: 74px; line-height: 1.2; }
-        .step.completed .step-label { color: #065f46; }
-        .step.current .step-label { color: #1e40af; }
-        .connector { flex: 0 0 22px; height: 3px; background: #e2e8f0; margin-top: 15px; }
-        .connector.completed { background: #10b981; }
-
-        .switch-link {
+        .customer-panel h3 {
             text-align: center;
-            margin-top: 16px;
+            color: #1e3a8a;
+            font-size: 18px;
+            font-weight: 800;
+            margin: 0 0 6px;
+        }
+        .customer-panel .desc {
+            text-align: center;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .back-to-login {
+            text-align: center;
+            margin-top: 20px;
             font-size: 13px;
             color: #64748b;
         }
-        .switch-link a {
-            color: #1e40af;
-            font-weight: 700;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .switch-link a:hover { text-decoration: underline; }
+        .back-to-login a { color: #1e40af; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .back-to-login a:hover { text-decoration: underline; }
 
         @media (max-width: 400px) {
             .login-card { padding: 22px 18px; }
@@ -289,43 +256,23 @@
             </div>
 
             <div id="customerPanel" style="display: none;">
-                <div class="track-header">
-                    <div class="icon">📦</div>
-                    <h3>Track Your Order</h3>
-                    <p>Enter your name and receipt number to see your laundry status</p>
-                </div>
+                <div class="customer-panel">
+                    <h3>Welcome!</h3>
+                    <p class="desc">Track your laundry or book a pickup — no login needed</p>
 
-                <form onsubmit="trackOrder(event)">
-                    <div class="mb-3">
-                        <label class="form-label">Your Name</label>
-                        <input type="text" id="trackName" class="form-control" placeholder="e.g. Juan Dela Cruz" autocomplete="name">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Order / Receipt Number</label>
-                        <input type="number" id="trackOrderId" class="form-control" placeholder="e.g. 123" inputmode="numeric">
-                    </div>
-                    <button type="submit" class="btn-track" id="trackBtn">🔍 Check Status</button>
-                    <div class="track-error" id="trackError"></div>
-                </form>
-
-                <div id="trackResult">
-                    <div class="result-status-banner">
-                        <div class="lbl">Current Status</div>
-                        <div class="val" id="resultStatus">—</div>
-                    </div>
-                    <div class="result-info-row"><span class="lbl">Order #</span><span class="val" id="resultOrderId">—</span></div>
-                    <div class="result-info-row"><span class="lbl">Customer</span><span class="val" id="resultCustomer">—</span></div>
-                    <div class="result-info-row"><span class="lbl">Total</span><span class="val" id="resultTotal">—</span></div>
-                    <div class="result-info-row"><span class="lbl">Payment</span><span class="val" id="resultPayment">—</span></div>
-                    <div class="result-info-row" id="resultPickupRow" style="display:none;"><span class="lbl">Rider</span><span class="val" id="resultRider">—</span></div>
-
-                    <div style="font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 4px;">Progress</div>
-                    <div class="timeline-wrap">
-                        <div class="timeline" id="timeline"></div>
+                    <div class="customer-actions">
+                        <a href="/track.html" class="action-btn track">
+                            <span>📦 Track Your Order</span>
+                            <span class="arrow">→</span>
+                        </a>
+                        <a href="/book.html" class="action-btn book">
+                            <span>📅 Book a Pickup</span>
+                            <span class="arrow">→</span>
+                        </a>
                     </div>
                 </div>
 
-                <div class="switch-link">
+                <div class="back-to-login">
                     Are you an employee? <a onclick="switchMode('employee')">Log in here →</a>
                 </div>
             </div>
@@ -359,7 +306,6 @@
             customer.style.display = 'block';
             tabEmployee.classList.remove('active');
             tabCustomer.classList.add('active');
-            setTimeout(() => document.getElementById('trackName').focus(), 100);
         }
     }
 
@@ -402,107 +348,9 @@
         });
     }
 
-    const stepIcons = {
-        'Received': '1', 'Washing': '2', 'Drying': '3', 'Folding': '4',
-        'Spin & Dry': '2', 'Done (Ready to Pickup)': '✓',
-        'Out for Delivery': '🚚', 'Delivered': '✓', 'Ready': '✓', 'Picked Up': '✓'
-    };
-
-    function trackOrder(e) {
-        e.preventDefault();
-        const name = document.getElementById('trackName').value.trim();
-        const orderId = document.getElementById('trackOrderId').value.trim();
-        const errorBox = document.getElementById('trackError');
-        const btn = document.getElementById('trackBtn');
-        errorBox.style.display = 'none';
-
-        if (!name) {
-            errorBox.innerText = 'Please enter your name.';
-            errorBox.style.display = 'block';
-            return;
-        }
-        if (!orderId) {
-            errorBox.innerText = 'Please enter your order number.';
-            errorBox.style.display = 'block';
-            return;
-        }
-
-        btn.innerText = 'Checking...';
-        btn.disabled = true;
-
-        fetch('/api/track/' + orderId)
-            .then(res => res.json())
-            .then(data => {
-                btn.innerText = '🔍 Check Status';
-                btn.disabled = false;
-                if (data.error) {
-                    errorBox.innerText = data.error;
-                    errorBox.style.display = 'block';
-                    document.getElementById('trackResult').style.display = 'none';
-                    return;
-                }
-                const dbName = (data.customer || '').toLowerCase().trim();
-                const inputName = name.toLowerCase().trim();
-                if (!dbName.includes(inputName) && !inputName.includes(dbName)) {
-                    errorBox.innerText = '⚠️ Order number found, but the name does not match our records.';
-                    errorBox.style.display = 'block';
-                    document.getElementById('trackResult').style.display = 'none';
-                    return;
-                }
-                renderResult(data);
-            })
-            .catch(() => {
-                btn.innerText = '🔍 Check Status';
-                btn.disabled = false;
-                errorBox.innerText = 'Connection error. Please try again.';
-                errorBox.style.display = 'block';
-            });
-    }
-
-    function renderResult(order) {
-        document.getElementById('resultStatus').innerText = order.status || 'Received';
-        document.getElementById('resultOrderId').innerText = '#' + order.orderId;
-        document.getElementById('resultCustomer').innerText = order.customer || '—';
-        document.getElementById('resultTotal').innerText = '₱' + parseFloat(order.total).toFixed(2);
-        document.getElementById('resultPayment').innerText = order.paymentStatus || '—';
-
-        if (order.pickupDelivery && order.riderName) {
-            document.getElementById('resultPickupRow').style.display = 'flex';
-            document.getElementById('resultRider').innerText = order.riderName;
-        } else {
-            document.getElementById('resultPickupRow').style.display = 'none';
-        }
-
-        const timeline = document.getElementById('timeline');
-        const flow = order.serviceFlow || ['Received'];
-        const currentStep = order.currentStep || 0;
-        let html = '';
-        flow.forEach((step, idx) => {
-            if (idx > 0) {
-                const connClass = idx <= currentStep ? 'completed' : '';
-                html += `<div class="connector ${connClass}"></div>`;
-            }
-            let cls = '';
-            if (idx < currentStep) cls = 'completed';
-            else if (idx === currentStep) cls = 'current';
-            const icon = cls === 'completed' ? '✓' : (stepIcons[step] || (idx + 1));
-            html += `
-                <div class="step ${cls}">
-                    <div class="step-circle">${icon}</div>
-                    <div class="step-label">${step}</div>
-                </div>
-            `;
-        });
-        timeline.innerHTML = html;
-
-        document.getElementById('trackResult').style.display = 'block';
-    }
-
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/service-worker.js').then(reg => {
-                reg.update();
-            }).catch(() => {});
+            navigator.serviceWorker.register('/service-worker.js').catch(() => {});
         });
     }
 </script>

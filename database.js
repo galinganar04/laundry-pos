@@ -31,14 +31,11 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS si_or_number TEXT;`);
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS account TEXT DEFAULT 'Operating Expense';`);
 
-        // Archived orders
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_orders (id SERIAL PRIMARY KEY, original_id INTEGER, date TEXT NOT NULL, customer TEXT NOT NULL, total NUMERIC NOT NULL, payment_status TEXT NOT NULL, status TEXT, cashier_name TEXT, archived_at TIMESTAMPTZ DEFAULT NOW());`);
         await pool.query(`CREATE TABLE IF NOT EXISTS archived_order_items (id SERIAL PRIMARY KEY, archived_order_id INTEGER REFERENCES archived_orders(id), service_name TEXT, quantity INTEGER, price NUMERIC);`);
 
-        // Users
         await pool.query(`CREATE TABLE IF NOT EXISTS users (id SERIAL PRIMARY KEY, username TEXT UNIQUE NOT NULL, password_hash TEXT NOT NULL, email TEXT, full_name TEXT, role TEXT DEFAULT 'admin', security_question TEXT, security_answer_hash TEXT, reset_token TEXT, reset_token_expires TIMESTAMPTZ, created_at TIMESTAMPTZ DEFAULT NOW(), last_login TIMESTAMPTZ);`);
 
-        // Order status flow
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS service_flow JSONB;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS current_step INTEGER DEFAULT 0;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_delivery BOOLEAN DEFAULT FALSE;`);
@@ -87,7 +84,7 @@ async function initDatabase() {
             created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
-        // Capital Investments
+        // Capital
         await pool.query(`CREATE TABLE IF NOT EXISTS capital_investments (
             id SERIAL PRIMARY KEY,
             description TEXT NOT NULL,
@@ -96,6 +93,21 @@ async function initDatabase() {
             date DATE DEFAULT CURRENT_DATE,
             notes TEXT,
             created_at TIMESTAMPTZ DEFAULT NOW()
+        );`);
+
+        // ===== BOOKINGS =====
+        await pool.query(`CREATE TABLE IF NOT EXISTS bookings (
+            id SERIAL PRIMARY KEY,
+            customer_name TEXT NOT NULL,
+            customer_phone TEXT NOT NULL,
+            customer_address TEXT NOT NULL,
+            service_type TEXT,
+            preferred_date DATE NOT NULL,
+            preferred_time TEXT NOT NULL,
+            notes TEXT,
+            status TEXT DEFAULT 'Pending',
+            created_at TIMESTAMPTZ DEFAULT NOW(),
+            updated_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
         await pool.query(`UPDATE services SET service_type = 'wash_dry_fold' WHERE service_type IS NULL OR service_type = 'Per Load';`);
@@ -560,11 +572,9 @@ async function deleteCapital(id) {
 
 // ===== ROI =====
 async function getROIData() {
-    // Total capital invested
     const capitalRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments");
     const totalCapital = parseFloat(capitalRes.rows[0].total) || 0;
 
-    // Total assets value (purchase price)
     const assetsRes = await pool.query("SELECT * FROM assets WHERE status = 'Active'");
     const assets = assetsRes.rows;
     let totalAssets = 0;
@@ -577,19 +587,16 @@ async function getROIData() {
         const lifeMonths = parseInt(a.useful_life_months) || 60;
         totalAssets += price;
 
-        // Months since purchase
         const purchaseDate = new Date(a.purchase_date);
         const monthsOwned = Math.floor((now - purchaseDate) / (30 * 24 * 60 * 60 * 1000));
         const totalDepreciation = Math.max(0, price - salvage);
         const monthlyDep = totalDepreciation / lifeMonths;
 
-        // Only count depreciation while asset is within its useful life
         if (monthsOwned < lifeMonths) {
             monthlyDepreciation += monthlyDep;
         }
     }
 
-    // Total revenue (all orders + archived)
     const revRes = await pool.query(`
         SELECT COALESCE(SUM(total), 0) AS total FROM (
             SELECT total FROM orders WHERE archived_at IS NULL
@@ -599,18 +606,14 @@ async function getROIData() {
     `);
     const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
 
-    // Total expenses
     const expRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses");
     const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
 
-    // Total replenishment costs (cost of goods)
     const repRes = await pool.query("SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments");
     const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
 
-    // Total investment
     const totalInvestment = totalCapital + totalAssets;
 
-    // Total depreciation to date (only for active assets within useful life)
     let totalDepreciationToDate = 0;
     for (const a of assets) {
         const price = parseFloat(a.purchase_price) || 0;
@@ -623,14 +626,9 @@ async function getROIData() {
         totalDepreciationToDate += (totalDep / lifeMonths) * monthsToCount;
     }
 
-    // Net profit
     const netProfit = totalRevenue - totalExpenses - totalReplenish - totalDepreciationToDate;
-
-    // ROI
     const roi = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
 
-    // Payback - months to recover investment
-    // Based on average monthly net profit
     const monthsActive = await pool.query(`
         SELECT EXTRACT(EPOCH FROM (NOW() - MIN(date::timestamptz)))/2629800 AS months FROM orders
     `);
@@ -653,6 +651,48 @@ async function getROIData() {
         assetCount: assets.length,
         paybackRecovered: netProfit >= totalInvestment
     };
+}
+
+// ===== BOOKINGS =====
+async function getBookings(filter) {
+    let conditions = [];
+    const params = [];
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0];
+
+    if (filter === 'today') { conditions.push(`preferred_date = $${params.length + 1}`); params.push(today); }
+    else if (filter === 'tomorrow') { conditions.push(`preferred_date = $${params.length + 1}`); params.push(tomorrow); }
+    else if (filter === 'pending') { conditions.push(`status = 'Pending'`); }
+    else if (filter === 'upcoming') { conditions.push(`preferred_date >= $${params.length + 1} AND status = 'Pending'`); params.push(today); }
+
+    let query = "SELECT * FROM bookings";
+    if (conditions.length > 0) query += " WHERE " + conditions.join(" AND ");
+    query += " ORDER BY preferred_date ASC, preferred_time ASC, id DESC LIMIT 500";
+    const result = await pool.query(query, params);
+    return result.rows;
+}
+
+async function addBooking(data) {
+    const result = await pool.query(
+        `INSERT INTO bookings (customer_name, customer_phone, customer_address, service_type, preferred_date, preferred_time, notes)
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [data.customer_name, data.customer_phone, data.customer_address,
+         data.service_type || '', data.preferred_date, data.preferred_time, data.notes || '']
+    );
+    return result.rows[0];
+}
+
+async function updateBookingStatus(id, status) {
+    await pool.query("UPDATE bookings SET status = $1, updated_at = NOW() WHERE id = $2", [status, id]);
+}
+
+async function deleteBooking(id) {
+    await pool.query("DELETE FROM bookings WHERE id = $1", [id]);
+}
+
+async function getBookingById(id) {
+    const result = await pool.query("SELECT * FROM bookings WHERE id = $1", [id]);
+    return result.rows[0];
 }
 
 // ===== USERS =====
@@ -693,6 +733,7 @@ module.exports = {
     getAssets, addAsset, updateAsset, deleteAsset,
     getCapital, addCapital, updateCapital, deleteCapital,
     getROIData,
+    getBookings, addBooking, updateBookingStatus, deleteBooking, getBookingById,
     getUserByUsername, getUserByEmail, getUserById, getAllUsers, getUserCount,
     createUser, updateUserPassword, updateLastLogin, setResetToken,
     getUserByResetToken, clearResetToken, deleteUser, updateUserRole
