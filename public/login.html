@@ -19,11 +19,11 @@
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
             font-family: 'Segoe UI', sans-serif;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 20px 16px;
+            padding: 20px 16px 60px;
         }
-        .login-wrap { width: 100%; max-width: 420px; }
+        .login-wrap { width: 100%; max-width: 440px; }
         .login-card {
             background: white;
             border-radius: 16px;
@@ -32,20 +32,8 @@
         }
         .logo-wrap { text-align: center; margin-bottom: 14px; }
         .logo-wrap img { max-width: 130px; height: auto; }
-        h2 {
-            text-align: center;
-            color: #1e3a8a;
-            margin: 0 0 4px 0;
-            font-weight: 700;
-            font-size: 22px;
-        }
-        .tagline {
-            text-align: center;
-            color: #dc2626;
-            font-style: italic;
-            font-size: 13px;
-            margin-bottom: 22px;
-        }
+        h2 { text-align: center; color: #1e3a8a; margin: 0 0 4px 0; font-weight: 700; font-size: 22px; }
+        .tagline { text-align: center; color: #dc2626; font-style: italic; font-size: 13px; margin-bottom: 22px; }
 
         .mode-toggle {
             display: flex;
@@ -76,10 +64,7 @@
             color: white;
             box-shadow: 0 4px 12px rgba(30,64,175,0.25);
         }
-        .mode-toggle button:not(.active):hover {
-            background: #e2e8f0;
-            color: #1e40af;
-        }
+        .mode-toggle button:not(.active):hover { background: #e2e8f0; color: #1e40af; }
 
         .form-label {
             font-size: 12px;
@@ -89,16 +74,18 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .form-control {
+        .form-control, .form-select {
             border: 1.5px solid #e2e8f0;
             border-radius: 10px;
-            padding: 14px 16px;
+            padding: 12px 14px;
             font-size: 15px;
             transition: all 0.15s;
+            width: 100%;
         }
-        .form-control:focus {
+        .form-control:focus, .form-select:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+            outline: none;
         }
         .btn-login {
             background: #1e40af;
@@ -114,6 +101,37 @@
         }
         .btn-login:hover { background: #1e3a8a; color: white; }
         .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-book {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-weight: 700;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 14px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .btn-book:hover { background: #059669; }
+        .btn-book:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-track {
+            background: #1e40af;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-weight: 700;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 14px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .btn-track:hover { background: #1e3a8a; }
+        .btn-track:disabled { opacity: 0.6; cursor: not-allowed; }
+
         .error {
             color: #dc2626;
             text-align: center;
@@ -124,6 +142,36 @@
             padding: 10px;
             border-radius: 8px;
         }
+        .success-box {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+        }
+        .success-box .check {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #10b981;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        .success-box h3 { color: #065f46; font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+        .success-box p { color: #64748b; font-size: 13px; margin-bottom: 6px; }
+        .success-box .booking-id {
+            background: #f0fdf4;
+            border: 2px solid #10b981;
+            color: #065f46;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 16px;
+            margin: 12px 0;
+        }
+
         .small-link {
             text-align: center;
             display: block;
@@ -145,72 +193,65 @@
         }
         .signup-banner a { color: #1e40af; font-weight: 700; text-decoration: underline; }
 
-        .customer-actions {
-            margin-top: 22px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .action-btn {
+        .section-divider {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 16px 18px;
-            border-radius: 12px;
-            text-decoration: none;
+            gap: 10px;
+            margin: 26px 0 16px;
+            color: #94a3b8;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
             font-weight: 700;
-            font-size: 15px;
-            transition: all 0.2s;
         }
-        .action-btn.track {
-            background: #eff6ff;
-            color: #1e40af;
-            border: 2px solid #bfdbfe;
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
         }
-        .action-btn.track:hover {
-            background: #1e40af;
-            color: white;
-            border-color: #1e40af;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(30,64,175,0.2);
-        }
-        .action-btn.book {
-            background: #ecfdf5;
-            color: #065f46;
-            border: 2px solid #a7f3d0;
-        }
-        .action-btn.book:hover {
-            background: #10b981;
-            color: white;
-            border-color: #10b981;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(16,185,129,0.2);
-        }
-        .action-btn .arrow { font-size: 18px; }
 
-        .customer-panel h3 {
-            text-align: center;
+        .customer-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             color: #1e3a8a;
-            font-size: 18px;
+            font-size: 15px;
             font-weight: 800;
-            margin: 0 0 6px;
-        }
-        .customer-panel .desc {
-            text-align: center;
-            color: #64748b;
-            font-size: 13px;
-            margin-bottom: 20px;
-            line-height: 1.5;
+            margin: 0 0 12px;
         }
 
-        .back-to-login {
+        .switch-link {
             text-align: center;
             margin-top: 20px;
             font-size: 13px;
             color: #64748b;
         }
-        .back-to-login a { color: #1e40af; font-weight: 700; cursor: pointer; text-decoration: none; }
-        .back-to-login a:hover { text-decoration: underline; }
+        .switch-link a { color: #1e40af; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .switch-link a:hover { text-decoration: underline; }
+
+        .track-result {
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 14px;
+            display: none;
+        }
+        .track-status {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 12px;
+        }
+        .track-status .lbl { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.85; font-weight: 700; }
+        .track-status .val { font-size: 18px; font-weight: 800; margin-top: 2px; }
+        .track-info { font-size: 13px; padding: 4px 0; display: flex; justify-content: space-between; }
+        .track-info .lbl { color: #64748b; font-weight: 600; }
+        .track-info .val { color: #1e293b; font-weight: 700; }
 
         @media (max-width: 400px) {
             .login-card { padding: 22px 18px; }
@@ -234,6 +275,7 @@
                 <button id="tabCustomer" onclick="switchMode('customer')">📦 Customer</button>
             </div>
 
+            <!-- EMPLOYEE PANEL -->
             <div id="employeePanel">
                 <div id="signupBanner" class="signup-banner" style="display: none;">
                     🎉 No users yet. <a href="/signup.html">Create the owner account →</a>
@@ -251,28 +293,95 @@
                     <button type="submit" class="btn-login" id="loginBtn">🔓 Log In</button>
                     <div class="error" id="errorMsg"></div>
                 </form>
-
                 <a href="/forgot.html" class="small-link">Forgot your password?</a>
             </div>
 
+            <!-- CUSTOMER PANEL -->
             <div id="customerPanel" style="display: none;">
-                <div class="customer-panel">
-                    <h3>Welcome!</h3>
-                    <p class="desc">Track your laundry or book a pickup — no login needed</p>
-
-                    <div class="customer-actions">
-                        <a href="/track.html" class="action-btn track">
-                            <span>📦 Track Your Order</span>
-                            <span class="arrow">→</span>
-                        </a>
-                        <a href="/book.html" class="action-btn book">
-                            <span>📅 Book a Pickup</span>
-                            <span class="arrow">→</span>
-                        </a>
+                <!-- TRACK ORDER -->
+                <div class="customer-section-title">📦 Track Your Order</div>
+                <form onsubmit="trackOrder(event)">
+                    <div class="mb-2">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" id="trackName" class="form-control" placeholder="e.g., Juan Dela Cruz" autocomplete="name">
                     </div>
+                    <div class="mb-2">
+                        <label class="form-label">Order Number</label>
+                        <input type="number" id="trackOrderId" class="form-control" placeholder="e.g., 123" inputmode="numeric">
+                    </div>
+                    <button type="submit" class="btn-track" id="trackBtn">🔍 Check Status</button>
+                    <div class="error" id="trackError"></div>
+                </form>
+
+                <div class="track-result" id="trackResult">
+                    <div class="track-status">
+                        <div class="lbl">Current Status</div>
+                        <div class="val" id="resultStatus">—</div>
+                    </div>
+                    <div class="track-info"><span class="lbl">Order #</span><span class="val" id="resultOrderId">—</span></div>
+                    <div class="track-info"><span class="lbl">Customer</span><span class="val" id="resultCustomer">—</span></div>
+                    <div class="track-info"><span class="lbl">Total</span><span class="val" id="resultTotal">—</span></div>
+                    <div class="track-info"><span class="lbl">Payment</span><span class="val" id="resultPayment">—</span></div>
                 </div>
 
-                <div class="back-to-login">
+                <!-- BOOK A PICKUP -->
+                <div class="section-divider">Or</div>
+
+                <div class="customer-section-title">📅 Book a Pickup</div>
+                <p style="text-align:center; color:#64748b; font-size:12px; margin-bottom:14px;">We'll come pick up your laundry</p>
+
+                <form id="bookingForm" onsubmit="submitBooking(event)">
+                    <div class="mb-2">
+                        <label class="form-label">Your Name *</label>
+                        <input type="text" id="bkName" class="form-control" placeholder="Juan Dela Cruz" autocomplete="name" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Cellphone *</label>
+                        <input type="tel" id="bkPhone" class="form-control" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" autocomplete="tel" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Pickup Address *</label>
+                        <textarea id="bkAddress" class="form-control" rows="2" placeholder="House #, Street, Barangay, City" required></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Service *</label>
+                        <select id="bkService" class="form-select" required>
+                            <option value="">-- Choose service --</option>
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Date *</label>
+                            <input type="date" id="bkDate" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Time *</label>
+                            <select id="bkTime" class="form-select" required>
+                                <option value="">-- Pick --</option>
+                                <option value="Morning (8-11 AM)">Morning (8-11 AM)</option>
+                                <option value="Afternoon (1-4 PM)">Afternoon (1-4 PM)</option>
+                                <option value="Evening (4-7 PM)">Evening (4-7 PM)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Notes (optional)</label>
+                        <input type="text" id="bkNotes" class="form-control" placeholder="e.g., 5 kilos, may kumot, etc.">
+                    </div>
+
+                    <button type="submit" class="btn-book" id="bookBtn">📅 Submit Booking</button>
+                    <div class="error" id="bookError"></div>
+                </form>
+
+                <div class="success-box" id="bookSuccess">
+                    <div class="check">✓</div>
+                    <h3>Booking Received!</h3>
+                    <p>We'll call you shortly to confirm the pickup.</p>
+                    <div class="booking-id" id="bookIdDisplay">#B000</div>
+                    <p style="font-size:12px;">Please keep this booking number for reference.</p>
+                </div>
+
+                <div class="switch-link">
                     Are you an employee? <a onclick="switchMode('employee')">Log in here →</a>
                 </div>
             </div>
@@ -288,6 +397,27 @@
             if (data.open) document.getElementById('signupBanner').style.display = 'block';
         })
         .catch(() => {});
+
+    fetch('/api/services/public')
+        .then(res => res.json())
+        .then(services => {
+            const sel = document.getElementById('bkService');
+            if (Array.isArray(services)) {
+                services.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.name;
+                    opt.textContent = s.name;
+                    sel.appendChild(opt);
+                });
+            }
+        })
+        .catch(() => {});
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('bkDate').min = today;
+        document.getElementById('bkDate').value = today;
+    });
 
     function switchMode(mode) {
         const employee = document.getElementById('employeePanel');
@@ -345,6 +475,111 @@
             errorMsg.style.display = 'block';
             btn.innerText = '🔓 Log In';
             btn.disabled = false;
+        });
+    }
+
+    function trackOrder(e) {
+        e.preventDefault();
+        const name = document.getElementById('trackName').value.trim();
+        const orderId = document.getElementById('trackOrderId').value.trim();
+        const errorBox = document.getElementById('trackError');
+        const btn = document.getElementById('trackBtn');
+        errorBox.style.display = 'none';
+
+        if (!name) {
+            errorBox.innerText = 'Please enter your name.';
+            errorBox.style.display = 'block';
+            return;
+        }
+        if (!orderId) {
+            errorBox.innerText = 'Please enter your order number.';
+            errorBox.style.display = 'block';
+            return;
+        }
+
+        btn.innerText = 'Checking...';
+        btn.disabled = true;
+
+        fetch('/api/track/' + orderId)
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = '🔍 Check Status';
+                btn.disabled = false;
+                if (data.error) {
+                    errorBox.innerText = data.error;
+                    errorBox.style.display = 'block';
+                    document.getElementById('trackResult').style.display = 'none';
+                    return;
+                }
+                const dbName = (data.customer || '').toLowerCase().trim();
+                const inputName = name.toLowerCase().trim();
+                if (!dbName.includes(inputName) && !inputName.includes(dbName)) {
+                    errorBox.innerText = '⚠️ Order found, but name does not match.';
+                    errorBox.style.display = 'block';
+                    document.getElementById('trackResult').style.display = 'none';
+                    return;
+                }
+                document.getElementById('resultStatus').innerText = data.status || 'Received';
+                document.getElementById('resultOrderId').innerText = '#' + data.orderId;
+                document.getElementById('resultCustomer').innerText = data.customer || '—';
+                document.getElementById('resultTotal').innerText = '₱' + parseFloat(data.total).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                document.getElementById('resultPayment').innerText = data.paymentStatus || '—';
+                document.getElementById('trackResult').style.display = 'block';
+            })
+            .catch(() => {
+                btn.innerText = '🔍 Check Status';
+                btn.disabled = false;
+                errorBox.innerText = 'Connection error. Try again.';
+                errorBox.style.display = 'block';
+            });
+    }
+
+    function submitBooking(e) {
+        e.preventDefault();
+        const errorBox = document.getElementById('bookError');
+        const btn = document.getElementById('bookBtn');
+        errorBox.style.display = 'none';
+
+        const customer_name = document.getElementById('bkName').value.trim();
+        const customer_phone = document.getElementById('bkPhone').value.trim();
+        const customer_address = document.getElementById('bkAddress').value.trim();
+        const service_type = document.getElementById('bkService').value;
+        const preferred_date = document.getElementById('bkDate').value;
+        const preferred_time = document.getElementById('bkTime').value;
+        const notes = document.getElementById('bkNotes').value.trim();
+
+        if (!/^09\d{9}$/.test(customer_phone)) {
+            errorBox.innerText = 'Cellphone must be 11 digits starting with 09';
+            errorBox.style.display = 'block';
+            return;
+        }
+
+        btn.innerText = 'Submitting...';
+        btn.disabled = true;
+
+        fetch('/api/bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customer_name, customer_phone, customer_address, service_type, preferred_date, preferred_time, notes })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.innerText = '📅 Submit Booking';
+            btn.disabled = false;
+            if (data.error) {
+                errorBox.innerText = data.error;
+                errorBox.style.display = 'block';
+                return;
+            }
+            document.getElementById('bookingForm').style.display = 'none';
+            document.getElementById('bookSuccess').style.display = 'block';
+            document.getElementById('bookIdDisplay').innerText = '#B' + String(data.booking.id).padStart(4, '0');
+        })
+        .catch(() => {
+            btn.innerText = '📅 Submit Booking';
+            btn.disabled = false;
+            errorBox.innerText = 'Connection error. Please try again.';
+            errorBox.style.display = 'block';
         });
     }
 
