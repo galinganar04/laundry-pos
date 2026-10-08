@@ -1,15 +1,18 @@
 // ============================================================
 // LIVE BOOKING BADGE — Pending only
-// Shows green pulsing badge with count of PENDING bookings
+// Works for ALL users (owner, admin, cashier)
+// Shows badge in sidebar AND mobile topbar
 // ============================================================
 
 (function() {
     const authToken = localStorage.getItem('authToken');
+    const userRole = localStorage.getItem('userRole');
     if (!authToken) return;
 
     function updateBookingBadge() {
-        const links = document.querySelectorAll('a[href="/bookings.html"]');
-        if (links.length === 0) return;
+        const sidebarLinks = document.querySelectorAll('a[href="/bookings.html"]');
+        const mobileBadge = document.getElementById('mobileBookingBadge');
+        if (sidebarLinks.length === 0 && !mobileBadge) return;
 
         fetch('/api/bookings?filter=pending', { headers: { 'x-auth-token': authToken } })
             .then(res => {
@@ -20,7 +23,8 @@
                 if (!Array.isArray(bookings)) return;
                 const count = bookings.length;
 
-                links.forEach(link => {
+                // Update sidebar links
+                sidebarLinks.forEach(link => {
                     const existing = link.querySelector('.booking-badge');
                     if (existing) existing.remove();
 
@@ -48,6 +52,16 @@
                         link.appendChild(badge);
                     }
                 });
+
+                // Update mobile topbar badge
+                if (mobileBadge) {
+                    if (count > 0) {
+                        mobileBadge.textContent = count > 99 ? '99+' : count;
+                        mobileBadge.style.display = 'flex';
+                    } else {
+                        mobileBadge.style.display = 'none';
+                    }
+                }
             })
             .catch(() => {});
     }

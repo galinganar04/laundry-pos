@@ -1,6 +1,6 @@
 // ============================================
 // ROLE-BASED ACCESS CONTROL
-// Include this BEFORE /theme.js in every page EXCEPT login, signup, forgot, reset
+// Everyone can access Bookings (owner, admin, cashier)
 // ============================================
 
 (function() {
@@ -18,7 +18,7 @@
         return;
     }
 
-    // Pages a cashier CAN access
+    // Pages a cashier CAN access (added bookings.html)
     const cashierAllowed = ['/', '/index.html', '', '/orders.html', '/bookings.html'];
 
     // Cashier restrictions
