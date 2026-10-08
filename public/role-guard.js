@@ -9,7 +9,7 @@
     const path = window.location.pathname;
 
     // Public pages — no check
-    const publicPages = ['/login.html', '/signup.html', '/forgot.html', '/reset.html'];
+    const publicPages = ['/login.html', '/signup.html', '/forgot.html', '/reset.html', '/book.html', '/track.html'];
     if (publicPages.includes(path)) return;
 
     // Not logged in → login
@@ -19,7 +19,7 @@
     }
 
     // Pages a cashier CAN access
-    const cashierAllowed = ['/', '/index.html', '', '/orders.html'];
+    const cashierAllowed = ['/', '/index.html', '', '/orders.html', '/bookings.html'];
 
     // Cashier restrictions
     if (role === 'cashier') {
@@ -32,7 +32,15 @@
     // Hide restricted sidebar links for cashiers
     document.addEventListener('DOMContentLoaded', function() {
         if (role === 'cashier') {
-            const restricted = ['/dashboard.html', '/services.html', '/products.html', '/replenishments.html', '/expenses.html', '/customers.html', '/settings.html'];
+            const restricted = [
+                '/dashboard.html',
+                '/services.html',
+                '/products.html',
+                '/replenishments.html',
+                '/expenses.html',
+                '/customers.html',
+                '/settings.html'
+            ];
             document.querySelectorAll('.sidebar a').forEach(a => {
                 const href = a.getAttribute('href');
                 if (href && restricted.includes(href)) {
