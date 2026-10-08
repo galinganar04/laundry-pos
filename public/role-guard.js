@@ -18,8 +18,14 @@
         return;
     }
 
-    // Pages a cashier CAN access (added bookings.html)
-    const cashierAllowed = ['/', '/index.html', '', '/orders.html', '/bookings.html'];
+    // Pages a cashier CAN access
+    const cashierAllowed = [
+        '/',
+        '/index.html',
+        '',
+        '/orders.html',
+        '/bookings.html'  // ← ADDED
+    ];
 
     // Cashier restrictions
     if (role === 'cashier') {
