@@ -809,4 +809,29 @@ app.put('/api/users/me/change-password-verified', requireAuth, async (req, res) 
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
+// ===== AUDIT =====
+app.get('/api/audit/sales', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom, dateTo } = req.query;
+        if (!dateFrom || !dateTo) return res.status(400).json({ error: 'dateFrom and dateTo required' });
+        res.json(await db.getAuditSales(dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/audit/expenses', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom, dateTo } = req.query;
+        if (!dateFrom || !dateTo) return res.status(400).json({ error: 'dateFrom and dateTo required' });
+        res.json(await db.getAuditExpenses(dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/audit/profit', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom, dateTo } = req.query;
+        if (!dateFrom || !dateTo) return res.status(400).json({ error: 'dateFrom and dateTo required' });
+        res.json(await db.getAuditProfit(dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));

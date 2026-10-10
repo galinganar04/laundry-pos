@@ -45,7 +45,6 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMPTZ DEFAULT NOW();`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;`);
 
-        // Service Flows
         await pool.query(`CREATE TABLE IF NOT EXISTS service_flows (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
@@ -70,7 +69,6 @@ async function initDatabase() {
             );
         }
 
-        // Assets
         await pool.query(`CREATE TABLE IF NOT EXISTS assets (
             id SERIAL PRIMARY KEY,
             name TEXT NOT NULL,
@@ -84,7 +82,6 @@ async function initDatabase() {
             created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
-        // Capital
         await pool.query(`CREATE TABLE IF NOT EXISTS capital_investments (
             id SERIAL PRIMARY KEY,
             description TEXT NOT NULL,
@@ -95,7 +92,6 @@ async function initDatabase() {
             created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
-        // ===== BOOKINGS =====
         await pool.query(`CREATE TABLE IF NOT EXISTS bookings (
             id SERIAL PRIMARY KEY,
             customer_name TEXT NOT NULL,
@@ -716,6 +712,71 @@ async function clearResetToken(id) { await pool.query("UPDATE users SET reset_to
 async function deleteUser(id) { await pool.query("DELETE FROM users WHERE id = $1", [id]); }
 async function updateUserRole(id, role) { await pool.query("UPDATE users SET role = $1 WHERE id = $2", [role, id]); }
 
+// ===== AUDIT =====
+async function getAuditSales(dateFrom, dateTo) {
+    const result = await pool.query(`
+        SELECT
+            DATE(date::timestamptz) AS day,
+            COUNT(*) AS order_count,
+            COALESCE(SUM(total), 0) AS revenue,
+            COALESCE(SUM(CASE WHEN payment_status = 'Paid' THEN total ELSE 0 END), 0) AS paid_revenue,
+            COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN total ELSE 0 END), 0) AS unpaid_revenue
+        FROM (
+            SELECT date, total, payment_status FROM orders
+            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            UNION ALL
+            SELECT date, total, payment_status FROM archived_orders
+            WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        ) combined
+        GROUP BY DATE(date::timestamptz)
+        ORDER BY day DESC`, [dateFrom, dateTo + ' 23:59:59']);
+    return result.rows;
+}
+
+async function getAuditExpenses(dateFrom, dateTo) {
+    const result = await pool.query(`
+        SELECT
+            COALESCE(e.category, 'Other') AS category,
+            COUNT(*) AS count,
+            COALESCE(SUM(e.amount), 0) AS total
+        FROM expenses e
+        WHERE e.date::timestamptz >= $1::timestamptz AND e.date::timestamptz <= $2::timestamptz
+        GROUP BY COALESCE(e.category, 'Other')
+        ORDER BY total DESC`, [dateFrom, dateTo + ' 23:59:59']);
+    return result.rows;
+}
+
+async function getAuditProfit(dateFrom, dateTo) {
+    const revRes = await pool.query(`
+        SELECT COALESCE(SUM(total), 0) AS total FROM (
+            SELECT total FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            UNION ALL
+            SELECT total FROM archived_orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        ) c`, [dateFrom, dateTo + ' 23:59:59']);
+    const revenue = parseFloat(revRes.rows[0].total) || 0;
+
+    const cogsRes = await pool.query(`
+        SELECT COALESCE(SUM(cost * quantity), 0) AS total
+        FROM replenishments
+        WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`,
+        [dateFrom, dateTo + ' 23:59:59']);
+    const cogs = parseFloat(cogsRes.rows[0].total) || 0;
+
+    const expRes = await pool.query(`
+        SELECT COALESCE(SUM(amount), 0) AS total
+        FROM expenses
+        WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+        AND COALESCE(account, 'Operating Expense') != 'Merchandise Inventory'`,
+        [dateFrom, dateTo + ' 23:59:59']);
+    const expenses = parseFloat(expRes.rows[0].total) || 0;
+
+    const grossProfit = revenue - cogs;
+    const netProfit = grossProfit - expenses;
+    const margin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+
+    return { revenue, cogs, grossProfit, expenses, netProfit, margin };
+}
+
 module.exports = {
     pool, getServices, addService, updateService, deleteService, getPickupService,
     getAllServiceFlows, addServiceFlow, updateServiceFlow, deleteServiceFlow, getServiceFlowByKey,
@@ -736,5 +797,6 @@ module.exports = {
     getBookings, addBooking, updateBookingStatus, deleteBooking, getBookingById,
     getUserByUsername, getUserByEmail, getUserById, getAllUsers, getUserCount,
     createUser, updateUserPassword, updateLastLogin, setResetToken,
-    getUserByResetToken, clearResetToken, deleteUser, updateUserRole
+    getUserByResetToken, clearResetToken, deleteUser, updateUserRole,
+    getAuditSales, getAuditExpenses, getAuditProfit
 };

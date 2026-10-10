@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit - Hawi's Lovada</title>
+    <link rel="icon" type="image/png" href="/logo.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; position: sticky; top: 0; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
+        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
+        .sidebar a.active { background-color: #3b82f6; color: white; }
+
+        .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+        .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
+
+        .stat-card { background: white; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #1e40af; }
+        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 6px; }
+        .stat-card .value { font-size: 22px; font-weight: 800; color: #0f172a; }
+        .stat-card .sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+        .stat-card.green { border-left-color: #10b981; } .stat-card.green .value { color: #065f46; }
+        .stat-card.red { border-left-color: #dc2626; } .stat-card.red .value { color: #991b1b; }
+        .stat-card.orange { border-left-color: #f59e0b; } .stat-card.orange .value { color: #92400e; }
+        .stat-card.blue { border-left-color: #3b82f6; }
+        .stat-card.purple { border-left-color: #8b5cf6; } .stat-card.purple .value { color: #6b21a8; }
+
+        .panel { background: white; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px; }
+        .panel h5 { font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 12px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .clean-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .clean-table thead th { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; padding: 10px 8px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        .clean-table tbody td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+        .clean-table .num { text-align: right; font-weight: 700; }
+        .clean-table tbody tr:hover { background: #f8fafc; }
+
+        .date-bar { background: white; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+        .date-bar label { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 4px; }
+        .date-bar input { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 14px; }
+        .date-bar .quick-btn { background: #f1f5f9; border: 1.5px solid #e2e8f0; color: #475569; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        .date-bar .quick-btn:hover { background: #1e40af; color: white; border-color: #1e40af; }
+
+        .tabs-nav { background: white; border-radius: 12px; padding: 5px; margin-bottom: 16px; display: flex; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .tabs-nav button { flex: 1; border: none; background: transparent; padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 800; color: #64748b; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tabs-nav button.active { background: #1e40af; color: white; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; font-size: 13px; }
+
+        .variance-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-weight: 800; font-size: 12px; }
+        .variance-zero { background: #d1fae5; color: #065f46; }
+        .variance-short { background: #fee2e2; color: #991b1b; }
+        .variance-over { background: #fef3c7; color: #92400e; }
+
+        [data-theme="dark"] body { background-color: #0f172a !important; }
+        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
+        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
+        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .stat-card, [data-theme="dark"] .date-bar, [data-theme="dark"] .tabs-nav { background-color: #1e293b !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .panel h5, [data-theme="dark"] .stat-card .value { color: #ffffff !important; }
+        [data-theme="dark"] .clean-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .clean-table tbody td { color: #e2e8f0 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .date-bar input { background: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .col-md-10 { padding: 14px !important; }
+            .page-title { font-size: 20px; }
+            .stat-card .value { font-size: 18px; }
+            .tabs-nav { flex-wrap: wrap; }
+            .tabs-nav button { font-size: 11px; padding: 10px 6px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 sidebar d-none d-md-block">
+            <div class="text-center mb-4">
+                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+            </div>
+            <a href="/">🧺 POS</a>
+            <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/audit.html"class="active">📋 Audit</a>
+            <a href="/services.html">🧴 Services</a>
+            <a href="/products.html">📦 Products</a>
+            <a href="/orders.html">📋 Orders</a>    
+            <a href="/replenishments.html">📥 Replenishments</a>
+            <a href="/expenses.html">💰 Expenses</a>
+            <a href="/bookings.html">📅 Bookings</a>
+            <a href="/settings.html">⚙️ Settings</a>
+            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+            <a href="#" onclick="logout()">🚪 Logout</a>
+        </div>
+
+        <div class="col-md-10 p-4">
+            <h1 class="page-title">📋 Audit</h1>
+            <p class="page-sub">Sales, expenses, cash drawer and profit — all in one place</p>
+
+            <div class="date-bar">
+                <div><label>From</label><input type="date" id="dateFrom"></div>
+                <div><label>To</label><input type="date" id="dateTo"></div>
+                <button class="quick-btn" onclick="quickRange('today')">Today</button>
+                <button class="quick-btn" onclick="quickRange('week')">This Week</button>
+                <button class="quick-btn" onclick="quickRange('month')">This Month</button>
+                <button class="quick-btn" onclick="quickRange('last30')">Last 30 Days</button>
+                <button class="btn btn-primary" onclick="loadAll()">🔄 Refresh</button>
+            </div>
+
+            <div class="tabs-nav">
+                <button id="tab-sales" class="active" onclick="switchTab('sales')">💰 Sales</button>
+                <button id="tab-cash" onclick="switchTab('cash')">💵 Cash Drawer</button>
+                <button id="tab-expenses" onclick="switchTab('expenses')">📤 Expenses</button>
+                <button id="tab-profit" onclick="switchTab('profit')">📈 Profit &amp; Loss</button>
+            </div>
+
+            <div id="panel-sales">
+                <div class="row g-3 mb-3">
+                    <div class="col-6 col-md-3"><div class="stat-card green"><div class="label">Total Sales</div><div class="value" id="sTotal">₱0.00</div><div class="sub" id="sTotalSub">0 orders</div></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-card blue"><div class="label">Paid</div><div class="value" id="sPaid">₱0.00</div><div class="sub">Collected</div></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-card orange"><div class="label">Unpaid</div><div class="value" id="sUnpaid">₱0.00</div><div class="sub">Pending</div></div></div>
+                    <div class="col-6 col-md-3"><div class="stat-card purple"><div class="label">Avg Order</div><div class="value" id="sAvg">₱0.00</div><div class="sub">Per transaction</div></div></div>
+                </div>
+                <div class="panel">
+                    <h5>Daily Sales Breakdown</h5>
+                    <div style="overflow-x:auto;">
+                        <table class="clean-table">
+                            <thead><tr><th>Date</th><th class="num">Orders</th><th class="num">Revenue</th><th class="num">Paid</th><th class="num">Unpaid</th></tr></thead>
+                            <tbody id="salesTable"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-cash" style="display:none;">
+                <div class="panel">
+                    <h5>💵 Cash Drawer Reconciliation</h5>
+                    <p class="text-muted" style="font-size:13px;">Enter your opening float and actual cash count at close. The system compares it to expected cash from sales.</p>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4"><label class="form-label small">Opening Float (₱)</label><input type="number" id="openingFloat" class="form-control" placeholder="0.00" step="0.01" value="0"></div>
+                        <div class="col-md-4"><label class="form-label small">Actual Cash Count at Close (₱)</label><input type="number" id="actualCash" class="form-control" placeholder="0.00" step="0.01" value="0"></div>
+                        <div class="col-md-4 d-flex align-items-end"><button class="btn btn-primary w-100" onclick="calcVariance()">🧮 Calculate Variance</button></div>
+                    </div>
+                    <div id="varianceResult"></div>
+                </div>
+            </div>
+
+            <div id="panel-expenses" style="display:none;">
+                <div class="row g-3 mb-3">
+                    <div class="col-6 col-md-4"><div class="stat-card red"><div class="label">Total Expenses</div><div class="value" id="eTotal">₱0.00</div><div class="sub" id="eCount">0 entries</div></div></div>
+                    <div class="col-6 col-md-4"><div class="stat-card orange"><div class="label">Largest Category</div><div class="value" id="eTopCat" style="font-size:16px;">—</div><div class="sub" id="eTopCatAmt">₱0.00</div></div></div>
+                    <div class="col-6 col-md-4"><div class="stat-card blue"><div class="label">Expense Ratio</div><div class="value" id="eRatio">0%</div><div class="sub">% of sales</div></div></div>
+                </div>
+                <div class="panel">
+                    <h5>Breakdown by Category</h5>
+                    <div style="overflow-x:auto;">
+                        <table class="clean-table">
+                            <thead><tr><th>Category</th><th class="num">Entries</th><th class="num">Total</th><th class="num">% of Expenses</th></tr></thead>
+                            <tbody id="expensesTable"><tr><td colspan="4" class="empty-state">Loading...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-profit" style="display:none;">
+                <div class="panel">
+                    <h5>📈 Profit &amp; Loss Statement</h5>
+                    <table class="clean-table">
+                        <tbody>
+                            <tr><td style="font-weight:700;">Revenue (Sales)</td><td class="num" id="pRevenue" style="color:#065f46;">₱0.00</td></tr>
+                            <tr><td style="padding-left:28px; color:#64748b;">Less: Cost of Goods Sold (COGS)</td><td class="num" id="pCogs" style="color:#dc2626;">−₱0.00</td></tr>
+                            <tr style="background:#f8fafc;"><td style="font-weight:800;">GROSS PROFIT</td><td class="num" id="pGross" style="font-weight:800; color:#1e40af;">₱0.00</td></tr>
+                            <tr><td style="padding-left:28px; color:#64748b;">Less: Operating Expenses</td><td class="num" id="pExpenses" style="color:#dc2626;">−₱0.00</td></tr>
+                            <tr style="background:#ecfdf5; border-top:2px solid #10b981;"><td style="font-weight:900; font-size:15px;">NET PROFIT</td><td class="num" id="pNet" style="font-weight:900; font-size:15px; color:#065f46;">₱0.00</td></tr>
+                            <tr><td style="color:#64748b;">Profit Margin</td><td class="num" id="pMargin">0%</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row g-3 mt-3">
+                    <div class="col-md-4"><div class="stat-card green"><div class="label">Revenue</div><div class="value" id="pRevenueCard">₱0.00</div></div></div>
+                    <div class="col-md-4"><div class="stat-card red"><div class="label">Total Costs</div><div class="value" id="pCostsCard">₱0.00</div><div class="sub">COGS + Expenses</div></div></div>
+                    <div class="col-md-4"><div class="stat-card purple"><div class="label">Net Profit</div><div class="value" id="pNetCard">₱0.00</div><div class="sub" id="pMarginCard">0% margin</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+
+    let cachedSales = null;
+    let cachedExpenses = null;
+    let cachedProfit = null;
+    let currentTab = 'sales';
+
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function num(n) { return parseFloat(n || 0).toLocaleString('en-PH'); }
+    function toISO(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+    function quickRange(type) {
+        const today = new Date();
+        let from, to = today;
+        if (type === 'today') from = today;
+        else if (type === 'week') { from = new Date(today); const d = today.getDay(); from.setDate(today.getDate() - (d === 0 ? 6 : d - 1)); }
+        else if (type === 'month') from = new Date(today.getFullYear(), today.getMonth(), 1);
+        else if (type === 'last30') { from = new Date(today); from.setDate(today.getDate() - 29); }
+        document.getElementById('dateFrom').value = toISO(from);
+        document.getElementById('dateTo').value = toISO(to);
+        loadAll();
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        ['sales','cash','expenses','profit'].forEach(t => {
+            document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+            document.getElementById('panel-' + t).style.display = (t === tab) ? 'block' : 'none';
+        });
+        if (tab === 'cash') renderCashDrawer();
+    }
+
+    function loadAll() {
+        const from = document.getElementById('dateFrom').value;
+        const to = document.getElementById('dateTo').value;
+        if (!from || !to) return alert('Please pick both dates.');
+        loadSales(from, to);
+        loadExpenses(from, to);
+        loadProfit(from, to);
+        if (currentTab === 'cash') renderCashDrawer();
+    }
+
+    function loadSales(from, to) {
+        fetch(`/api/audit/sales?dateFrom=${from}&dateTo=${to}`, { headers: { 'x-auth-token': authToken } })
+            .then(r => r.json())
+            .then(rows => {
+                if (!Array.isArray(rows)) return;
+                cachedSales = rows;
+                const totalSales = rows.reduce((s, r) => s + parseFloat(r.revenue), 0);
+                const totalPaid = rows.reduce((s, r) => s + parseFloat(r.paid_revenue), 0);
+                const totalUnpaid = rows.reduce((s, r) => s + parseFloat(r.unpaid_revenue), 0);
+                const totalOrders = rows.reduce((s, r) => s + parseInt(r.order_count), 0);
+                document.getElementById('sTotal').innerText = peso(totalSales);
+                document.getElementById('sTotalSub').innerText = num(totalOrders) + ' orders';
+                document.getElementById('sPaid').innerText = peso(totalPaid);
+                document.getElementById('sUnpaid').innerText = peso(totalUnpaid);
+                document.getElementById('sAvg').innerText = peso(totalOrders > 0 ? totalSales / totalOrders : 0);
+                document.getElementById('salesTable').innerHTML = rows.length === 0
+                    ? '<tr><td colspan="5" class="empty-state">No sales in this period.</td></tr>'
+                    : rows.map(r => {
+                        const day = new Date(r.day).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                        return `<tr><td>${day}</td><td class="num">${num(r.order_count)}</td><td class="num" style="color:#065f46;">${peso(r.revenue)}</td><td class="num">${peso(r.paid_revenue)}</td><td class="num" style="color:#92400e;">${peso(r.unpaid_revenue)}</td></tr>`;
+                    }).join('');
+            });
+    }
+
+    function loadExpenses(from, to) {
+        fetch(`/api/audit/expenses?dateFrom=${from}&dateTo=${to}`, { headers: { 'x-auth-token': authToken } })
+            .then(r => r.json())
+            .then(rows => {
+                if (!Array.isArray(rows)) return;
+                cachedExpenses = rows;
+                const total = rows.reduce((s, r) => s + parseFloat(r.total), 0);
+                const totalCount = rows.reduce((s, r) => s + parseInt(r.count), 0);
+                const top = rows[0];
+                document.getElementById('eTotal').innerText = peso(total);
+                document.getElementById('eCount').innerText = num(totalCount) + ' entr' + (totalCount === 1 ? 'y' : 'ies');
+                document.getElementById('eTopCat').innerText = top ? top.category : '—';
+                document.getElementById('eTopCatAmt').innerText = top ? peso(top.total) : '₱0.00';
+                document.getElementById('expensesTable').innerHTML = rows.length === 0
+                    ? '<tr><td colspan="4" class="empty-state">No expenses in this period.</td></tr>'
+                    : rows.map(r => {
+                        const pct = total > 0 ? (parseFloat(r.total) / total) * 100 : 0;
+                        return `<tr><td><strong>${r.category}</strong></td><td class="num">${num(r.count)}</td><td class="num" style="color:#991b1b;">${peso(r.total)}</td><td class="num">${pct.toFixed(1)}%</td></tr>`;
+                    }).join('');
+                updateExpenseRatio();
+            });
+    }
+
+    function updateExpenseRatio() {
+        if (!cachedSales || !cachedExpenses) return;
+        const totalSales = cachedSales.reduce((s, r) => s + parseFloat(r.revenue), 0);
+        const totalExp = cachedExpenses.reduce((s, r) => s + parseFloat(r.total), 0);
+        const ratio = totalSales > 0 ? (totalExp / totalSales) * 100 : 0;
+        document.getElementById('eRatio').innerText = ratio.toFixed(1) + '%';
+    }
+
+    function loadProfit(from, to) {
+        fetch(`/api/audit/profit?dateFrom=${from}&dateTo=${to}`, { headers: { 'x-auth-token': authToken } })
+            .then(r => r.json())
+            .then(d => {
+                if (d.error) return;
+                cachedProfit = d;
+                document.getElementById('pRevenue').innerText = peso(d.revenue);
+                document.getElementById('pCogs').innerText = '−' + peso(d.cogs);
+                document.getElementById('pGross').innerText = peso(d.grossProfit);
+                document.getElementById('pExpenses').innerText = '−' + peso(d.expenses);
+                document.getElementById('pNet').innerText = peso(d.netProfit);
+                document.getElementById('pMargin').innerText = d.margin.toFixed(1) + '%';
+                document.getElementById('pRevenueCard').innerText = peso(d.revenue);
+                document.getElementById('pCostsCard').innerText = peso(d.cogs + d.expenses);
+                document.getElementById('pNetCard').innerText = peso(d.netProfit);
+                document.getElementById('pNetCard').style.color = d.netProfit >= 0 ? '#065f46' : '#991b1b';
+                document.getElementById('pMarginCard').innerText = d.margin.toFixed(1) + '% margin';
+                document.getElementById('sTotal').innerText = peso(d.revenue);
+                updateExpenseRatio();
+            });
+    }
+
+    function renderCashDrawer() {
+        if (!cachedSales) {
+            document.getElementById('varianceResult').innerHTML = '<p class="text-muted">Load a date range first.</p>';
+            return;
+        }
+        const cashSales = cachedSales.reduce((s, r) => s + parseFloat(r.paid_revenue), 0);
+        const float = parseFloat(document.getElementById('openingFloat').value) || 0;
+        const expected = float + cashSales;
+        document.getElementById('varianceResult').innerHTML = `
+            <div class="row g-3">
+                <div class="col-md-4"><div class="stat-card blue"><div class="label">Cash Sales (Paid)</div><div class="value">${peso(cashSales)}</div></div></div>
+                <div class="col-md-4"><div class="stat-card orange"><div class="label">Opening Float</div><div class="value">${peso(float)}</div></div></div>
+                <div class="col-md-4"><div class="stat-card green"><div class="label">Expected Cash</div><div class="value">${peso(expected)}</div></div></div>
+            </div>
+            <p class="text-muted mt-3" style="font-size:12px;">Click <strong>Calculate Variance</strong> after entering opening float and actual cash count above.</p>
+        `;
+    }
+
+    function calcVariance() {
+        if (!cachedSales) return alert('Load a date range first.');
+        const cashSales = cachedSales.reduce((s, r) => s + parseFloat(r.paid_revenue), 0);
+        const float = parseFloat(document.getElementById('openingFloat').value) || 0;
+        const actual = parseFloat(document.getElementById('actualCash').value) || 0;
+        const expected = float + cashSales;
+        const variance = actual - expected;
+        const cls = variance === 0 ? 'variance-zero' : (variance < 0 ? 'variance-short' : 'variance-over');
+        const label = variance === 0 ? '✓ Perfect Match' : (variance < 0 ? '⚠ Short' : '⚠ Over');
+        document.getElementById('varianceResult').innerHTML = `
+            <div class="row g-3">
+                <div class="col-md-3"><div class="stat-card blue"><div class="label">Cash Sales</div><div class="value">${peso(cashSales)}</div></div></div>
+                <div class="col-md-3"><div class="stat-card orange"><div class="label">Opening Float</div><div class="value">${peso(float)}</div></div></div>
+                <div class="col-md-3"><div class="stat-card purple"><div class="label">Expected Cash</div><div class="value">${peso(expected)}</div></div></div>
+                <div class="col-md-3"><div class="stat-card ${variance < 0 ? 'red' : 'green'}"><div class="label">Variance</div><div class="value">${peso(variance)}</div><div class="sub"><span class="variance-badge ${cls}">${label}</span></div></div></div>
+            </div>
+        `;
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
+        window.location.href = '/login.html';
+    }
+
+    quickRange('month');
+</script>
+<script src="/role-guard.js"></script>
+<script src="/theme.js"></script>
+</body>
+</html>

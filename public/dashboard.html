@@ -271,6 +271,7 @@
     </div>
     <a href="/">🧺 POS</a>
     <a href="/dashboard.html" class="active">📊 Dashboard</a>
+    <a href="/audit.html">📋 Audit</a>
     <a href="/services.html">🧴 Services</a>
     <a href="/products.html">📦 Products</a>
     <a href="/orders.html">📋 Orders</a>    
@@ -536,7 +537,6 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    // ===== FORMATTERS WITH COMMAS + CENTS EVERYWHERE =====
     function peso(n) {
         const v = parseFloat(n) || 0;
         return '₱' + v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
