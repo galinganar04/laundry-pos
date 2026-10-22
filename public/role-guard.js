@@ -39,13 +39,16 @@
     document.addEventListener('DOMContentLoaded', function() {
         if (role === 'cashier') {
             const restricted = [
-                '/dashboard.html',
-                '/services.html',
-                '/products.html',
-                '/replenishments.html',
-                '/expenses.html',
-                '/customers.html',
-                '/settings.html'
+                const restricted = [
+    '/dashboard.html',
+    '/audit.html',
+    '/services.html',
+    '/products.html',
+    '/replenishments.html',
+    '/expenses.html',
+    '/customers.html',
+    '/settings.html'
+];
             ];
             document.querySelectorAll('.sidebar a').forEach(a => {
                 const href = a.getAttribute('href');

@@ -54,6 +54,16 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.06);
         }
 
+        .info-banner {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 13px;
+            color: #1e40af;
+            margin-bottom: 16px;
+        }
+
         .search-wrap { position: relative; }
         .search-wrap input {
             width: 100%;
@@ -87,15 +97,6 @@
         .exp-table .amount { text-align: right; font-weight: 800; color: #dc2626; font-size: 14px; }
         .exp-table .desc { font-weight: 700; color: #1e293b; }
         .exp-table .sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-        .exp-table .badge {
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-        .exp-table .badge.manual { background: #dbeafe; color: #1e40af; }
-        .exp-table .badge.replenishment { background: #fef3c7; color: #92400e; }
 
         .exp-table .actions { text-align: right; }
         .exp-table .actions button {
@@ -142,6 +143,7 @@
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .modal-content { background-color: #1e293b !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] .info-banner { background: #1e3a8a !important; color: #bfdbfe !important; border-color: #3b82f6 !important; }
 
         @media (max-width: 767px) {
             .sidebar { display: none !important; }
@@ -175,9 +177,10 @@
             </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/audit.html">🔍 Audit Trail</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>            
+            <a href="/orders.html">📋 Orders</a>
             <a href="/replenishments.html">📥 Replenishments</a>
             <a href="/expenses.html" class="active">💰 Expenses</a>
             <a href="/bookings.html">📅 Bookings</a>
@@ -190,9 +193,14 @@
             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                 <div>
                     <h1 class="page-title">Expenses</h1>
-                    <p class="page-sub mb-0">Track your operating costs and inventory purchases</p>
+                    <p class="page-sub mb-0">Operating costs only (rent, salary, utilities, etc.)</p>
                 </div>
                 <button class="btn btn-primary" onclick="openExpenseModal()">+ Add Expense</button>
+            </div>
+
+            <div class="info-banner">
+                💡 <strong>Stock purchases go to <a href="/replenishments.html" style="color: #1e40af; font-weight: 700;">Replenishments</a>, not here.</strong>
+                Use this page for rent, salary, electricity, water, marketing, and other operating costs.
             </div>
 
             <div class="filter-chips">
@@ -249,13 +257,12 @@
                                 <th style="width: 110px;">Date</th>
                                 <th>Description</th>
                                 <th style="width: 180px;">SI/OR #</th>
-                                <th style="width: 120px;">Source</th>
                                 <th class="text-end" style="width: 130px;">Amount</th>
                                 <th class="text-end" style="width: 100px;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="expensesTable">
-                            <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+                            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -305,7 +312,6 @@
                         <label class="form-label small">Account</label>
                         <select id="eAccount" class="form-select">
                             <option>Operating Expense</option>
-                            <option>Merchandise Inventory</option>
                             <option>Utilities</option>
                             <option>Salaries &amp; Wages</option>
                             <option>Rent</option>
@@ -334,7 +340,6 @@
     let currentPeriod = 'all';
     let searchTimeout;
 
-    // ===== FORMATTERS WITH COMMAS =====
     function peso(n) {
         return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
@@ -389,34 +394,29 @@
                 if (!items) return;
                 const table = document.getElementById('expensesTable');
                 if (items.length === 0) {
-                    table.innerHTML = '<tr><td colspan="6" class="empty-state">No expenses found for this period.</td></tr>';
+                    table.innerHTML = '<tr><td colspan="5" class="empty-state">No expenses found for this period.</td></tr>';
                     return;
                 }
                 table.innerHTML = items.map(e => {
                     const date = new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    const isReplenishment = e.source === 'Replenishment';
-                    const sourceBadge = isReplenishment
-                        ? '<span class="badge replenishment">📥 Replenishment</span>'
-                        : '<span class="badge manual">📝 Manual</span>';
                     const siOr = e.si_or_number ? `<code style="font-size:11px;background:#f1f5f9;padding:3px 8px;border-radius:4px;">${e.si_or_number}</code>` : '<span class="text-muted">—</span>';
-                    const actions = isReplenishment
-                        ? '<span class="text-muted small">—</span>'
-                        : `<button onclick="editExpense(${e.ref_id})">✏️</button><button class="del" onclick="deleteExpense(${e.ref_id})">🗑</button>`;
                     return `<tr>
                         <td><small>${date}</small></td>
                         <td>
                             <div class="desc">${e.description || '—'}</div>
-                            <div class="sub">${e.supplier || e.account || ''}</div>
+                            <div class="sub">${e.category || ''}${e.supplier ? ' • ' + e.supplier : ''}</div>
                         </td>
                         <td>${siOr}</td>
-                        <td>${sourceBadge}</td>
                         <td class="amount">${peso(e.amount)}</td>
-                        <td class="actions">${actions}</td>
+                        <td class="actions">
+                            <button onclick="editExpense(${e.ref_id})">✏️</button>
+                            <button class="del" onclick="deleteExpense(${e.ref_id})">🗑</button>
+                        </td>
                     </tr>`;
                 }).join('');
             })
             .catch(() => {
-                document.getElementById('expensesTable').innerHTML = '<tr><td colspan="6" class="empty-state">Failed to load expenses.</td></tr>';
+                document.getElementById('expensesTable').innerHTML = '<tr><td colspan="5" class="empty-state">Failed to load expenses.</td></tr>';
             });
     }
 

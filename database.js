@@ -20,6 +20,7 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS image_data TEXT;`);
         await pool.query(`CREATE TABLE IF NOT EXISTS replenishments (id SERIAL PRIMARY KEY, product_id INTEGER REFERENCES products(id), quantity INTEGER NOT NULL, cost NUMERIC DEFAULT 0, date TIMESTAMPTZ DEFAULT NOW(), notes TEXT);`);
         await pool.query(`ALTER TABLE replenishments ADD COLUMN IF NOT EXISTS supplier TEXT;`);
+        await pool.query(`ALTER TABLE replenishments ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'Supplies';`);
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS color TEXT DEFAULT '#4f46e5';`);
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS service_type TEXT DEFAULT 'Per Load';`);
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS minimum NUMERIC DEFAULT 1;`);
@@ -27,6 +28,25 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS image_data TEXT;`);
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS hidden BOOLEAN DEFAULT FALSE;`);
         await pool.query(`CREATE TABLE IF NOT EXISTS service_materials (id SERIAL PRIMARY KEY, service_id INTEGER REFERENCES services(id) ON DELETE CASCADE, product_id INTEGER REFERENCES products(id), quantity INTEGER DEFAULT 1, amount NUMERIC DEFAULT 0);`);
+        
+        // AUDIT
+        await pool.query(`CREATE TABLE IF NOT EXISTS audit_logs (
+            id SERIAL PRIMARY KEY,
+            user_id INTEGER,
+            username TEXT,
+            user_role TEXT,
+            action TEXT NOT NULL,
+            entity_type TEXT NOT NULL,
+            entity_id INTEGER,
+            description TEXT,
+            old_values JSONB,
+            new_values JSONB,
+            ip_address TEXT,
+            user_agent TEXT,
+            created_at TIMESTAMPTZ DEFAULT NOW()
+        );`);
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs(created_at DESC);`);
+
         await pool.query(`CREATE TABLE IF NOT EXISTS expenses (id SERIAL PRIMARY KEY, date TIMESTAMPTZ DEFAULT NOW(), category TEXT NOT NULL, description TEXT, amount NUMERIC NOT NULL, supplier TEXT, notes TEXT, si_or_number TEXT, account TEXT DEFAULT 'Operating Expense');`);
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS si_or_number TEXT;`);
         await pool.query(`ALTER TABLE expenses ADD COLUMN IF NOT EXISTS account TEXT DEFAULT 'Operating Expense';`);
@@ -126,6 +146,9 @@ async function initDatabase() {
             await pool.query(`INSERT INTO services (name, price, unit) VALUES ('Wash Dry & Fold', 240.00, 'kg'), ('Wash & Dry', 180.00, 'kg'), ('Dry Only', 50.00, 'kg')`);
         }
 
+        // Optional: prune old logs
+        await pool.query(`DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '365 days'`);
+
         console.log('Database initialized.');
     } catch (err) {
         console.error('Database init error:', err.message);
@@ -133,6 +156,149 @@ async function initDatabase() {
 }
 
 initDatabase();
+
+// ===== AUDIT =====
+async function logAudit(data) {
+    try {
+        await pool.query(
+            `INSERT INTO audit_logs (user_id, username, user_role, action, entity_type, entity_id, description, old_values, new_values, ip_address, user_agent)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            [data.user_id || null, data.username || 'system', data.user_role || null,
+             data.action, data.entity_type, data.entity_id || null, data.description || null,
+             data.old_values ? JSON.stringify(data.old_values) : null,
+             data.new_values ? JSON.stringify(data.new_values) : null,
+             data.ip_address || null, data.user_agent || null]
+        );
+    } catch (err) { console.error('Audit error:', err.message); }
+}
+
+async function getAuditLogs(search, entity_type, action, dateFrom, dateTo) {
+    const conditions = [];
+    const params = [];
+    if (search) {
+        params.push('%' + search + '%');
+        conditions.push(`(description ILIKE $${params.length} OR username ILIKE $${params.length})`);
+    }
+    if (entity_type && entity_type !== 'all') { params.push(entity_type); conditions.push(`entity_type = $${params.length}`); }
+    if (action && action !== 'all') { params.push(action); conditions.push(`action = $${params.length}`); }
+    if (dateFrom) { params.push(dateFrom); conditions.push(`created_at::timestamptz >= $${params.length}::timestamptz`); }
+    if (dateTo) { params.push(dateTo + ' 23:59:59'); conditions.push(`created_at::timestamptz <= $${params.length}::timestamptz`); }
+    let query = "SELECT * FROM audit_logs";
+    if (conditions.length > 0) query += " WHERE " + conditions.join(" AND ");
+    query += " ORDER BY created_at DESC LIMIT 500";
+    const result = await pool.query(query, params);
+    return result.rows;
+}
+
+async function getAuditStats() {
+    const result = await pool.query(`
+        SELECT COUNT(*) AS total,
+            COUNT(*) FILTER (WHERE created_at::timestamptz >= NOW() - INTERVAL '24 hours') AS last_24h,
+            COUNT(*) FILTER (WHERE created_at::timestamptz >= NOW() - INTERVAL '7 days') AS last_7d,
+            COUNT(DISTINCT username) AS unique_users
+        FROM audit_logs`);
+    return result.rows[0];
+}
+
+async function getFinancialAuditSummary(dateFrom, dateTo) {
+    const params = [];
+    let dateFilter = '';
+    if (dateFrom && dateTo) {
+        params.push(dateFrom, dateTo + ' 23:59:59');
+        dateFilter = `AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`;
+    } else if (dateFrom) {
+        params.push(dateFrom);
+        dateFilter = `AND date::timestamptz >= $1::timestamptz`;
+    } else if (dateTo) {
+        params.push(dateTo + ' 23:59:59');
+        dateFilter = `AND date::timestamptz <= $1::timestamptz`;
+    }
+
+    const revSql = `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS cnt FROM orders WHERE archived_at IS NULL ${dateFilter}`;
+    const revRes = await pool.query(revSql, params);
+    const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
+    const orderCount = parseInt(revRes.rows[0].cnt) || 0;
+
+    const expSql = `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt FROM expenses WHERE 1=1 ${dateFilter}`;
+    const expRes = await pool.query(expSql, params);
+    const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
+    const expenseCount = parseInt(expRes.rows[0].cnt) || 0;
+
+    const repSql = `SELECT COALESCE(SUM(cost * quantity), 0) AS total, COUNT(*) AS cnt FROM replenishments WHERE 1=1 ${dateFilter}`;
+    const repRes = await pool.query(repSql, params);
+    const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
+    const replenishCount = parseInt(repRes.rows[0].cnt) || 0;
+
+    const catSql = `SELECT category, COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE 1=1 ${dateFilter} GROUP BY category ORDER BY total DESC`;
+    const catRes = await pool.query(catSql, params);
+    const categories = catRes.rows;
+
+    const totalSpent = totalExpenses + totalReplenish;
+    const netProfit = totalRevenue - totalSpent;
+    const margin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+    return {
+        revenue: totalRevenue,
+        orderCount,
+        expenses: totalExpenses,
+        expenseCount,
+        replenishments: totalReplenish,
+        replenishCount,
+        categories: categories,
+        totalSpent,
+        netProfit,
+        margin
+    };
+}
+
+async function getCashOnHand(dateFrom, dateTo) {
+    const params = [];
+    let dateFilter = '';
+    if (dateFrom && dateTo) {
+        params.push(dateFrom, dateTo + ' 23:59:59');
+        dateFilter = `AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`;
+    } else if (dateFrom) {
+        params.push(dateFrom);
+        dateFilter = `AND date::timestamptz >= $1::timestamptz`;
+    } else if (dateTo) {
+        params.push(dateTo + ' 23:59:59');
+        dateFilter = `AND date::timestamptz <= $1::timestamptz`;
+    }
+
+    const paidOrdersRes = await pool.query(
+        `SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' ${dateFilter}`,
+        params
+    );
+    const paidRevenue = parseFloat(paidOrdersRes.rows[0].total) || 0;
+
+    const unpaidOrdersRes = await pool.query(
+        `SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Pending' ${dateFilter}`,
+        params
+    );
+    const unpaidRevenue = parseFloat(unpaidOrdersRes.rows[0].total) || 0;
+
+    const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE 1=1 ${dateFilter}`, params);
+    const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
+
+    const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE 1=1 ${dateFilter}`, params);
+    const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
+
+    const capRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE 1=1 ${dateFilter}`, params);
+    const totalCapital = parseFloat(capRes.rows[0].total) || 0;
+
+    const cashOnHand = paidRevenue + totalCapital - totalExpenses - totalReplenish;
+    const totalOutflow = totalExpenses + totalReplenish;
+
+    return {
+        paidRevenue,
+        unpaidRevenue,
+        totalExpenses,
+        totalReplenish,
+        totalCapital,
+        totalOutflow,
+        cashOnHand
+    };
+}
 
 // ===== SERVICES =====
 async function getServices() {
@@ -440,13 +606,17 @@ async function updateProduct(id, data) {
         [data.name, data.description || '', data.category || 'General', parseFloat(data.cost_price) || 0, parseFloat(data.selling_price) || 0, parseInt(data.stock) || 0, parseInt(data.low_limit) || 5, data.icon || '📦', data.image_data || null, id]);
 }
 async function deleteProduct(id) { await pool.query("DELETE FROM replenishments WHERE product_id = $1", [id]); await pool.query("DELETE FROM products WHERE id = $1", [id]); }
-async function replenishProduct(id, quantity, cost, notes, supplier) {
-    await pool.query("INSERT INTO replenishments (product_id, quantity, cost, notes, supplier) VALUES ($1, $2, $3, $4, $5)", [id, quantity, cost, notes || '', supplier || '']);
+async function replenishProduct(id, quantity, cost, notes, supplier, category) {
+    await pool.query("INSERT INTO replenishments (product_id, quantity, cost, notes, supplier, category) VALUES ($1, $2, $3, $4, $5, $6)", [id, quantity, cost, notes || '', supplier || '', category || 'Supplies']);
     await pool.query("UPDATE products SET stock = stock + $1 WHERE id = $2", [quantity, id]);
 }
 async function getReplenishments() {
-    const result = await pool.query(`SELECT r.id, r.quantity, r.cost, r.date, r.notes, r.supplier, p.name AS product_name, p.icon AS product_icon, p.image_data AS product_image FROM replenishments r JOIN products p ON p.id = r.product_id ORDER BY r.id DESC LIMIT 200`);
+    const result = await pool.query(`SELECT r.id, r.quantity, r.cost, r.date, r.notes, r.supplier, r.category, p.name AS product_name, p.icon AS product_icon, p.image_data AS product_image FROM replenishments r JOIN products p ON p.id = r.product_id ORDER BY r.id DESC LIMIT 200`);
     return result.rows;
+}
+async function getReplenishmentCategories() {
+    const result = await pool.query("SELECT DISTINCT category FROM replenishments WHERE category IS NOT NULL AND category != '' ORDER BY category");
+    return result.rows.map(r => r.category);
 }
 async function getLowStockProducts() { const result = await pool.query("SELECT id, name, stock, low_limit FROM products WHERE stock <= low_limit"); return result.rows; }
 
@@ -486,9 +656,6 @@ async function getUnifiedLedger(dateFrom, dateTo, search) {
     const query = `
         SELECT 'expense-' || e.id AS unique_id, e.id AS ref_id, e.date, COALESCE(e.description, e.category) AS description, e.si_or_number, COALESCE(e.account, 'Operating Expense') AS account, 'Manual' AS source, e.amount, e.category, e.supplier, e.notes
         FROM expenses e ${whereClause}
-        UNION ALL
-        SELECT 'replenish-' || r.id AS unique_id, r.id AS ref_id, r.date, 'Inventory replenishment — ' || p.name AS description, 'REF-' || LPAD(r.id::TEXT, 5, '0') AS si_or_number, 'Merchandise Inventory' AS account, 'Replenishment' AS source, (r.cost * r.quantity) AS amount, 'Inventory' AS category, r.supplier, r.notes
-        FROM replenishments r JOIN products p ON p.id = r.product_id
         ORDER BY date DESC LIMIT 500`;
     const result = await pool.query(query, params);
     return result.rows;
@@ -500,14 +667,7 @@ async function getLedgerStats(dateFrom, dateTo) {
     if (dateFrom) { params.push(dateFrom); conditions.push(`date::timestamptz >= $${params.length}::timestamptz`); }
     if (dateTo) { params.push(dateTo + ' 23:59:59'); conditions.push(`date::timestamptz <= $${params.length}::timestamptz`); }
     const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
-    const query = `
-        SELECT SUM(amount) AS total, COUNT(*) AS count, MAX(amount) AS highest
-        FROM (
-            SELECT amount FROM expenses ${whereClause}
-            UNION ALL
-            SELECT (r.cost * r.quantity) AS amount FROM replenishments r
-        ) combined`;
-    const result = await pool.query(query, [...params, ...params]);
+    const result = await pool.query(`SELECT SUM(amount) AS total, COUNT(*) AS count, MAX(amount) AS highest FROM expenses ${whereClause}`, params);
     const row = result.rows[0];
     const total = parseFloat(row.total) || 0;
     const count = parseInt(row.count) || 0;
@@ -597,13 +757,7 @@ async function getROIData() {
         }
     }
 
-    const revRes = await pool.query(`
-        SELECT COALESCE(SUM(total), 0) AS total FROM (
-            SELECT total FROM orders WHERE archived_at IS NULL
-            UNION ALL
-            SELECT total FROM archived_orders
-        ) c
-    `);
+    const revRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL`);
     const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
 
     const expRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses");
@@ -727,7 +881,7 @@ module.exports = {
     getAllSettings, updateSettings,
     getCashiers, addCashier, updateCashierPin, deleteCashier, findCashierByPin,
     getProducts, getProductCategories, addProduct, updateProduct, deleteProduct,
-    replenishProduct, getReplenishments, getLowStockProducts,
+    replenishProduct, getReplenishments, getReplenishmentCategories, getLowStockProducts,
     getExpenses, getExpenseCategories, addExpense, updateExpense, deleteExpense,
     getUnifiedLedger, getLedgerStats,
     getAssets, addAsset, updateAsset, deleteAsset,
@@ -736,5 +890,6 @@ module.exports = {
     getBookings, addBooking, updateBookingStatus, deleteBooking, getBookingById,
     getUserByUsername, getUserByEmail, getUserById, getAllUsers, getUserCount,
     createUser, updateUserPassword, updateLastLogin, setResetToken,
-    getUserByResetToken, clearResetToken, deleteUser, updateUserRole
+    getUserByResetToken, clearResetToken, deleteUser, updateUserRole,
+    logAudit, getAuditLogs, getAuditStats, getFinancialAuditSummary, getCashOnHand
 };

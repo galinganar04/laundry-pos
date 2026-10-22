@@ -67,6 +67,19 @@ function requireAuth(req, res, next) {
     else res.status(401).json({ error: 'Not authenticated' });
 }
 
+function audit(req, action, entity_type, entity_id, description, old_values, new_values) {
+    const token = req.headers['x-auth-token'];
+    const session = token ? sessions.get(token) : null;
+    return db.logAudit({
+        user_id: session ? session.userId : null,
+        username: session ? session.username : 'system',
+        user_role: session ? session.role : null,
+        action, entity_type, entity_id, description, old_values, new_values,
+        ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress || null,
+        user_agent: req.headers['user-agent'] || null
+    });
+}
+
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
@@ -78,7 +91,11 @@ app.post('/api/login', (req, res) => {
 
 app.post('/api/logout', (req, res) => {
     const token = req.headers['x-auth-token'];
-    if (token) sessions.delete(token);
+    if (token) {
+        const session = sessions.get(token);
+        if (session) audit(req, 'LOGOUT', 'user', session.userId, `${session.username || 'User'} logged out`, null, null).catch(() => {});
+        sessions.delete(token);
+    }
     res.json({ success: true });
 });
 
@@ -93,6 +110,7 @@ app.post('/api/auth/login', async (req, res) => {
         const token = Date.now() + '-' + crypto.randomBytes(16).toString('hex');
         sessions.set(token, { userId: user.id, username: user.username, role: user.role, createdAt: Date.now() });
         await db.updateLastLogin(user.id);
+        await audit(req, 'LOGIN', 'user', user.id, `${user.username} logged in`, null, null);
         res.json({ success: true, token, user: { id: user.id, username: user.username, role: user.role, full_name: user.full_name } });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -109,6 +127,7 @@ app.post('/api/auth/signup', async (req, res) => {
         const password_hash = await bcrypt.hash(password, 10);
         const security_answer_hash = security_answer ? await bcrypt.hash(security_answer.toLowerCase().trim(), 10) : null;
         const id = await db.createUser({ username, password_hash, email, full_name, role: 'owner', security_question, security_answer_hash });
+        await audit(req, 'CREATE', 'user', id, `Owner account created: ${username}`, null, null);
         res.json({ success: true, id, message: 'Owner account created. You can now log in.' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -146,6 +165,7 @@ app.post('/api/auth/reset', async (req, res) => {
         const password_hash = await bcrypt.hash(password, 10);
         await db.updateUserPassword(user.id, password_hash);
         await db.clearResetToken(user.id);
+        await audit(req, 'UPDATE', 'user', user.id, `Password reset via email for ${user.username}`, null, null);
         res.json({ success: true, message: 'Password updated. You can now log in.' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -161,6 +181,7 @@ app.post('/api/auth/recover-by-question', async (req, res) => {
         if (!ok) return res.status(401).json({ error: 'Wrong security answer' });
         const password_hash = await bcrypt.hash(new_password, 10);
         await db.updateUserPassword(user.id, password_hash);
+        await audit(req, 'UPDATE', 'user', user.id, `Password reset via security question for ${user.username}`, null, null);
         res.json({ success: true, message: 'Password updated. You can now log in.' });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -184,6 +205,7 @@ app.put('/api/users/me', requireAuth, async (req, res) => {
         if (!session || !session.userId) return res.status(401).json({ error: 'Session expired' });
         const { full_name, email } = req.body;
         await db.pool.query("UPDATE users SET full_name = $1, email = $2 WHERE id = $3", [full_name || null, email || null, session.userId]);
+        await audit(req, 'UPDATE', 'user', session.userId, `Profile updated`, null, { full_name, email });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -201,6 +223,7 @@ app.put('/api/users/me/password', requireAuth, async (req, res) => {
         if (!ok) return res.status(401).json({ error: 'Current password is wrong' });
         const hash = await bcrypt.hash(new_password, 10);
         await db.updateUserPassword(session.userId, hash);
+        await audit(req, 'UPDATE', 'user', session.userId, `Password changed`, null, null);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -217,6 +240,7 @@ app.put('/api/users/me/security', requireAuth, async (req, res) => {
         if (!ok) return res.status(401).json({ error: 'Current password is wrong' });
         const ans_hash = await bcrypt.hash(security_answer.toLowerCase().trim(), 10);
         await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3", [security_question, ans_hash, session.userId]);
+        await audit(req, 'UPDATE', 'user', session.userId, `Security question updated`, null, null);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -241,6 +265,7 @@ app.post('/api/users', requireAuth, async (req, res) => {
         const password_hash = await bcrypt.hash(password, 10);
         const security_answer_hash = security_answer ? await bcrypt.hash(security_answer.toLowerCase().trim(), 10) : null;
         const id = await db.createUser({ username, password_hash, email, full_name, role, security_question, security_answer_hash });
+        await audit(req, 'CREATE', 'user', id, `User "${username}" created (${role})`, null, { username, role });
         res.json({ success: true, id });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -254,6 +279,7 @@ app.put('/api/users/:id/role', requireAuth, async (req, res) => {
         const updater = await db.getUserById(session.userId);
         if (updater.role !== 'owner') return res.status(403).json({ error: 'Only owner can change roles' });
         await db.updateUserRole(req.params.id, role);
+        await audit(req, 'UPDATE', 'user', req.params.id, `User role → ${role}`, null, { role });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -264,6 +290,7 @@ app.put('/api/users/:id/password', requireAuth, async (req, res) => {
     try {
         const password_hash = await bcrypt.hash(password, 10);
         await db.updateUserPassword(req.params.id, password_hash);
+        await audit(req, 'UPDATE', 'user', req.params.id, `Admin reset password for user #${req.params.id}`, null, null);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -278,6 +305,7 @@ app.delete('/api/users/:id', requireAuth, async (req, res) => {
         if (target && target.role === 'owner') return res.status(403).json({ error: 'Cannot delete the owner' });
         if (target && session.userId === target.id) return res.status(400).json({ error: 'Cannot delete yourself' });
         await db.deleteUser(req.params.id);
+        await audit(req, 'DELETE', 'user', req.params.id, `User #${req.params.id} deleted`, null, null);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -294,6 +322,7 @@ app.post('/api/service-flows', requireAuth, async (req, res) => {
     }
     try {
         const flow = await db.addServiceFlow(name.trim(), steps);
+        await audit(req, 'CREATE', 'service_flow', flow.id, `Custom flow "${name}" created`, null, { name, steps });
         res.json({ success: true, flow });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -305,6 +334,7 @@ app.put('/api/service-flows/:id', requireAuth, async (req, res) => {
     }
     try {
         await db.updateServiceFlow(req.params.id, name.trim(), steps);
+        await audit(req, 'UPDATE', 'service_flow', req.params.id, `Custom flow updated`, null, { name, steps });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -312,7 +342,35 @@ app.put('/api/service-flows/:id', requireAuth, async (req, res) => {
 app.delete('/api/service-flows/:id', requireAuth, async (req, res) => {
     try {
         await db.deleteServiceFlow(req.params.id);
+        await audit(req, 'DELETE', 'service_flow', req.params.id, `Custom flow deleted`, null, null);
         res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== AUDIT =====
+app.get('/api/audit', requireAuth, async (req, res) => {
+    try {
+        const { search = '', entity_type = 'all', action = 'all', dateFrom = '', dateTo = '' } = req.query;
+        res.json(await db.getAuditLogs(search, entity_type, action, dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/audit/stats', requireAuth, async (req, res) => {
+    try { res.json(await db.getAuditStats()); }
+    catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/audit/financial', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom = '', dateTo = '' } = req.query;
+        res.json(await db.getFinancialAuditSummary(dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/audit/cash', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom = '', dateTo = '' } = req.query;
+        res.json(await db.getCashOnHand(dateFrom, dateTo));
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -339,18 +397,30 @@ app.get('/api/pickup-service', requireAuth, async (req, res) => {
 
 app.post('/api/services', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: "Service name is required" });
-    try { const id = await db.addService(req.body); res.json({ message: "Service added", id }); }
+    try {
+        const id = await db.addService(req.body);
+        await audit(req, 'CREATE', 'service', id, `Service "${req.body.name}" created (₱${req.body.price})`, null, req.body);
+        res.json({ message: "Service added", id });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/services/:id', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: "Service name is required" });
-    try { await db.updateService(req.params.id, req.body); res.json({ success: true }); }
+    try {
+        await db.updateService(req.params.id, req.body);
+        await audit(req, 'UPDATE', 'service', req.params.id, `Service "${req.body.name}" updated`, null, req.body);
+        res.json({ success: true });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.delete('/api/services/:id', requireAuth, async (req, res) => {
-    try { await db.deleteService(req.params.id); res.json({ success: true }); }
+    try {
+        await db.deleteService(req.params.id);
+        await audit(req, 'DELETE', 'service', req.params.id, `Service #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -369,6 +439,7 @@ app.post('/api/checkout', requireAuth, async (req, res) => {
         }
         const serviceFlow = buildServiceFlow(cartItems, pickupDelivery);
         const orderId = await db.saveOrder(customer, total, cartItems, paymentStatus, cashierName, pickupDelivery, customerPhone, serviceFlow);
+        await audit(req, 'CREATE', 'order', orderId, `Order #${orderId} — ${customer} — ₱${total}`, null, { total, paymentStatus, items: cartItems.length, pickupDelivery });
         res.json({ message: offlineId ? "Offline order synced!" : "Order saved successfully!", orderId, serviceFlow });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -392,6 +463,7 @@ app.get('/api/orders/archive', requireAuth, async (req, res) => {
 app.post('/api/orders/archive/cleanup', requireAuth, async (req, res) => {
     try {
         const deleted = await db.cleanupOldArchive();
+        await audit(req, 'DELETE', 'order', null, `Cleaned up ${deleted} old archived orders`, null, null);
         res.json({ success: true, deleted });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -408,25 +480,50 @@ app.get('/api/orders/:id/details', requireAuth, async (req, res) => {
 });
 
 app.put('/api/orders/:id/pay', requireAuth, async (req, res) => {
-    try { await db.markAsPaid(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.markAsPaid(req.params.id);
+        await audit(req, 'UPDATE', 'order', req.params.id, `Order #${req.params.id} marked Paid`, null, { payment_status: 'Paid' });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/orders/:id/unpay', requireAuth, async (req, res) => {
-    try { await db.markAsUnpaid(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.markAsUnpaid(req.params.id);
+        await audit(req, 'UPDATE', 'order', req.params.id, `Order #${req.params.id} marked Unpaid`, null, { payment_status: 'Pending' });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/orders/:id/status', requireAuth, async (req, res) => {
     const { status } = req.body;
-    try { await db.updateOrderStatus(req.params.id, status); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.updateOrderStatus(req.params.id, status);
+        await audit(req, 'UPDATE', 'order', req.params.id, `Order #${req.params.id} → ${status}`, null, { status });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/orders/:id', requireAuth, async (req, res) => {
-    try { await db.deleteOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const order = await db.getOrderById(req.params.id);
+        await db.deleteOrder(req.params.id);
+        await audit(req, 'DELETE', 'order', req.params.id, `Order #${req.params.id} deleted (${order?.customer || ''} — ₱${order?.total || 0})`, order, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/orders/:id/archive', requireAuth, async (req, res) => {
-    try { await db.archiveOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.archiveOrder(req.params.id);
+        await audit(req, 'ARCHIVE', 'order', req.params.id, `Order #${req.params.id} archived`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/orders/:id/restore', requireAuth, async (req, res) => {
-    try { await db.restoreOrder(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.restoreOrder(req.params.id);
+        await audit(req, 'UPDATE', 'order', req.params.id, `Order #${req.params.id} restored from archive`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/orders/:id/next-status', requireAuth, async (req, res) => {
@@ -440,6 +537,7 @@ app.post('/api/orders/:id/next-status', requireAuth, async (req, res) => {
         const newStatus = flow[nextStep];
         const history = [...(order.status_history || []), { status: newStatus, at: new Date().toISOString() }];
         await db.updateOrderStatus(req.params.id, newStatus, nextStep, JSON.stringify(history), newStatus === 'Out for Delivery' ? (riderName || null) : null);
+        await audit(req, 'UPDATE', 'order', req.params.id, `Order #${req.params.id} → ${newStatus}`, { status: order.status }, { status: newStatus });
         res.json({ success: true, newStatus, currentStep: nextStep, serviceFlow: flow });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -462,31 +560,51 @@ app.get('/api/track/:orderId', async (req, res) => {
 app.post('/api/orders/batch/status', requireAuth, async (req, res) => {
     const { ids, status } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
-    try { for (const id of ids) await db.updateOrderStatus(id, status); res.json({ success: true, count: ids.length }); }
+    try {
+        for (const id of ids) await db.updateOrderStatus(id, status);
+        await audit(req, 'UPDATE', 'order', null, `Batch: ${ids.length} orders → ${status}`, null, { ids, status });
+        res.json({ success: true, count: ids.length });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/orders/batch/pay', requireAuth, async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
-    try { for (const id of ids) await db.markAsPaid(id); res.json({ success: true, count: ids.length }); }
+    try {
+        for (const id of ids) await db.markAsPaid(id);
+        await audit(req, 'UPDATE', 'order', null, `Batch: ${ids.length} orders marked Paid`, null, { ids });
+        res.json({ success: true, count: ids.length });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/orders/batch/unpay', requireAuth, async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
-    try { for (const id of ids) await db.markAsUnpaid(id); res.json({ success: true, count: ids.length }); }
+    try {
+        for (const id of ids) await db.markAsUnpaid(id);
+        await audit(req, 'UPDATE', 'order', null, `Batch: ${ids.length} orders marked Unpaid`, null, { ids });
+        res.json({ success: true, count: ids.length });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/orders/batch/archive', requireAuth, async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
-    try { const count = await db.archiveBatch(ids); res.json({ success: true, count }); }
+    try {
+        const count = await db.archiveBatch(ids);
+        await audit(req, 'ARCHIVE', 'order', null, `Batch: ${count} orders archived`, null, { ids });
+        res.json({ success: true, count });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/orders/batch/delete', requireAuth, async (req, res) => {
     const { ids } = req.body;
     if (!Array.isArray(ids) || ids.length === 0) return res.status(400).json({ error: 'No orders selected' });
-    try { for (const id of ids) await db.deleteOrder(id); res.json({ success: true, count: ids.length }); }
+    try {
+        for (const id of ids) await db.deleteOrder(id);
+        await audit(req, 'DELETE', 'order', null, `Batch: ${ids.length} orders deleted`, null, { ids });
+        res.json({ success: true, count: ids.length });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 
@@ -501,17 +619,30 @@ app.get('/api/customers/:id', requireAuth, async (req, res) => {
 app.post('/api/customers', requireAuth, async (req, res) => {
     const { name, phone, address, notes } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
-    try { const id = await db.addCustomer(name, phone, address, notes); res.json({ success: true, id }); }
+    try {
+        const id = await db.addCustomer(name, phone, address, notes);
+        await audit(req, 'CREATE', 'customer', id, `Customer "${name}" created`, null, { name, phone });
+        res.json({ success: true, id });
+    }
     catch (err) { if (err.code === '23505') return res.status(400).json({ error: 'Customer name already exists' }); res.status(500).json({ error: err.message }); }
 });
 app.put('/api/customers/:id', requireAuth, async (req, res) => {
     const { name, phone, address, notes } = req.body;
     if (!name) return res.status(400).json({ error: 'Name is required' });
-    try { await db.updateCustomer(req.params.id, name, phone, address, notes); res.json({ success: true }); }
+    try {
+        await db.updateCustomer(req.params.id, name, phone, address, notes);
+        await audit(req, 'UPDATE', 'customer', req.params.id, `Customer "${name}" updated`, null, { name, phone });
+        res.json({ success: true });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/customers/:id', requireAuth, async (req, res) => {
-    try { await db.deleteCustomer(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.deleteCustomer(req.params.id);
+        await audit(req, 'DELETE', 'customer', req.params.id, `Customer #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    }
+    catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.get('/api/customers/:name/orders', requireAuth, async (req, res) => {
     try { res.json(await db.getCustomerOrders(req.params.name)); } catch (err) { res.status(500).json({ error: err.message }); }
@@ -539,16 +670,28 @@ app.get('/api/assets', requireAuth, async (req, res) => {
 
 app.post('/api/assets', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: 'Name is required' });
-    try { const asset = await db.addAsset(req.body); res.json({ success: true, asset }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const asset = await db.addAsset(req.body);
+        await audit(req, 'CREATE', 'asset', asset.id, `Asset "${req.body.name}" created (₱${req.body.purchase_price})`, null, req.body);
+        res.json({ success: true, asset });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/assets/:id', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: 'Name is required' });
-    try { await db.updateAsset(req.params.id, req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.updateAsset(req.params.id, req.body);
+        await audit(req, 'UPDATE', 'asset', req.params.id, `Asset "${req.body.name}" updated`, null, req.body);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.delete('/api/assets/:id', requireAuth, async (req, res) => {
-    try { await db.deleteAsset(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.deleteAsset(req.params.id);
+        await audit(req, 'DELETE', 'asset', req.params.id, `Asset #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== CAPITAL =====
@@ -558,16 +701,28 @@ app.get('/api/capital', requireAuth, async (req, res) => {
 
 app.post('/api/capital', requireAuth, async (req, res) => {
     if (!req.body.description) return res.status(400).json({ error: 'Description is required' });
-    try { const capital = await db.addCapital(req.body); res.json({ success: true, capital }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const capital = await db.addCapital(req.body);
+        await audit(req, 'CREATE', 'capital', capital.id, `Capital "${req.body.description}" ₱${req.body.amount}`, null, req.body);
+        res.json({ success: true, capital });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.put('/api/capital/:id', requireAuth, async (req, res) => {
     if (!req.body.description) return res.status(400).json({ error: 'Description is required' });
-    try { await db.updateCapital(req.params.id, req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.updateCapital(req.params.id, req.body);
+        await audit(req, 'UPDATE', 'capital', req.params.id, `Capital "${req.body.description}" updated`, null, req.body);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.delete('/api/capital/:id', requireAuth, async (req, res) => {
-    try { await db.deleteCapital(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.deleteCapital(req.params.id);
+        await audit(req, 'DELETE', 'capital', req.params.id, `Capital #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== ROI =====
@@ -586,6 +741,7 @@ app.post('/api/bookings', async (req, res) => {
     }
     try {
         const booking = await db.addBooking({ customer_name, customer_phone, customer_address, service_type, preferred_date, preferred_time, notes });
+        await audit(req, 'CREATE', 'booking', booking.id, `Booking #${booking.id} — ${customer_name} (${preferred_date})`, null, null);
         res.json({ success: true, booking });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -603,6 +759,7 @@ app.put('/api/bookings/:id/status', requireAuth, async (req, res) => {
     if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' });
     try {
         await db.updateBookingStatus(req.params.id, status);
+        await audit(req, 'UPDATE', 'booking', req.params.id, `Booking #${req.params.id} → ${status}`, null, { status });
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -610,6 +767,7 @@ app.put('/api/bookings/:id/status', requireAuth, async (req, res) => {
 app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
     try {
         await db.deleteBooking(req.params.id);
+        await audit(req, 'DELETE', 'booking', req.params.id, `Booking #${req.params.id} deleted`, null, null);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -619,7 +777,7 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
         const todayOrders = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE date LIKE $1 AND archived_at IS NULL", [today + '%']);
-        const allTime = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders");
+        const allTime = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE archived_at IS NULL");
         const pending = await db.pool.query("SELECT COUNT(*) AS count FROM orders WHERE payment_status = 'Pending' AND archived_at IS NULL");
         const topServices = await db.pool.query("SELECT service_name, SUM(quantity) AS total_qty, SUM(quantity * price) AS total_revenue FROM order_items GROUP BY service_name ORDER BY total_qty DESC LIMIT 5");
         const recentOrders = await db.pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE archived_at IS NULL ORDER BY id DESC LIMIT 10");
@@ -634,7 +792,7 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
 
 app.get('/api/dashboard/years', requireAuth, async (req, res) => {
     try {
-        const result = await db.pool.query("SELECT DISTINCT EXTRACT(YEAR FROM date::timestamptz) AS y FROM orders ORDER BY y ASC");
+        const result = await db.pool.query("SELECT DISTINCT EXTRACT(YEAR FROM date::timestamptz) AS y FROM orders WHERE archived_at IS NULL ORDER BY y ASC");
         const years = result.rows.map(r => parseInt(r.y));
         const currentYear = new Date().getFullYear();
         if (!years.includes(currentYear)) years.push(currentYear);
@@ -669,7 +827,12 @@ app.get('/api/settings/public', async (req, res) => {
     try { res.json(await db.getAllSettings()); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/settings', requireAuth, async (req, res) => {
-    try { await db.updateSettings(req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const oldSettings = await db.getAllSettings();
+        await db.updateSettings(req.body);
+        await audit(req, 'UPDATE', 'settings', null, `Shop settings updated`, oldSettings, req.body);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== CASHIERS =====
@@ -680,15 +843,27 @@ app.post('/api/cashiers', requireAuth, async (req, res) => {
     const { name, pin } = req.body;
     if (!name || !pin) return res.status(400).json({ error: 'Name and PIN are required' });
     if (pin.length < 4) return res.status(400).json({ error: 'PIN must be at least 4 digits' });
-    try { const id = await db.addCashier(name, pin); res.json({ success: true, id }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const id = await db.addCashier(name, pin);
+        await audit(req, 'CREATE', 'cashier', id, `Cashier "${name}" created`, null, { name });
+        res.json({ success: true, id });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/cashiers/:id/pin', requireAuth, async (req, res) => {
     const { pin } = req.body;
     if (!pin || pin.length < 4) return res.status(400).json({ error: 'PIN must be at least 4 digits' });
-    try { await db.updateCashierPin(req.params.id, pin); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.updateCashierPin(req.params.id, pin);
+        await audit(req, 'UPDATE', 'cashier', req.params.id, `Cashier #${req.params.id} PIN changed`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/cashiers/:id', requireAuth, async (req, res) => {
-    try { await db.deleteCashier(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.deleteCashier(req.params.id);
+        await audit(req, 'DELETE', 'cashier', req.params.id, `Cashier #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/cashiers/verify', async (req, res) => {
     const { pin } = req.body;
@@ -723,23 +898,42 @@ app.get('/api/products/low-stock', requireAuth, async (req, res) => {
 });
 app.post('/api/products', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: 'Name is required' });
-    try { const id = await db.addProduct(req.body); res.json({ success: true, id }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const id = await db.addProduct(req.body);
+        await audit(req, 'CREATE', 'product', id, `Product "${req.body.name}" created`, null, req.body);
+        res.json({ success: true, id });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/products/:id', requireAuth, async (req, res) => {
     if (!req.body.name) return res.status(400).json({ error: 'Name is required' });
-    try { await db.updateProduct(req.params.id, req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.updateProduct(req.params.id, req.body);
+        await audit(req, 'UPDATE', 'product', req.params.id, `Product "${req.body.name}" updated`, null, req.body);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/products/:id', requireAuth, async (req, res) => {
-    try { await db.deleteProduct(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.deleteProduct(req.params.id);
+        await audit(req, 'DELETE', 'product', req.params.id, `Product #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.post('/api/products/:id/replenish', requireAuth, async (req, res) => {
-    const { quantity, cost, notes, supplier } = req.body;
+    const { quantity, cost, notes, supplier, category } = req.body;
     if (!quantity || quantity <= 0) return res.status(400).json({ error: 'Invalid quantity' });
-    try { await db.replenishProduct(req.params.id, parseInt(quantity), parseFloat(cost) || 0, notes, supplier); res.json({ success: true }); }
+    try {
+        await db.replenishProduct(req.params.id, parseInt(quantity), parseFloat(cost) || 0, notes, supplier, category);
+        await audit(req, 'REPLENISH', 'product', req.params.id, `Product #${req.params.id} +${quantity} (₱${cost}) — ${category || 'Supplies'}`, null, { quantity, cost, supplier, category });
+        res.json({ success: true });
+    }
     catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.get('/api/replenishments', requireAuth, async (req, res) => {
     try { res.json(await db.getReplenishments()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+app.get('/api/replenishments/categories', requireAuth, async (req, res) => {
+    try { res.json(await db.getReplenishmentCategories()); } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 // ===== EXPENSES =====
@@ -763,13 +957,25 @@ app.get('/api/expenses/categories', requireAuth, async (req, res) => {
 app.post('/api/expenses', requireAuth, async (req, res) => {
     if (!req.body.amount || parseFloat(req.body.amount) <= 0) return res.status(400).json({ error: 'Amount is required' });
     if (!req.body.category) return res.status(400).json({ error: 'Category is required' });
-    try { const id = await db.addExpense(req.body); res.json({ success: true, id }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        const id = await db.addExpense(req.body);
+        await audit(req, 'CREATE', 'expense', id, `Expense "${req.body.category}" ₱${req.body.amount}`, null, req.body);
+        res.json({ success: true, id });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.put('/api/expenses/:id', requireAuth, async (req, res) => {
-    try { await db.updateExpense(req.params.id, req.body); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.updateExpense(req.params.id, req.body);
+        await audit(req, 'UPDATE', 'expense', req.params.id, `Expense #${req.params.id} updated`, null, req.body);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 app.delete('/api/expenses/:id', requireAuth, async (req, res) => {
-    try { await db.deleteExpense(req.params.id); res.json({ success: true }); } catch (err) { res.status(500).json({ error: err.message }); }
+    try {
+        await db.deleteExpense(req.params.id);
+        await audit(req, 'DELETE', 'expense', req.params.id, `Expense #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/users/me/verify-answer', requireAuth, async (req, res) => {
@@ -805,6 +1011,7 @@ app.put('/api/users/me/change-password-verified', requireAuth, async (req, res) 
             const ans_hash = await bcrypt.hash(security_answer.toLowerCase().trim(), 10);
             await db.pool.query("UPDATE users SET security_question = $1, security_answer_hash = $2 WHERE id = $3", [security_question, ans_hash, session.userId]);
         }
+        await audit(req, 'UPDATE', 'user', session.userId, `Password changed via security verification`, null, null);
         res.json({ success: true });
     } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });

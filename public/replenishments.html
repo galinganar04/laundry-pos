@@ -16,7 +16,7 @@
         .btn-primary { background: #1e40af; border-color: #1e40af; }
         .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
         .ledger-table { width: 100%; border-collapse: collapse; }
-        .ledger-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; }
+        .ledger-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
         .ledger-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
         .ledger-table tbody tr:hover { background-color: #f8fafc; }
         .ref-id { color: #64748b; font-family: 'Courier New', monospace; font-size: 13px; }
@@ -28,6 +28,14 @@
         .btn-manage:hover { background: #f8fafc; }
         .info-msg { font-size: 12px; color: #94a3b8; margin-top: 6px; line-height: 1.4; }
         .form-label.small { font-size: 12px; color: #475569; font-weight: 500; margin-bottom: 4px; }
+        .category-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; background: #e0e7ff; color: #3730a3; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+        .category-badge.Soap { background: #dbeafe; color: #1e40af; }
+        .category-badge.Detergent { background: #d1fae5; color: #065f46; }
+        .category-badge.Fabcon { background: #fce7f3; color: #9d174d; }
+        .category-badge.Supplies { background: #fef3c7; color: #92400e; }
+        .category-badge.Packaging { background: #ede9fe; color: #5b21b6; }
+        .category-badge.Other { background: #f1f5f9; color: #475569; }
+
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .sidebar { background-color: #020617 !important; }
         [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
@@ -44,7 +52,6 @@
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
         [data-theme="dark"] .info-msg { color: #94a3b8 !important; }
 
-        /* Force all outline buttons visible */
         .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
         .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
         .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
@@ -78,6 +85,7 @@
             </div>
             <a href="/">🧺 POS</a>
             <a href="/dashboard.html">📊 Dashboard</a>
+            <a href="/audit.html">🔍 Audit Trail</a>
             <a href="/services.html">🧴 Services</a>
             <a href="/products.html">📦 Products</a>
             <a href="/orders.html">📋 Orders</a>
@@ -96,29 +104,40 @@
             </div>
 
             <div class="panel mb-4">
-                <input type="text" id="searchBox" class="form-control" placeholder="🔍 Filter supplier name..." oninput="debouncedLoad()">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Filter by supplier..." oninput="debouncedLoad()">
+                    </div>
+                    <div class="col-md-3">
+                        <select id="categoryFilter" class="form-select" onchange="loadLedger()">
+                            <option value="all">All Categories</option>
+                        </select>
+                    </div>
+                </div>
             </div>
 
             <div class="panel p-0">
                 <table class="ledger-table">
                     <thead>
                         <tr>
-                            <th style="width: 100px;">Ref ID</th>
+                            <th style="width: 90px;">Ref ID</th>
                             <th>Item Stocked</th>
-                            <th style="width: 180px;">Supplier</th>
-                            <th class="text-end" style="width: 110px;">Cost</th>
-                            <th class="text-end" style="width: 150px;">Total Allocation</th>
-                            <th style="width: 150px;">Replenish Date</th>
-                            <th class="text-end" style="width: 110px;">Actions</th>
+                            <th style="width: 120px;">Category</th>
+                            <th style="width: 160px;">Supplier</th>
+                            <th class="text-end" style="width: 100px;">Cost/Unit</th>
+                            <th class="text-end" style="width: 130px;">Total</th>
+                            <th style="width: 140px;">Date</th>
+                            <th class="text-end" style="width: 90px;">Notes</th>
                         </tr>
                     </thead>
-                    <tbody id="ledgerTable"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                    <tbody id="ledgerTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Replenish Modal -->
 <div class="modal fade" id="replenishModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -127,24 +146,107 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <!-- TARGET PRODUCT with + New -->
                 <div class="mb-3">
                     <label class="form-label small">Target Product Item</label>
-                    <select id="rProduct" class="form-select"><option value="">Select a catalog item...</option></select>
+                    <div class="d-flex gap-2">
+                        <select id="rProduct" class="form-select" style="flex: 1;">
+                            <option value="">Select a catalog item...</option>
+                        </select>
+                        <button type="button" class="btn btn-outline-primary" onclick="openAddProductModal()" style="white-space: nowrap;">
+                            + New
+                        </button>
+                    </div>
+                    <div class="info-msg">Pick a product, or click <strong>+ New</strong> to create one.</div>
                 </div>
+
                 <div class="row g-3">
-                    <div class="col-md-6"><label class="form-label small">Quantity</label><input type="number" id="rQty" class="form-control" placeholder="0" min="1"></div>
-                    <div class="col-md-6"><label class="form-label small">Total Cost (₱)</label><input type="number" id="rCost" class="form-control" placeholder="0.00" step="0.01"></div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Quantity</label>
+                        <input type="number" id="rQty" class="form-control" placeholder="0" min="1" oninput="updateTotalPreview()">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small">Cost per Unit (₱)</label>
+                        <input type="number" id="rCost" class="form-control" placeholder="0.00" step="0.01" oninput="updateTotalPreview()">
+                    </div>
                 </div>
-                <div class="mb-3 mt-3"><label class="form-label small">Supplier</label><input type="text" id="rSupplier" class="form-control" placeholder="e.g. Tech Distribution Inc."></div>
+                <div class="mt-2" style="background: #eff6ff; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #1e40af;">
+                    <strong>Total:</strong> <span id="totalPreview">₱0.00</span>
+                </div>
+
+                <!-- CATEGORY (simple dropdown, no + New here) -->
+                <div class="mb-3 mt-3">
+                    <label class="form-label small">Category</label>
+                    <select id="rCategory" class="form-select">
+                        <option value="">-- Select category --</option>
+                    </select>
+                    <div class="info-msg">Categories come from your existing products &amp; past replenishments.</div>
+                </div>
+
                 <div class="mb-3">
-                    <label class="form-label small">Warehouse Notes / Ledger Tags</label>
+                    <label class="form-label small">Supplier</label>
+                    <input type="text" id="rSupplier" class="form-control" placeholder="e.g. Tech Distribution Inc.">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Notes</label>
                     <textarea id="rNotes" class="form-control" rows="2" placeholder="Shipment references..."></textarea>
-                    <div class="info-msg">The replenishment total is automatically posted to the Expense ledger under Merchandise Inventory.</div>
+                    <div class="info-msg">This replenishment is automatically posted to the Audit Trail as an inventory expense.</div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button class="btn btn-primary" onclick="saveReplenishment()">Process Stock Intake</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Product</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-2">
+                    <label class="form-label small">Product Name *</label>
+                    <input type="text" id="npName" class="form-control" placeholder="e.g. Downy Antibac 1L">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Category</label>
+                    <input type="text" id="npCategory" class="form-control" placeholder="e.g. Fabcon" list="npCategoryList">
+                    <datalist id="npCategoryList">
+                        <option value="Soap">
+                        <option value="Detergent">
+                        <option value="Fabcon">
+                        <option value="Bleach">
+                        <option value="Packaging">
+                        <option value="Hangers">
+                        <option value="Supplies">
+                    </datalist>
+                </div>
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label small">Cost Price (₱)</label>
+                        <input type="number" id="npCost" class="form-control" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small">Selling Price (₱)</label>
+                        <input type="number" id="npSell" class="form-control" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small">Initial Stock</label>
+                    <input type="number" id="npStock" class="form-control" placeholder="0" value="0">
+                </div>
+                <div id="npError" class="text-danger small" style="display: none;"></div>
+                <div class="info-msg">The new product will be saved and selected in the replenishment form.</div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveNewProduct()">Save Product</button>
             </div>
         </div>
     </div>
@@ -164,19 +266,134 @@
         if (r.product_image) return `<span class="product-thumb"><img src="${r.product_image}"></span>`;
         return `<span class="product-thumb">${r.product_icon || '📦'}</span>`;
     }
+    function categoryBadge(cat) {
+        const c = cat || 'Supplies';
+        const cls = c.replace(/\s+/g, '');
+        return `<span class="category-badge ${cls}">${c}</span>`;
+    }
+    function peso(n) {
+        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 
+    function updateTotalPreview() {
+        const qty = parseFloat(document.getElementById('rQty').value) || 0;
+        const cost = parseFloat(document.getElementById('rCost').value) || 0;
+        document.getElementById('totalPreview').innerText = peso(qty * cost);
+    }
+
+    // ===== ADD NEW PRODUCT =====
+    function openAddProductModal() {
+        document.getElementById('npName').value = '';
+        document.getElementById('npCategory').value = '';
+        document.getElementById('npCost').value = '';
+        document.getElementById('npSell').value = '';
+        document.getElementById('npStock').value = '0';
+        document.getElementById('npError').style.display = 'none';
+        new bootstrap.Modal(document.getElementById('addProductModal')).show();
+        setTimeout(() => document.getElementById('npName').focus(), 300);
+    }
+
+    function saveNewProduct() {
+        const name = document.getElementById('npName').value.trim();
+        const category = document.getElementById('npCategory').value.trim();
+        const cost = document.getElementById('npCost').value;
+        const sell = document.getElementById('npSell').value;
+        const stock = document.getElementById('npStock').value;
+        const errBox = document.getElementById('npError');
+        errBox.style.display = 'none';
+
+        if (!name) {
+            errBox.innerText = 'Product name is required.';
+            errBox.style.display = 'block';
+            return;
+        }
+
+        const payload = {
+            name,
+            category: category || 'General',
+            cost_price: parseFloat(cost) || 0,
+            selling_price: parseFloat(sell) || 0,
+            stock: parseInt(stock) || 0,
+            low_limit: 5,
+            icon: '📦',
+            image_data: null
+        };
+
+        fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                errBox.innerText = data.error;
+                errBox.style.display = 'block';
+                return;
+            }
+            bootstrap.Modal.getInstance(document.getElementById('addProductModal')).hide();
+
+            // Reload products, then auto-select the new one
+            loadProducts().then(() => {
+                document.getElementById('rProduct').value = data.id;
+                // Auto-fill category in replenish form
+                if (category) {
+                    const catSelect = document.getElementById('rCategory');
+                    if (!Array.from(catSelect.options).some(o => o.value === category)) {
+                        const opt = document.createElement('option');
+                        opt.value = category;
+                        opt.textContent = category;
+                        catSelect.appendChild(opt);
+                    }
+                    catSelect.value = category;
+                }
+                // Suggest cost per unit from product cost
+                if (payload.cost_price > 0 && !document.getElementById('rCost').value) {
+                    document.getElementById('rCost').value = payload.cost_price;
+                }
+            });
+            loadCategories();
+        });
+    }
+
+    // ===== LOADING =====
     function loadProducts() {
         return fetch('/api/products', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
             .then(products => {
                 allProducts = products || [];
                 const sel = document.getElementById('rProduct');
+                const current = sel.value;
                 sel.innerHTML = '<option value="">Select a catalog item...</option>' + allProducts.map(p => `<option value="${p.id}">${p.name} (Stock: ${p.stock})</option>`).join('');
+                if (current && Array.from(sel.options).some(o => o.value === current)) sel.value = current;
             });
+    }
+
+    function loadCategories() {
+        return fetch('/api/replenishments/categories', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(cats => {
+                const fromDb = Array.isArray(cats) ? cats : [];
+                // Merge with product categories too
+                const prodCats = allProducts.map(p => p.category).filter(Boolean);
+                const all = [...new Set([...fromDb, ...prodCats])].sort();
+
+                const select = document.getElementById('rCategory');
+                const currentVal = select.value;
+                select.innerHTML = '<option value="">-- Select category --</option>' + all.map(c => `<option value="${c}">${c}</option>`).join('');
+                if (currentVal && all.includes(currentVal)) select.value = currentVal;
+
+                const filter = document.getElementById('categoryFilter');
+                const currentFilter = filter.value;
+                filter.innerHTML = '<option value="all">All Categories</option>' + all.map(c => `<option value="${c}">${c}</option>`).join('');
+                if (currentFilter && (all.includes(currentFilter) || currentFilter === 'all')) filter.value = currentFilter;
+            })
+            .catch(() => {});
     }
 
     function loadLedger() {
         const search = document.getElementById('searchBox').value.toLowerCase();
+        const catFilter = document.getElementById('categoryFilter').value;
         fetch('/api/replenishments', { headers: { 'x-auth-token': authToken } })
             .then(res => {
                 if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
@@ -184,26 +401,43 @@
             })
             .then(items => {
                 if (!items) return;
-                const filtered = search ? items.filter(r => (r.supplier || '').toLowerCase().includes(search)) : items;
+                let filtered = items;
+                if (search) filtered = filtered.filter(r => (r.supplier || '').toLowerCase().includes(search));
+                if (catFilter !== 'all') filtered = filtered.filter(r => (r.category || 'Supplies') === catFilter);
+
                 const table = document.getElementById('ledgerTable');
-                if (filtered.length === 0) { table.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No replenishments yet.</td></tr>'; return; }
+                if (filtered.length === 0) { table.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">No replenishments yet.</td></tr>'; return; }
                 table.innerHTML = filtered.map(r => {
                     const date = new Date(r.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const cost = parseFloat(r.cost) || 0;
                     const qty = parseInt(r.quantity) || 0;
                     const allocation = cost * qty;
-                    return `<tr><td><span class="ref-id">${formatRefId(r.id)}</span></td><td><div class="d-flex align-items-center">${renderThumb(r)}<div><div class="item-name">${r.product_name}</div><div class="item-stock">+${qty} pc added</div></div></div></td><td>${r.supplier || '<span class="text-muted">—</span>'}</td><td class="text-end">₱${cost.toFixed(2)}</td><td class="text-end"><strong>₱${allocation.toFixed(2)}</strong></td><td><small>${date}</small></td><td class="text-end"><button class="btn btn-manage" onclick="viewNotes(${r.id}, '${(r.notes || '').replace(/'/g, "\\'")}')">View</button></td></tr>`;
+                    return `<tr>
+                        <td><span class="ref-id">${formatRefId(r.id)}</span></td>
+                        <td><div class="d-flex align-items-center">${renderThumb(r)}<div><div class="item-name">${r.product_name}</div><div class="item-stock">+${qty} pc added</div></div></div></td>
+                        <td>${categoryBadge(r.category)}</td>
+                        <td>${r.supplier || '<span class="text-muted">—</span>'}</td>
+                        <td class="text-end">${peso(cost)}</td>
+                        <td class="text-end"><strong>${peso(allocation)}</strong></td>
+                        <td><small>${date}</small></td>
+                        <td class="text-end"><button class="btn btn-manage" onclick="viewNotes(${r.id}, '${(r.notes || '').replace(/'/g, "\\'")}')">View</button></td>
+                    </tr>`;
                 }).join('');
             });
     }
 
     function viewNotes(id, notes) { alert(`REF-${String(id).padStart(5, '0')}\n\nNotes: ${notes || '(none)'}`); }
+
     function openReplenishModal() {
         document.getElementById('rProduct').value = '';
         document.getElementById('rQty').value = '';
         document.getElementById('rCost').value = '';
+        document.getElementById('rCategory').value = '';
         document.getElementById('rSupplier').value = '';
         document.getElementById('rNotes').value = '';
+        document.getElementById('totalPreview').innerText = '₱0.00';
+        loadProducts();
+        loadCategories();
         new bootstrap.Modal(document.getElementById('replenishModal')).show();
     }
 
@@ -211,6 +445,7 @@
         const productId = document.getElementById('rProduct').value;
         const quantity = document.getElementById('rQty').value;
         const cost = document.getElementById('rCost').value;
+        const category = document.getElementById('rCategory').value;
         const supplier = document.getElementById('rSupplier').value.trim();
         const notes = document.getElementById('rNotes').value.trim();
         if (!productId) return alert('Please select a product.');
@@ -218,13 +453,15 @@
         fetch(`/api/products/${productId}/replenish`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ quantity: parseInt(quantity), cost: parseFloat(cost) || 0, notes, supplier })
+            body: JSON.stringify({ quantity: parseInt(quantity), cost: parseFloat(cost) || 0, notes, supplier, category })
         })
         .then(res => res.json())
         .then(res => {
             if (res.error) return alert('Error: ' + res.error);
             bootstrap.Modal.getInstance(document.getElementById('replenishModal')).hide();
-            loadLedger(); loadProducts();
+            loadLedger();
+            loadCategories();
+            loadProducts();
         });
     }
 
@@ -235,7 +472,7 @@
         window.location.href = '/login.html';
     }
 
-    loadProducts().then(() => loadLedger());
+    loadProducts().then(() => { loadLedger(); loadCategories(); });
 </script>
 <script src="/role-guard.js"></script>
 <script src="/bookings-badge.js"></script>
