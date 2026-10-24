@@ -374,6 +374,93 @@ app.get('/api/audit/cash', requireAuth, async (req, res) => {
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ===== FINANCIAL STATEMENTS =====
+app.get('/api/statements/income', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom, dateTo } = req.query;
+        if (!dateFrom || !dateTo) return res.status(400).json({ error: 'dateFrom and dateTo required' });
+        res.json(await db.getIncomeStatement(dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/statements/balance', requireAuth, async (req, res) => {
+    try {
+        const { dateTo } = req.query;
+        if (!dateTo) return res.status(400).json({ error: 'dateTo required' });
+        res.json(await db.getBalanceSheet(dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.get('/api/statements/cashflow', requireAuth, async (req, res) => {
+    try {
+        const { dateFrom, dateTo } = req.query;
+        if (!dateFrom || !dateTo) return res.status(400).json({ error: 'dateFrom and dateTo required' });
+        res.json(await db.getCashFlowStatement(dateFrom, dateTo));
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== LIABILITIES =====
+app.get('/api/liabilities', requireAuth, async (req, res) => {
+    try { res.json(await db.getLiabilities()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/liabilities', requireAuth, async (req, res) => {
+    if (!req.body.description) return res.status(400).json({ error: 'Description is required' });
+    try {
+        const liability = await db.addLiability(req.body);
+        await audit(req, 'CREATE', 'liability', liability.id, `Liability "${req.body.description}" ₱${req.body.amount}`, null, req.body);
+        res.json({ success: true, liability });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.put('/api/liabilities/:id', requireAuth, async (req, res) => {
+    try {
+        await db.updateLiability(req.params.id, req.body);
+        await audit(req, 'UPDATE', 'liability', req.params.id, `Liability #${req.params.id} updated`, null, req.body);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/liabilities/:id', requireAuth, async (req, res) => {
+    try {
+        await db.deleteLiability(req.params.id);
+        await audit(req, 'DELETE', 'liability', req.params.id, `Liability #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/liabilities/:id/pay', requireAuth, async (req, res) => {
+    const { amount } = req.body;
+    if (!amount || parseFloat(amount) <= 0) return res.status(400).json({ error: 'Valid amount required' });
+    try {
+        await db.payLiability(req.params.id, amount);
+        await audit(req, 'UPDATE', 'liability', req.params.id, `Liability #${req.params.id} payment ₱${amount}`, null, { amount });
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== OWNER WITHDRAWALS =====
+app.get('/api/owner-withdrawals', requireAuth, async (req, res) => {
+    try { res.json(await db.getOwnerWithdrawals()); } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.post('/api/owner-withdrawals', requireAuth, async (req, res) => {
+    if (!req.body.description) return res.status(400).json({ error: 'Description is required' });
+    try {
+        const wd = await db.addOwnerWithdrawal(req.body);
+        await audit(req, 'CREATE', 'withdrawal', wd.id, `Owner withdrawal "${req.body.description}" ₱${req.body.amount}`, null, req.body);
+        res.json({ success: true, withdrawal: wd });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+app.delete('/api/owner-withdrawals/:id', requireAuth, async (req, res) => {
+    try {
+        await db.deleteOwnerWithdrawal(req.params.id);
+        await audit(req, 'DELETE', 'withdrawal', req.params.id, `Owner withdrawal #${req.params.id} deleted`, null, null);
+        res.json({ success: true });
+    } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ===== SERVICES =====
 app.get('/api/services/public', async (req, res) => {
     try {

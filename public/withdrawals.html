@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <title>Owner Withdrawals - Hawi's Lovada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+
+        .sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
+        .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+        .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
+        .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .btn-primary { background: #1e40af; border-color: #1e40af; font-weight: 700; padding: 10px 20px; border-radius: 10px; }
+        .wd-table { width: 100%; border-collapse: collapse; }
+        .wd-table thead th { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; padding: 12px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        .wd-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .wd-table tbody tr:hover { background: #f8fafc; }
+        .kpi-card { background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #dc2626; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .kpi-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; }
+        .kpi-card .value { font-size: 28px; font-weight: 900; color: #dc2626; }
+        .info-banner { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #1e40af; margin-bottom: 16px; }
+        [data-theme="dark"] body { background: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .kpi-card, [data-theme="dark"] .modal-content { background: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .kpi-card .value { color: #e2e8f0 !important; }
+        [data-theme="dark"] .wd-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .wd-table tbody td { color: #e2e8f0 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .wd-table tbody tr:hover { background: #0f172a !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .info-banner { background: #1e3a8a !important; color: #bfdbfe !important; }
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
+            .page-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html" class="active">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h1 class="page-title">💸 Owner Withdrawals</h1>
+            <p class="page-sub mb-0">Money taken out of the business by the owner for personal use</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal()">+ Add Withdrawal</button>
+    </div>
+
+    <div class="info-banner">
+        💡 <strong>What is this?</strong> When you (the owner) take money from the shop for personal use — groceries, personal bills, etc. — record it here. This reduces your owner's equity but is NOT a business expense.
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6"><div class="kpi-card"><div class="label">Total Withdrawn</div><div class="value" id="totalWithdrawn">₱0.00</div></div></div>
+        <div class="col-12 col-md-6"><div class="kpi-card" style="border-left-color:#3b82f6;"><div class="label">Number of Withdrawals</div><div class="value" id="totalCount" style="color:#3b82f6;">0</div></div></div>
+    </div>
+
+    <div class="panel">
+        <table class="wd-table">
+            <thead><tr><th>Date</th><th>Description</th><th class="text-end">Amount</th><th>Notes</th><th class="text-end">Actions</th></tr></thead>
+            <tbody id="wdTable"><tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:40px;">Loading...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="wdModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Owner Withdrawal</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label small">Description *</label><input type="text" id="wDesc" class="form-control" placeholder="e.g. Personal grocery, Family expense"></div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6"><label class="form-label small">Amount (₱) *</label><input type="number" id="wAmount" class="form-control" step="0.01"></div>
+                    <div class="col-6"><label class="form-label small">Date</label><input type="date" id="wDate" class="form-control"></div>
+                </div>
+                <div class="mb-3"><label class="form-label small">Notes</label><textarea id="wNotes" class="form-control" rows="2"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveWithdrawal()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    function loadWithdrawals() {
+        fetch('/api/owner-withdrawals', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(items => {
+                if (!Array.isArray(items)) return;
+                const total = items.reduce((s, w) => s + (parseFloat(w.amount) || 0), 0);
+                document.getElementById('totalWithdrawn').innerText = peso(total);
+                document.getElementById('totalCount').innerText = items.length;
+                const table = document.getElementById('wdTable');
+                if (items.length === 0) { table.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:40px;">No withdrawals yet. Click "+ Add Withdrawal" to record one.</td></tr>'; return; }
+                table.innerHTML = items.map(w => {
+                    const date = new Date(w.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    return `<tr>
+                        <td><small>${date}</small></td>
+                        <td><strong>${w.description}</strong></td>
+                        <td class="text-end" style="color:#dc2626;font-weight:800;">(${peso(w.amount)})</td>
+                        <td><small style="color:#94a3b8;">${w.notes || '—'}</small></td>
+                        <td class="text-end"><button class="btn btn-sm btn-outline-danger" onclick="deleteWithdrawal(${w.id})">🗑</button></td>
+                    </tr>`;
+                }).join('');
+            });
+    }
+
+    function openModal() {
+        document.getElementById('wDesc').value = '';
+        document.getElementById('wAmount').value = '';
+        document.getElementById('wDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('wNotes').value = '';
+        new bootstrap.Modal(document.getElementById('wdModal')).show();
+    }
+
+    function saveWithdrawal() {
+        const data = {
+            description: document.getElementById('wDesc').value.trim(),
+            amount: document.getElementById('wAmount').value,
+            date: document.getElementById('wDate').value,
+            notes: document.getElementById('wNotes').value.trim()
+        };
+        if (!data.description) return alert('Description required');
+        if (!data.amount || parseFloat(data.amount) <= 0) return alert('Valid amount required');
+        fetch('/api/owner-withdrawals', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(res => { if (res.error) return alert(res.error); bootstrap.Modal.getInstance(document.getElementById('wdModal')).hide(); loadWithdrawals(); });
+    }
+
+    function deleteWithdrawal(id) {
+        if (!confirm('Delete this withdrawal?')) return;
+        fetch(`/api/owner-withdrawals/${id}`, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadWithdrawals());
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
+        window.location.href = '/login.html';
+    }
+
+    loadWithdrawals();
+</script>
+<script src="/role-guard.js"></script>
+<script src="/bookings-badge.js"></script>
+<script src="/theme.js"></script>
+</body>
+</html>

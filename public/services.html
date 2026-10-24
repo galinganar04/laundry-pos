@@ -6,16 +6,24 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background-color: #3b82f6; color: white; }
+
+        .sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; height: auto; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
         .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
         .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .btn-primary { background: #1e40af; border-color: #1e40af; }
         .services-table { width: 100%; border-collapse: collapse; }
-        .services-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; }
+        .services-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; text-align: left; }
         .services-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
         .service-thumb { width: 44px; height: 44px; border-radius: 8px; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; overflow: hidden; border: 1px solid #e2e8f0; }
         .service-thumb img { width: 100%; height: 100%; object-fit: cover; }
@@ -30,7 +38,6 @@
         .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 10px 14px; color: #1e40af; font-size: 12px; }
         .image-upload-box { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; background: #f9fafb; }
         .image-preview { max-width: 140px; max-height: 140px; border-radius: 8px; }
-
         .custom-flow-section { background: #fffbeb; border: 2px solid #fcd34d; border-radius: 10px; padding: 14px; margin-top: 10px; display: none; }
         .custom-flow-section.active { display: block; }
         .custom-flow-section .cf-heading { display: flex; align-items: center; gap: 6px; color: #92400e; font-weight: 800; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; }
@@ -39,16 +46,13 @@
         .custom-flow-actions { display: flex; gap: 8px; margin-top: 10px; }
         .btn-save-flow { background: #f59e0b; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
         .btn-cancel-flow { background: white; color: #92400e; border: 1.5px solid #fcd34d; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
-
         .flow-item-wrapper { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; padding: 8px 12px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
         .flow-item-wrapper .flow-name { font-weight: 700; color: #1e293b; font-size: 13px; }
         .flow-item-wrapper .flow-steps { font-size: 11px; color: #94a3b8; margin-top: 2px; }
         .btn-delete-flow { background: white; border: 1.5px solid #fecaca; color: #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .services-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
         [data-theme="dark"] .services-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
@@ -58,52 +62,60 @@
         [data-theme="dark"] .material-row { background: #0f172a; }
         [data-theme="dark"] .info-box { background: #1e3a8a; border-color: #1e40af; color: #bfdbfe; }
         [data-theme="dark"] .custom-flow-section { background: #422006 !important; border-color: #f59e0b !important; }
-        [data-theme="dark"] .custom-flow-section .cf-heading,
-        [data-theme="dark"] .custom-flow-section .form-label { color: #fbbf24 !important; }
+        [data-theme="dark"] .custom-flow-section .cf-heading, [data-theme="dark"] .custom-flow-section .form-label { color: #fbbf24 !important; }
         [data-theme="dark"] .custom-flow-tip { background: #78350f; color: #fde68a; }
         [data-theme="dark"] .flow-item-wrapper { background: #334155; border-color: #475569; }
         [data-theme="dark"] .flow-item-wrapper .flow-name { color: #e2e8f0; }
+
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
+            .page-title { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="text-center mb-4">
-                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
-            </div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/audit.html">🔍 Audit Trail</a>
-            <a href="/services.html" class="active">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/customers.html">👥 Customers</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
-        </div>
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html" class="active">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
 
-        <div class="col-md-10 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="page-title mb-0">Services</h3>
-                <button class="btn btn-primary" onclick="openServiceModal()">+ Add New Service</button>
-            </div>
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="page-title mb-0">Services</h3>
+        <button class="btn btn-primary" onclick="openServiceModal()">+ Add New Service</button>
+    </div>
 
-            <div class="panel mb-4">
-                <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search services..." oninput="debouncedLoad()">
-            </div>
+    <div class="panel mb-4">
+        <input type="text" id="searchBox" class="form-control" placeholder="🔍 Search services..." oninput="debouncedLoad()">
+    </div>
 
-            <div class="panel p-0">
-                <table class="services-table">
-                    <thead><tr><th style="width: 80px;">Image</th><th>Service</th><th style="width: 180px;">Flow Type</th><th>Materials Per Load</th><th class="text-end" style="width: 130px;">Actions</th></tr></thead>
-                    <tbody id="servicesTable"><tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+    <div class="panel p-0" style="overflow-x:auto;">
+        <table class="services-table">
+            <thead><tr><th style="width: 80px;">Image</th><th>Service</th><th style="width: 180px;">Flow Type</th><th>Materials Per Load</th><th class="text-end" style="width: 130px;">Actions</th></tr></thead>
+            <tbody id="servicesTable"><tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+        </table>
     </div>
 </div>
 
@@ -127,7 +139,6 @@
                             <div id="imageUploadPrompt">
                                 <div style="font-size: 32px;">📷</div>
                                 <div class="small text-muted mt-2">Click to upload image</div>
-                                <div class="small text-muted">(JPG/PNG, under 2MB)</div>
                             </div>
                             <img id="imagePreview" class="image-preview" style="display: none;" />
                         </div>
@@ -137,68 +148,36 @@
                     <div class="col-md-8">
                         <label class="form-label small">Service Name</label>
                         <input type="text" id="sName" class="form-control" placeholder="e.g., Wash Dry & Fold">
-                        
                         <label class="form-label small mt-3">Service Flow Type</label>
                         <select id="sType" class="form-select" onchange="onFlowSelectChange()"></select>
                         <small class="text-muted">Determines the order status workflow</small>
-
                         <div class="custom-flow-section" id="customFlowSection">
                             <div class="cf-heading"><span>✨</span> Create New Flow Type</div>
-                            <div class="mb-2">
-                                <label class="form-label small">Flow Name</label>
-                                <input type="text" id="cfName" class="form-control" placeholder="e.g., Wash + Iron">
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label small">Steps (comma-separated)</label>
-                                <input type="text" id="cfSteps" class="form-control" placeholder="Received, Washing, Ironing, Done (Ready to Pickup)">
-                            </div>
-                            <div class="custom-flow-tip">
-                                💡 <strong>Tip:</strong> Start with <code>Received</code> and end with <code>Done (Ready to Pickup)</code>. Use commas to separate steps.<br>
-                                Example: <code>Received, Washing, Ironing, Done (Ready to Pickup)</code>
-                            </div>
+                            <div class="mb-2"><label class="form-label small">Flow Name</label><input type="text" id="cfName" class="form-control"></div>
+                            <div class="mb-2"><label class="form-label small">Steps (comma-separated)</label><input type="text" id="cfSteps" class="form-control"></div>
+                            <div class="custom-flow-tip">💡 Start with <code>Received</code> and end with <code>Done (Ready to Pickup)</code>.</div>
                             <div class="custom-flow-actions">
                                 <button type="button" class="btn-save-flow" onclick="saveCustomFlow()">💾 Save Flow</button>
                                 <button type="button" class="btn-cancel-flow" onclick="cancelCustomFlow()">Cancel</button>
                             </div>
                         </div>
-
                         <div class="mt-3" id="customFlowsList" style="display: none;">
-                            <label class="form-label small">Custom Flows <span style="color:#94a3b8; text-transform:none; font-weight:500;">(click 🗑 to delete)</span></label>
+                            <label class="form-label small">Custom Flows</label>
                             <div id="customFlowsContainer"></div>
                         </div>
                     </div>
                 </div>
                 <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label small">Minimum</label>
-                        <div class="input-group">
-                            <input type="number" id="sMinimum" class="form-control" value="1" step="0.1" oninput="updateInfoBox()">
-                            <span class="input-group-text" id="unitLabelDisplay">kg</span>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small">Service Price</label>
-                        <input type="number" id="sPrice" class="form-control" placeholder="0.00" step="0.01" oninput="updateInfoBox()">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label small">Unit Label</label>
-                        <input type="text" id="sUnitLabel" class="form-control" value="kg" placeholder="kg / load / item" oninput="document.getElementById('unitLabelDisplay').innerText = this.value">
-                    </div>
+                    <div class="col-md-4"><label class="form-label small">Minimum</label><div class="input-group"><input type="number" id="sMinimum" class="form-control" value="1" step="0.1"><span class="input-group-text" id="unitLabelDisplay">kg</span></div></div>
+                    <div class="col-md-4"><label class="form-label small">Service Price</label><input type="number" id="sPrice" class="form-control" step="0.01"></div>
+                    <div class="col-md-4"><label class="form-label small">Unit Label</label><input type="text" id="sUnitLabel" class="form-control" value="kg" oninput="document.getElementById('unitLabelDisplay').innerText = this.value"></div>
                 </div>
-                <div class="info-box mb-4" id="infoBox">₱0.00 — base for 1 kg.</div>
-
                 <div class="form-check mb-3" style="background: #fef3c7; padding: 12px; border-radius: 8px; border: 1px solid #fcd34d;">
                     <input class="form-check-input" type="checkbox" id="sHidden" style="transform: scale(1.3);">
-                    <label class="form-check-label" for="sHidden" style="color: #92400e; font-weight: 600; margin-left: 8px;">
-                        🙈 Hide from POS grid
-                    </label>
+                    <label class="form-check-label" for="sHidden" style="color: #92400e; font-weight: 600; margin-left: 8px;">🙈 Hide from POS grid</label>
                 </div>
-
                 <div class="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                        <div class="section-title">Raw Materials</div>
-                        <small class="text-muted">Quantities deducted from Products for every service load sold.</small>
-                    </div>
+                    <div><div class="section-title">Raw Materials</div><small class="text-muted">Quantities deducted from Products for every service load sold.</small></div>
                     <button class="btn btn-sm btn-outline-primary" type="button" onclick="addMaterialRow()">+ Add Raw Material</button>
                 </div>
                 <div id="materialsList"></div>
@@ -221,19 +200,12 @@
     let searchTimeout;
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadServices(), 300); }
-
     function escapeHtml(s) { return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-    // ===== LOAD FLOWS =====
     function loadFlows() {
         return fetch('/api/service-flows', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
-            .then(flows => {
-                if (!Array.isArray(flows)) flows = [];
-                allFlows = flows;
-                populateFlowDropdown();
-                renderCustomFlowsList();
-            })
+            .then(flows => { if (!Array.isArray(flows)) flows = []; allFlows = flows; populateFlowDropdown(); renderCustomFlowsList(); })
             .catch(() => { allFlows = []; });
     }
 
@@ -245,18 +217,14 @@
             const opt = document.createElement('option');
             opt.value = f.flow_key;
             opt.textContent = f.name + (f.is_custom ? ' ⭐' : '');
-            opt.dataset.custom = f.is_custom ? '1' : '0';
             select.appendChild(opt);
         });
         const addOpt = document.createElement('option');
         addOpt.value = '__add_custom__';
         addOpt.textContent = '➕ Add Custom Flow...';
-        addOpt.style.fontWeight = '700';
-        addOpt.style.color = '#f59e0b';
+        addOpt.style.fontWeight = '700'; addOpt.style.color = '#f59e0b';
         select.appendChild(addOpt);
-        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
-            select.value = currentVal;
-        }
+        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) select.value = currentVal;
     }
 
     function renderCustomFlowsList() {
@@ -267,10 +235,7 @@
         wrap.style.display = 'block';
         container.innerHTML = customs.map(f => `
             <div class="flow-item-wrapper">
-                <div>
-                    <div class="flow-name">⭐ ${escapeHtml(f.name)}</div>
-                    <div class="flow-steps">${(f.steps || []).map(escapeHtml).join(' → ')}</div>
-                </div>
+                <div><div class="flow-name">⭐ ${escapeHtml(f.name)}</div><div class="flow-steps">${(f.steps || []).map(escapeHtml).join(' → ')}</div></div>
                 <button type="button" class="btn-delete-flow" onclick="deleteCustomFlow(${f.id}, '${escapeHtml(f.name)}')">🗑 Delete</button>
             </div>
         `).join('');
@@ -279,21 +244,11 @@
     function onFlowSelectChange() {
         const sel = document.getElementById('sType');
         const cfSection = document.getElementById('customFlowSection');
-        if (sel.value === '__add_custom__') {
-            cfSection.classList.add('active');
-            document.getElementById('cfName').value = '';
-            document.getElementById('cfSteps').value = '';
-            setTimeout(() => document.getElementById('cfName').focus(), 100);
-        } else {
-            cfSection.classList.remove('active');
-        }
+        if (sel.value === '__add_custom__') { cfSection.classList.add('active'); document.getElementById('cfName').value = ''; document.getElementById('cfSteps').value = ''; }
+        else { cfSection.classList.remove('active'); }
     }
 
-    function cancelCustomFlow() {
-        document.getElementById('customFlowSection').classList.remove('active');
-        const sel = document.getElementById('sType');
-        if (allFlows.length > 0) sel.value = allFlows[0].flow_key;
-    }
+    function cancelCustomFlow() { document.getElementById('customFlowSection').classList.remove('active'); if (allFlows.length > 0) document.getElementById('sType').value = allFlows[0].flow_key; }
 
     function saveCustomFlow() {
         const name = document.getElementById('cfName').value.trim();
@@ -301,37 +256,26 @@
         if (!name) return alert('Please enter a flow name');
         if (!stepsRaw) return alert('Please enter the steps');
         const steps = stepsRaw.split(',').map(s => s.trim()).filter(Boolean);
-        if (steps.length < 2) return alert('Please enter at least 2 steps (e.g., Received, Washing, Done)');
-
-        fetch('/api/service-flows', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ name, steps })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) return alert('Error: ' + data.error);
-            return loadFlows().then(() => {
-                document.getElementById('sType').value = data.flow.flow_key;
-                document.getElementById('customFlowSection').classList.remove('active');
-                alert('✅ Custom flow saved!');
-            });
-        })
-        .catch(() => alert('Error saving flow'));
-    }
-
-    function deleteCustomFlow(id, name) {
-        if (!confirm(`Delete custom flow "${name}"?\n\nServices already using it will keep their steps.`)) return;
-        fetch('/api/service-flows/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
+        if (steps.length < 2) return alert('Please enter at least 2 steps');
+        fetch('/api/service-flows', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ name, steps }) })
             .then(res => res.json())
             .then(data => {
                 if (data.error) return alert('Error: ' + data.error);
-                loadFlows();
-            })
-            .catch(() => alert('Error deleting'));
+                return loadFlows().then(() => {
+                    document.getElementById('sType').value = data.flow.flow_key;
+                    document.getElementById('customFlowSection').classList.remove('active');
+                    alert('✅ Custom flow saved!');
+                });
+            }).catch(() => alert('Error saving flow'));
     }
 
-    // ===== LOAD SERVICES =====
+    function deleteCustomFlow(id, name) {
+        if (!confirm(`Delete custom flow "${name}"?`)) return;
+        fetch('/api/service-flows/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => { if (data.error) return alert('Error: ' + data.error); loadFlows(); }).catch(() => alert('Error deleting'));
+    }
+
     function loadProducts() {
         return fetch('/api/products', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
@@ -341,10 +285,7 @@
     function loadServices() {
         const search = document.getElementById('searchBox').value.toLowerCase();
         fetch('/api/services', { headers: { 'x-auth-token': authToken } })
-            .then(res => {
-                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
-                return res.json();
-            })
+            .then(res => { if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; } return res.json(); })
             .then(services => {
                 if (!services) return;
                 const filtered = search ? services.filter(s => s.name.toLowerCase().includes(search)) : services;
@@ -361,13 +302,6 @@
                     return `<tr><td>${thumb}</td><td><div class="service-name">${s.name}${hiddenBadge}</div><div class="text-muted" style="font-size: 12px;">₱${parseFloat(s.price).toFixed(2)} / ${s.unit_label || s.unit || 'kg'}</div></td><td><span class="flow-badge ${flowClass}">${flowName}</span></td><td><div class="materials-list">${matHtml}</div></td><td class="text-end"><div class="dropdown"><button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="editService(${s.id}); return false;">✏️ Edit</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="deleteService(${s.id}, '${s.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li></ul></div></td></tr>`;
                 }).join('');
             });
-    }
-
-    function updateInfoBox() {
-        const price = parseFloat(document.getElementById('sPrice').value) || 0;
-        const min = parseFloat(document.getElementById('sMinimum').value) || 1;
-        const unit = document.getElementById('sUnitLabel').value || 'kg';
-        document.getElementById('infoBox').innerText = `₱${price.toFixed(2)} — base for ${min} ${unit}.`;
     }
 
     function handleImageUpload(event) {
@@ -394,7 +328,7 @@
     function addMaterialRow(productId = '', qty = 1, amount = 0) {
         const row = document.createElement('div');
         row.className = 'material-row';
-        const options = allProducts.map(p => `<option value="${p.id}" ${p.id == productId ? 'selected' : ''}>${p.name}${p.icon ? ' ' + p.icon : ''}</option>`).join('');
+        const options = allProducts.map(p => `<option value="${p.id}" ${p.id == productId ? 'selected' : ''}>${p.name}</option>`).join('');
         row.innerHTML = `<div class="row g-2 align-items-center"><div class="col-md-5"><select class="form-select material-product"><option value="">Choose product...</option>${options}</select></div><div class="col-md-3"><input type="number" class="form-control material-qty" value="${qty}" min="1"></div><div class="col-md-3"><input type="number" class="form-control material-amount" value="${amount}" step="0.01" placeholder="0.00"></div><div class="col-md-1 text-end"><button class="btn btn-sm btn-outline-danger" type="button" onclick="this.closest('.material-row').remove()">✕</button></div></div>`;
         document.getElementById('materialsList').appendChild(row);
     }
@@ -411,11 +345,7 @@
         document.getElementById('unitLabelDisplay').innerText = 'kg';
         document.getElementById('sHidden').checked = false;
         document.getElementById('customFlowSection').classList.remove('active');
-        clearImage();
-        updateInfoBox();
-        clearMaterials();
-        addMaterialRow();
-        // Set dropdown to first flow
+        clearImage(); clearMaterials(); addMaterialRow();
         if (allFlows.length > 0) document.getElementById('sType').value = allFlows[0].flow_key;
         new bootstrap.Modal(document.getElementById('serviceModal')).show();
     }
@@ -435,20 +365,12 @@
                 document.getElementById('unitLabelDisplay').innerText = s.unit_label || 'kg';
                 document.getElementById('sImageData').value = s.image_data || '';
                 document.getElementById('sHidden').checked = s.hidden || false;
-                if (s.image_data) {
-                    document.getElementById('imagePreview').src = s.image_data;
-                    document.getElementById('imagePreview').style.display = 'block';
-                    document.getElementById('imageUploadPrompt').style.display = 'none';
-                } else { clearImage(); }
-                updateInfoBox();
-                // Set flow
-                if (s.service_type && Array.from(document.getElementById('sType').options).some(o => o.value === s.service_type)) {
-                    document.getElementById('sType').value = s.service_type;
-                }
+                if (s.image_data) { document.getElementById('imagePreview').src = s.image_data; document.getElementById('imagePreview').style.display = 'block'; document.getElementById('imageUploadPrompt').style.display = 'none'; } else { clearImage(); }
+                if (s.service_type && Array.from(document.getElementById('sType').options).some(o => o.value === s.service_type)) document.getElementById('sType').value = s.service_type;
                 document.getElementById('customFlowSection').classList.remove('active');
                 clearMaterials();
-                if (s.materials && s.materials.length > 0) { s.materials.forEach(m => addMaterialRow(m.product_id, m.quantity, m.amount)); }
-                else { addMaterialRow(); }
+                if (s.materials && s.materials.length > 0) s.materials.forEach(m => addMaterialRow(m.product_id, m.quantity, m.amount));
+                else addMaterialRow();
                 new bootstrap.Modal(document.getElementById('serviceModal')).show();
             });
     }
@@ -463,8 +385,7 @@
             if (pid && qty > 0) materials.push({ product_id: parseInt(pid), quantity: parseInt(qty), amount: parseFloat(amt) || 0 });
         });
         const selectedFlow = document.getElementById('sType').value;
-        if (selectedFlow === '__add_custom__') return alert('Please save your custom flow first before saving the service.');
-
+        if (selectedFlow === '__add_custom__') return alert('Please save your custom flow first.');
         const data = {
             name: document.getElementById('sName').value.trim(),
             price: document.getElementById('sPrice').value,
@@ -480,13 +401,9 @@
         if (!data.price) return alert('Service price is required.');
         const url = id ? `/api/services/${id}` : '/api/services';
         const method = id ? 'PUT' : 'POST';
-        fetch(url, { method: method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
             .then(res => res.json())
-            .then(res => {
-                if (res.error) return alert('Error: ' + res.error);
-                bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
-                loadServices();
-            });
+            .then(res => { if (res.error) return alert('Error: ' + res.error); bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide(); loadServices(); });
     }
 
     function deleteService(id, name) {
@@ -497,11 +414,10 @@
     function logout() {
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
-        localStorage.removeItem('authToken');
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 
-    // Load flows first, then products, then services
     loadFlows().then(() => loadProducts()).then(() => loadServices());
 </script>
 <script src="/role-guard.js"></script>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <title>Assets - Hawi's Lovada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+
+        .sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
+        .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+        .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
+        .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .btn-primary { background: #1e40af; border-color: #1e40af; font-weight: 700; padding: 10px 20px; border-radius: 10px; }
+        .asset-table { width: 100%; border-collapse: collapse; }
+        .asset-table thead th { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; padding: 12px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        .asset-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .asset-table tbody tr:hover { background: #f8fafc; }
+        .kpi-card { background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #8b5cf6; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .kpi-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; }
+        .kpi-card .value { font-size: 26px; font-weight: 900; color: #8b5cf6; }
+        [data-theme="dark"] body { background: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .kpi-card, [data-theme="dark"] .modal-content { background: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .kpi-card .value { color: #e2e8f0 !important; }
+        [data-theme="dark"] .asset-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .asset-table tbody td { color: #e2e8f0 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
+            .page-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html" class="active">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h1 class="page-title">🏗️ Assets & Equipment</h1>
+            <p class="page-sub mb-0">Washing machines, dryers, computers, and other equipment</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal()">+ Add Asset</button>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-4"><div class="kpi-card"><div class="label">Total Asset Value</div><div class="value" id="totalAssets">₱0.00</div></div></div>
+        <div class="col-12 col-md-4"><div class="kpi-card" style="border-left-color:#f59e0b;"><div class="label">Monthly Depreciation</div><div class="value" id="monthlyDep" style="color:#f59e0b;">₱0.00</div></div></div>
+        <div class="col-12 col-md-4"><div class="kpi-card" style="border-left-color:#3b82f6;"><div class="label">Total Assets</div><div class="value" id="totalCount" style="color:#3b82f6;">0</div></div></div>
+    </div>
+
+    <div class="panel">
+        <table class="asset-table">
+            <thead><tr><th>Asset</th><th>Category</th><th>Purchase Date</th><th class="text-end">Purchase Price</th><th class="text-end">Salvage</th><th class="text-center">Life (mo)</th><th class="text-end">Actions</th></tr></thead>
+            <tbody id="assetTable"><tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:40px;">Loading...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="assetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Asset</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label small">Asset Name *</label><input type="text" id="aName" class="form-control" placeholder="e.g. Washing Machine"></div>
+                <div class="mb-3">
+                    <label class="form-label small">Category</label>
+                    <select id="aCategory" class="form-select"><option>Equipment</option><option>Furniture</option><option>Electronics</option><option>Vehicle</option><option>Fixtures</option><option>Other</option></select>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6"><label class="form-label small">Purchase Price (₱) *</label><input type="number" id="aPrice" class="form-control" step="0.01"></div>
+                    <div class="col-6"><label class="form-label small">Salvage Value (₱)</label><input type="number" id="aSalvage" class="form-control" step="0.01" value="0"></div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6"><label class="form-label small">Purchase Date</label><input type="date" id="aDate" class="form-control"></div>
+                    <div class="col-6"><label class="form-label small">Useful Life (months)</label><input type="number" id="aLife" class="form-control" value="60"></div>
+                </div>
+                <div class="mb-3"><label class="form-label small">Notes</label><textarea id="aNotes" class="form-control" rows="2"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveAsset()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    let allAssets = [];
+
+    function loadAssets() {
+        fetch('/api/assets', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(items => {
+                if (!Array.isArray(items)) return;
+                allAssets = items;
+                const total = items.reduce((s, a) => s + (parseFloat(a.purchase_price) || 0), 0);
+                document.getElementById('totalAssets').innerText = peso(total);
+                document.getElementById('totalCount').innerText = items.length;
+                let monthlyDep = 0;
+                const now = new Date();
+                items.forEach(a => {
+                    const price = parseFloat(a.purchase_price) || 0;
+                    const salvage = parseFloat(a.salvage_value) || 0;
+                    const life = parseInt(a.useful_life_months) || 60;
+                    const monthsOwned = Math.floor((now - new Date(a.purchase_date)) / (30 * 24 * 60 * 60 * 1000));
+                    if (monthsOwned < life) monthlyDep += (price - salvage) / life;
+                });
+                document.getElementById('monthlyDep').innerText = peso(monthlyDep);
+                const table = document.getElementById('assetTable');
+                if (items.length === 0) { table.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:40px;">No assets yet. Click "+ Add Asset" to start.</td></tr>'; return; }
+                table.innerHTML = items.map(a => {
+                    const date = new Date(a.purchase_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    return `<tr>
+                        <td><strong>${a.name}</strong></td>
+                        <td>${a.category}</td>
+                        <td><small>${date}</small></td>
+                        <td class="text-end"><strong>${peso(a.purchase_price)}</strong></td>
+                        <td class="text-end">${peso(a.salvage_value)}</td>
+                        <td class="text-center">${a.useful_life_months}</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editAsset(${a.id})">✏️</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAsset(${a.id})">🗑</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            });
+    }
+
+    function openModal() {
+        document.querySelector('.modal-title').innerText = 'Add Asset';
+        document.getElementById('aName').value = '';
+        document.getElementById('aCategory').value = 'Equipment';
+        document.getElementById('aPrice').value = '';
+        document.getElementById('aSalvage').value = '0';
+        document.getElementById('aDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('aLife').value = '60';
+        document.getElementById('aNotes').value = '';
+        document.getElementById('assetModal').dataset.editId = '';
+        new bootstrap.Modal(document.getElementById('assetModal')).show();
+    }
+
+    function editAsset(id) {
+        const a = allAssets.find(x => x.id === id);
+        if (!a) return;
+        document.querySelector('.modal-title').innerText = 'Edit Asset';
+        document.getElementById('aName').value = a.name;
+        document.getElementById('aCategory').value = a.category || 'Equipment';
+        document.getElementById('aPrice').value = a.purchase_price;
+        document.getElementById('aSalvage').value = a.salvage_value || 0;
+        document.getElementById('aDate').value = a.purchase_date ? a.purchase_date.split('T')[0] : '';
+        document.getElementById('aLife').value = a.useful_life_months || 60;
+        document.getElementById('aNotes').value = a.notes || '';
+        document.getElementById('assetModal').dataset.editId = id;
+        new bootstrap.Modal(document.getElementById('assetModal')).show();
+    }
+
+    function saveAsset() {
+        const editId = document.getElementById('assetModal').dataset.editId;
+        const data = {
+            name: document.getElementById('aName').value.trim(),
+            category: document.getElementById('aCategory').value,
+            purchase_price: document.getElementById('aPrice').value,
+            salvage_value: document.getElementById('aSalvage').value,
+            purchase_date: document.getElementById('aDate').value,
+            useful_life_months: document.getElementById('aLife').value,
+            notes: document.getElementById('aNotes').value.trim()
+        };
+        if (!data.name) return alert('Name required');
+        if (!data.purchase_price || parseFloat(data.purchase_price) <= 0) return alert('Purchase price required');
+        const url = editId ? `/api/assets/${editId}` : '/api/assets';
+        const method = editId ? 'PUT' : 'POST';
+        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(res => { if (res.error) return alert(res.error); bootstrap.Modal.getInstance(document.getElementById('assetModal')).hide(); loadAssets(); });
+    }
+
+    function deleteAsset(id) {
+        if (!confirm('Delete this asset?')) return;
+        fetch(`/api/assets/${id}`, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadAssets());
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
+        window.location.href = '/login.html';
+    }
+
+    loadAssets();
+</script>
+<script src="/role-guard.js"></script>
+<script src="/bookings-badge.js"></script>
+<script src="/theme.js"></script>
+</body>
+</html>

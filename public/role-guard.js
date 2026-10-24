@@ -1,6 +1,5 @@
 // ============================================
 // ROLE-BASED ACCESS CONTROL
-// Everyone can access Bookings (owner, admin, cashier)
 // ============================================
 
 (function() {
@@ -24,7 +23,7 @@
         '/index.html',
         '',
         '/orders.html',
-        '/bookings.html'  // ← ADDED
+        '/bookings.html'
     ];
 
     // Cashier restrictions
@@ -39,16 +38,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         if (role === 'cashier') {
             const restricted = [
-                const restricted = [
-    '/dashboard.html',
-    '/audit.html',
-    '/services.html',
-    '/products.html',
-    '/replenishments.html',
-    '/expenses.html',
-    '/customers.html',
-    '/settings.html'
-];
+                '/dashboard.html',
+                '/audit.html',
+                '/services.html',
+                '/products.html',
+                '/replenishments.html',
+                '/expenses.html',
+                '/statements.html',
+                '/liabilities.html',
+                '/withdrawals.html',
+                '/capital.html',
+                '/assets.html',
+                '/settings.html'
             ];
             document.querySelectorAll('.sidebar a').forEach(a => {
                 const href = a.getAttribute('href');

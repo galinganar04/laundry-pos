@@ -4,135 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/logo.png">
+    <title>Expenses - Hawi's Lovada</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; position: sticky; top: 0; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background-color: #3b82f6; color: white; }
 
+        /* FIXED SIDEBAR — never moves, never resizes */
+        .sidebar {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white; position: fixed; top: 0; left: 0;
+            width: 16.66667%; height: 100vh; padding: 20px 0;
+            overflow-y: auto; z-index: 100;
+        }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; height: auto; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        /* MAIN — offset by sidebar width */
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
         .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
         .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
 
         .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-        .filter-chip {
-            background: white;
-            border: 1.5px solid #e2e8f0;
-            color: #475569;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
+        .filter-chip { background: white; border: 1.5px solid #e2e8f0; color: #475569; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .filter-chip:hover { border-color: #1e40af; color: #1e40af; }
         .filter-chip.active { background: #1e40af; color: white; border-color: #1e40af; }
 
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 18px 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            border-left: 4px solid #dc2626;
-        }
+        .stat-card { background: white; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 4px solid #dc2626; }
         .stat-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 6px; }
         .stat-card .value { font-size: 24px; font-weight: 800; color: #dc2626; line-height: 1.1; }
         .stat-card .sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
-        .stat-card.yellow { border-left-color: #f59e0b; }
-        .stat-card.yellow .value { color: #f59e0b; }
-        .stat-card.blue { border-left-color: #3b82f6; }
-        .stat-card.blue .value { color: #3b82f6; }
-        .stat-card.purple { border-left-color: #8b5cf6; }
-        .stat-card.purple .value { color: #8b5cf6; }
+        .stat-card.yellow { border-left-color: #f59e0b; } .stat-card.yellow .value { color: #f59e0b; }
+        .stat-card.blue { border-left-color: #3b82f6; } .stat-card.blue .value { color: #3b82f6; }
+        .stat-card.purple { border-left-color: #8b5cf6; } .stat-card.purple .value { color: #8b5cf6; }
 
-        .panel {
-            background: white;
-            border-radius: 12px;
-            padding: 18px 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-
-        .info-banner {
-            background: #eff6ff;
-            border-left: 4px solid #3b82f6;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 13px;
-            color: #1e40af;
-            margin-bottom: 16px;
-        }
-
+        .panel { background: white; border-radius: 12px; padding: 18px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .info-banner { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #1e40af; margin-bottom: 16px; }
         .search-wrap { position: relative; }
-        .search-wrap input {
-            width: 100%;
-            padding: 12px 16px 12px 42px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 14px;
-            background: white;
-        }
+        .search-wrap input { width: 100%; padding: 12px 16px 12px 42px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: white; }
         .search-wrap input:focus { outline: none; border-color: #3b82f6; }
         .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
 
         .exp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .exp-table thead th {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #64748b;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            padding: 12px 10px;
-            border-bottom: 2px solid #e2e8f0;
-            text-align: left;
-        }
-        .exp-table tbody td {
-            padding: 14px 10px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #1e293b;
-            vertical-align: middle;
-        }
+        .exp-table thead th { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; padding: 12px 10px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        .exp-table tbody td { padding: 14px 10px; border-bottom: 1px solid #f1f5f9; color: #1e293b; vertical-align: middle; }
         .exp-table tbody tr:hover { background: #f8fafc; }
         .exp-table .amount { text-align: right; font-weight: 800; color: #dc2626; font-size: 14px; }
         .exp-table .desc { font-weight: 700; color: #1e293b; }
         .exp-table .sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-
         .exp-table .actions { text-align: right; }
-        .exp-table .actions button {
-            background: white;
-            border: 1px solid #e2e8f0;
-            padding: 5px 9px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-            margin-left: 4px;
-        }
+        .exp-table .actions button { background: white; border: 1px solid #e2e8f0; padding: 5px 9px; border-radius: 6px; font-size: 11px; cursor: pointer; margin-left: 4px; }
         .exp-table .actions button.del { color: #dc2626; border-color: #fecaca; }
-
         .empty-state { text-align: center; padding: 50px 20px; color: #94a3b8; font-size: 13px; }
 
         .btn-primary { background: #1e40af; border-color: #1e40af; font-weight: 600; padding: 10px 18px; border-radius: 10px; }
         .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
 
         .modal-content { border-radius: 14px; border: none; }
-        .modal-header {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            color: white;
-            border-radius: 14px 14px 0 0;
-            padding: 18px 22px;
-        }
+        .modal-header { background: linear-gradient(135deg, #1e40af, #3b82f6); color: white; border-radius: 14px 14px 0 0; padding: 18px 22px; }
         .modal-header .btn-close { filter: invert(1); opacity: 0.9; }
         .modal-body { padding: 22px; }
 
         [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
-        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .stat-card,
-        [data-theme="dark"] .panel { background-color: #1e293b !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
+        [data-theme="dark"] .stat-card, [data-theme="dark"] .panel { background-color: #1e293b !important; }
         [data-theme="dark"] .page-title { color: #ffffff !important; }
-        [data-theme="dark"] .stat-card .label { color: #94a3b8 !important; }
         [data-theme="dark"] .filter-chip { background: #1e293b; border-color: #334155; color: #94a3b8; }
         [data-theme="dark"] .filter-chip.active { background: #1e40af; color: white; }
         [data-theme="dark"] .search-wrap input { background: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
@@ -142,24 +86,16 @@
         [data-theme="dark"] .exp-table .desc { color: #ffffff !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .modal-content { background-color: #1e293b !important; }
-        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
         [data-theme="dark"] .info-banner { background: #1e3a8a !important; color: #bfdbfe !important; border-color: #3b82f6 !important; }
 
         @media (max-width: 767px) {
             .sidebar { display: none !important; }
-            .col-md-10 { padding: 14px !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
             .page-title { font-size: 20px; }
             .stat-card .value { font-size: 20px; }
             .exp-table thead { display: none; }
             .exp-table, .exp-table tbody, .exp-table tr, .exp-table td { display: block; width: 100%; }
-            .exp-table tbody tr {
-                background: white;
-                border-radius: 10px;
-                border: 1px solid #e2e8f0;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-                margin-bottom: 10px;
-                padding: 12px;
-            }
+            .exp-table tbody tr { background: white; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 10px; padding: 12px; }
             .exp-table tbody td { border: none; padding: 3px 0; text-align: left !important; }
             .exp-table .amount { text-align: left !important; margin-top: 6px; }
             .exp-table .actions { text-align: left !important; margin-top: 8px; }
@@ -169,160 +105,100 @@
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="text-center mb-4">
-                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
-            </div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/audit.html">🔍 Audit Trail</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html" class="active">💰 Expenses</a>
-            <a href="/bookings.html">📅 Bookings</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html"class="active">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+
+
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+        <div>
+            <h1 class="page-title">Expenses</h1>
+            <p class="page-sub mb-0">Operating costs only (rent, salary, utilities, etc.)</p>
         </div>
+        <button class="btn btn-primary" onclick="openExpenseModal()">+ Add Expense</button>
+    </div>
 
-        <div class="col-md-10 p-4">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
-                <div>
-                    <h1 class="page-title">Expenses</h1>
-                    <p class="page-sub mb-0">Operating costs only (rent, salary, utilities, etc.)</p>
-                </div>
-                <button class="btn btn-primary" onclick="openExpenseModal()">+ Add Expense</button>
-            </div>
+    <div class="info-banner">
+        💡 <strong>Stock purchases go to <a href="/replenishments.html" style="color: #1e40af; font-weight: 700;">Replenishments</a>, not here.</strong>
+        Use this page for rent, salary, electricity, water, marketing, and other operating costs.
+    </div>
 
-            <div class="info-banner">
-                💡 <strong>Stock purchases go to <a href="/replenishments.html" style="color: #1e40af; font-weight: 700;">Replenishments</a>, not here.</strong>
-                Use this page for rent, salary, electricity, water, marketing, and other operating costs.
-            </div>
+    <div class="filter-chips">
+        <button class="filter-chip active" data-period="all" onclick="setPeriod('all', this)">All Time</button>
+        <button class="filter-chip" data-period="today" onclick="setPeriod('today', this)">Today</button>
+        <button class="filter-chip" data-period="week" onclick="setPeriod('week', this)">This Week</button>
+        <button class="filter-chip" data-period="month" onclick="setPeriod('month', this)">This Month</button>
+        <button class="filter-chip" data-period="year" onclick="setPeriod('year', this)">This Year</button>
+    </div>
 
-            <div class="filter-chips">
-                <button class="filter-chip active" data-period="all" onclick="setPeriod('all', this)">All Time</button>
-                <button class="filter-chip" data-period="today" onclick="setPeriod('today', this)">Today</button>
-                <button class="filter-chip" data-period="week" onclick="setPeriod('week', this)">This Week</button>
-                <button class="filter-chip" data-period="month" onclick="setPeriod('month', this)">This Month</button>
-                <button class="filter-chip" data-period="year" onclick="setPeriod('year', this)">This Year</button>
-            </div>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="stat-card"><div class="label">Total Expenses</div><div class="value" id="statTotal">₱0.00</div><div class="sub">For selected period</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card yellow"><div class="label">Highest Single</div><div class="value" id="statHighest">₱0.00</div><div class="sub">—</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card blue"><div class="label">Average</div><div class="value" id="statAvg">₱0.00</div><div class="sub">Per entry</div></div></div>
+        <div class="col-6 col-md-3"><div class="stat-card purple"><div class="label">Transactions</div><div class="value" id="statCount">0</div><div class="sub">Total records</div></div></div>
+    </div>
 
-            <div class="row g-3 mb-4">
-                <div class="col-6 col-md-3">
-                    <div class="stat-card">
-                        <div class="label">Total Expenses</div>
-                        <div class="value" id="statTotal">₱0.00</div>
-                        <div class="sub" id="statTotalSub">For selected period</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-card yellow">
-                        <div class="label">Highest Single</div>
-                        <div class="value" id="statHighest">₱0.00</div>
-                        <div class="sub">—</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-card blue">
-                        <div class="label">Average</div>
-                        <div class="value" id="statAvg">₱0.00</div>
-                        <div class="sub">Per entry</div>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="stat-card purple">
-                        <div class="label">Transactions</div>
-                        <div class="value" id="statCount">0</div>
-                        <div class="sub">Total records</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel mb-3">
-                <div class="search-wrap">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="searchBox" placeholder="Search description, supplier, or SI/OR number..." oninput="debouncedLoad()">
-                </div>
-            </div>
-
-            <div class="panel p-0">
-                <div style="overflow-x: auto;">
-                    <table class="exp-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 110px;">Date</th>
-                                <th>Description</th>
-                                <th style="width: 180px;">SI/OR #</th>
-                                <th class="text-end" style="width: 130px;">Amount</th>
-                                <th class="text-end" style="width: 100px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="expensesTable">
-                            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+    <div class="panel mb-3">
+        <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchBox" placeholder="Search description, supplier, or SI/OR number..." oninput="debouncedLoad()">
         </div>
+    </div>
+
+    <div class="panel p-0" style="overflow-x: auto;">
+        <table class="exp-table">
+            <thead><tr><th style="width: 110px;">Date</th><th>Description</th><th style="width: 180px;">SI/OR #</th><th class="text-end" style="width: 130px;">Amount</th><th class="text-end" style="width: 100px;">Actions</th></tr></thead>
+            <tbody id="expensesTable"><tr><td colspan="5" class="empty-state">Loading...</td></tr></tbody>
+        </table>
     </div>
 </div>
 
 <div class="modal fade" id="expenseModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="expenseModalTitle">Add Expense</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+            <div class="modal-header"><h5 class="modal-title" id="expenseModalTitle">Add Expense</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <input type="hidden" id="expenseId">
                 <div class="mb-3">
                     <label class="form-label small">Category *</label>
-                    <input type="text" id="eCategory" class="form-control" placeholder="e.g., Rent, Electricity, Salary" list="categoryList">
-                    <datalist id="categoryList">
-                        <option value="Rent"><option value="Electricity"><option value="Water">
-                        <option value="Salary"><option value="Gas / Fuel"><option value="Supplies">
-                        <option value="Maintenance"><option value="Marketing"><option value="Other">
-                    </datalist>
+                    <input type="text" id="eCategory" class="form-control" list="categoryList">
+                    <datalist id="categoryList"><option value="Rent"><option value="Electricity"><option value="Water"><option value="Salary"><option value="Gas / Fuel"><option value="Supplies"><option value="Maintenance"><option value="Marketing"><option value="Other"></datalist>
                 </div>
                 <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small">Amount (₱) *</label>
-                        <input type="number" id="eAmount" class="form-control" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small">SI/OR #</label>
-                        <input type="text" id="eSiOr" class="form-control" placeholder="Receipt number">
-                    </div>
+                    <div class="col-6"><label class="form-label small">Amount (₱) *</label><input type="number" id="eAmount" class="form-control" step="0.01"></div>
+                    <div class="col-6"><label class="form-label small">SI/OR #</label><input type="text" id="eSiOr" class="form-control"></div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label small">Description</label>
-                    <input type="text" id="eDescription" class="form-control" placeholder="e.g., Monthly rent for September">
-                </div>
+                <div class="mb-3"><label class="form-label small">Description</label><input type="text" id="eDescription" class="form-control"></div>
                 <div class="row g-3 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small">Supplier / Payee</label>
-                        <input type="text" id="eSupplier" class="form-control" placeholder="e.g., Meralco">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small">Account</label>
-                        <select id="eAccount" class="form-select">
-                            <option>Operating Expense</option>
-                            <option>Utilities</option>
-                            <option>Salaries &amp; Wages</option>
-                            <option>Rent</option>
-                            <option>Other</option>
-                        </select>
+                    <div class="col-6"><label class="form-label small">Supplier / Payee</label><input type="text" id="eSupplier" class="form-control"></div>
+                    <div class="col-6"><label class="form-label small">Account</label>
+                        <select id="eAccount" class="form-select"><option>Operating Expense</option><option>Utilities</option><option>Salaries &amp; Wages</option><option>Rent</option><option>Other</option></select>
                     </div>
                 </div>
-                <div class="mb-2">
-                    <label class="form-label small">Notes</label>
-                    <textarea id="eNotes" class="form-control" rows="2" placeholder="Any additional notes..."></textarea>
-                </div>
+                <div class="mb-2"><label class="form-label small">Notes</label><textarea id="eNotes" class="form-control" rows="2"></textarea></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -336,15 +212,10 @@
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
-
     let currentPeriod = 'all';
     let searchTimeout;
-
-    function peso(n) {
-        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function num(n) { return parseFloat(n || 0).toLocaleString('en-PH'); }
-
     function toISO(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
 
     function getDateRange() {
@@ -357,14 +228,8 @@
             start.setDate(today.getDate() - (day === 0 ? 6 : day - 1));
             from = toISO(start); to = toISO(today);
         }
-        else if (currentPeriod === 'month') {
-            from = toISO(new Date(today.getFullYear(), today.getMonth(), 1));
-            to = toISO(today);
-        }
-        else if (currentPeriod === 'year') {
-            from = today.getFullYear() + '-01-01';
-            to = today.getFullYear() + '-12-31';
-        }
+        else if (currentPeriod === 'month') { from = toISO(new Date(today.getFullYear(), today.getMonth(), 1)); to = toISO(today); }
+        else if (currentPeriod === 'year') { from = today.getFullYear() + '-01-01'; to = today.getFullYear() + '-12-31'; }
         return { from, to };
     }
 
@@ -372,10 +237,8 @@
         currentPeriod = period;
         document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        loadExpenses();
-        loadStats();
+        loadExpenses(); loadStats();
     }
-
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => { loadExpenses(); loadStats(); }, 300); }
 
     function loadExpenses() {
@@ -384,40 +247,19 @@
         let url = `/api/expenses/ledger?search=${encodeURIComponent(search)}`;
         if (from) url += '&dateFrom=' + from;
         if (to) url += '&dateTo=' + to;
-
         fetch(url, { headers: { 'x-auth-token': authToken } })
-            .then(res => {
-                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
-                return res.json();
-            })
+            .then(res => { if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; } return res.json(); })
             .then(items => {
                 if (!items) return;
                 const table = document.getElementById('expensesTable');
-                if (items.length === 0) {
-                    table.innerHTML = '<tr><td colspan="5" class="empty-state">No expenses found for this period.</td></tr>';
-                    return;
-                }
+                if (items.length === 0) { table.innerHTML = '<tr><td colspan="5" class="empty-state">No expenses found for this period.</td></tr>'; return; }
                 table.innerHTML = items.map(e => {
                     const date = new Date(e.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                     const siOr = e.si_or_number ? `<code style="font-size:11px;background:#f1f5f9;padding:3px 8px;border-radius:4px;">${e.si_or_number}</code>` : '<span class="text-muted">—</span>';
-                    return `<tr>
-                        <td><small>${date}</small></td>
-                        <td>
-                            <div class="desc">${e.description || '—'}</div>
-                            <div class="sub">${e.category || ''}${e.supplier ? ' • ' + e.supplier : ''}</div>
-                        </td>
-                        <td>${siOr}</td>
-                        <td class="amount">${peso(e.amount)}</td>
-                        <td class="actions">
-                            <button onclick="editExpense(${e.ref_id})">✏️</button>
-                            <button class="del" onclick="deleteExpense(${e.ref_id})">🗑</button>
-                        </td>
-                    </tr>`;
+                    return `<tr><td><small>${date}</small></td><td><div class="desc">${e.description || '—'}</div><div class="sub">${e.category || ''}${e.supplier ? ' • ' + e.supplier : ''}</div></td><td>${siOr}</td><td class="amount">${peso(e.amount)}</td><td class="actions"><button onclick="editExpense(${e.ref_id})">✏️</button><button class="del" onclick="deleteExpense(${e.ref_id})">🗑</button></td></tr>`;
                 }).join('');
             })
-            .catch(() => {
-                document.getElementById('expensesTable').innerHTML = '<tr><td colspan="5" class="empty-state">Failed to load expenses.</td></tr>';
-            });
+            .catch(() => { document.getElementById('expensesTable').innerHTML = '<tr><td colspan="5" class="empty-state">Failed to load expenses.</td></tr>'; });
     }
 
     function loadStats() {
@@ -432,8 +274,7 @@
                 document.getElementById('statHighest').innerText = peso(data.highest);
                 document.getElementById('statAvg').innerText = peso(data.average);
                 document.getElementById('statCount').innerText = num(data.count);
-            })
-            .catch(() => {});
+            });
     }
 
     function openExpenseModal() {
@@ -488,28 +329,23 @@
             .then(res => {
                 if (res.error) return alert('Error: ' + res.error);
                 bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
-                loadExpenses();
-                loadStats();
+                loadExpenses(); loadStats();
             });
     }
 
     function deleteExpense(id) {
         if (!confirm(`Delete expense #${id}?`)) return;
-        fetch('/api/expenses/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
-            .then(() => { loadExpenses(); loadStats(); });
+        fetch('/api/expenses/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => { loadExpenses(); loadStats(); });
     }
 
     function logout() {
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userRole');
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 
-    loadExpenses();
-    loadStats();
+    loadExpenses(); loadStats();
 </script>
 <script src="/role-guard.js"></script>
 <script src="/bookings-badge.js"></script>

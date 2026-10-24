@@ -2,21 +2,53 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/logo.png">
+    <title>Products - Hawi's Lovada</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar h4 { color: #60a5fa; font-size: 18px; font-weight: 700; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background-color: #3b82f6; color: white; }
-        .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
-        .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .btn-primary { background: #1e40af; border-color: #1e40af; }
+        * { box-sizing: border-box; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+
+        /* ===== SIDEBAR (fixed — never moves) ===== */
+        .sidebar {
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 16.66667%;
+            height: 100vh;
+            padding: 20px 0;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; height: auto; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a {
+            color: #cbd5e1; text-decoration: none; padding: 10px 20px;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 13.5px; font-weight: 500; transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        /* ===== MAIN ===== */
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
+        .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+
+        .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .btn-primary { background: #1e40af; border-color: #1e40af; font-weight: 600; padding: 10px 18px; border-radius: 10px; }
         .btn-primary:hover { background: #1e3a8a; border-color: #1e3a8a; }
+
         .products-table { width: 100%; border-collapse: collapse; }
-        .products-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; background: transparent; }
+        .products-table thead th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #94a3b8; font-weight: 600; padding: 14px 12px; border-bottom: 1px solid #e5e7eb; background: transparent; text-align: left; }
         .products-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; font-size: 14px; }
         .products-table tbody tr:hover { background-color: #f8fafc; }
         .product-thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; background: #f1f5f9; display: inline-flex; align-items: center; justify-content: center; font-size: 20px; border: 1px solid #e2e8f0; overflow: hidden; }
@@ -35,11 +67,10 @@
         .image-upload-box:hover { border-color: #3b82f6; background: #eff6ff; }
         .image-preview { max-width: 100px; max-height: 100px; border-radius: 8px; margin-top: 10px; }
         .form-label.small { font-size: 12px; color: #475569; font-weight: 500; }
+
+        /* ===== DARK MODE ===== */
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar h4 { color: #60a5fa !important; }
-        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .modal-content { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .products-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
         [data-theme="dark"] .products-table tbody td { border-color: #334155 !important; color: #e2e8f0 !important; }
@@ -50,85 +81,80 @@
         [data-theme="dark"] .product-thumb { background: #334155; border-color: #475569; }
         [data-theme="dark"] .image-upload-box { background: #334155; border-color: #475569; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
-        [data-theme="dark"] .dropdown-menu { background-color: #1e293b !important; border-color: #334155 !important; }
-        [data-theme="dark"] .dropdown-item { color: #e2e8f0 !important; }
 
-        .btn-outline-secondary { color: #334155 !important; border-color: #94a3b8 !important; background: #f1f5f9 !important; font-weight: 600 !important; }
-        .btn-outline-secondary:hover { background: #334155 !important; color: white !important; }
-        .btn-outline-warning { color: #92400e !important; border-color: #f59e0b !important; background: #fef3c7 !important; font-weight: 600 !important; }
-        .btn-outline-primary { color: #1e40af !important; border-color: #3b82f6 !important; background: #dbeafe !important; font-weight: 600 !important; }
-        .btn-outline-success { color: #065f46 !important; border-color: #10b981 !important; background: #d1fae5 !important; font-weight: 600 !important; }
-        .btn-outline-dark { color: #1e293b !important; border-color: #1e293b !important; background: #e2e8f0 !important; font-weight: 600 !important; }
-        .btn-outline-info { color: #155e75 !important; border-color: #06b6d4 !important; background: #cffafe !important; font-weight: 600 !important; }
-        .btn-outline-danger { color: #991b1b !important; border-color: #ef4444 !important; background: #fee2e2 !important; font-weight: 600 !important; }
-        [data-theme="dark"] .btn-outline-secondary { color: #e2e8f0 !important; border-color: #475569 !important; background: #334155 !important; }
-        [data-theme="dark"] .btn-outline-warning { color: #fbbf24 !important; border-color: #92400e !important; background: #422006 !important; }
-        [data-theme="dark"] .btn-outline-primary { color: #93c5fd !important; border-color: #1e40af !important; background: #1e3a8a !important; }
-        [data-theme="dark"] .btn-outline-success { color: #6ee7b7 !important; border-color: #065f46 !important; background: #064e3b !important; }
-        [data-theme="dark"] .btn-outline-dark { color: #f1f5f9 !important; border-color: #cbd5e1 !important; background: #334155 !important; }
-        [data-theme="dark"] .btn-outline-info { color: #67e8f9 !important; border-color: #0e7490 !important; background: #155e75 !important; }
-        [data-theme="dark"] .btn-outline-danger { color: #fca5a5 !important; border-color: #991b1b !important; background: #7f1d1d !important; }
+        /* ===== MOBILE ===== */
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
+            .page-title { font-size: 18px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="text-center mb-4">
-                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
-            </div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/audit.html">🔍 Audit Trail</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html" class="active">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/bookings.html">📅 Bookings</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+<!-- SIDEBAR -->
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html"class="active">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<!-- MAIN -->
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h3 class="page-title mb-0">Products</h3>
+        <button class="btn btn-primary" onclick="openProductModal()">+ Add New Product</button>
+    </div>
+
+    <div id="lowStockAlert"></div>
+
+    <div class="panel mb-4">
+        <div class="row g-2">
+            <div class="col-md-6"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search products..." oninput="debouncedLoad()"></div>
+            <div class="col-md-4"><select id="categoryFilter" class="form-select" onchange="loadProducts()"><option>All Categories</option></select></div>
+            <div class="col-md-2"><a href="/replenishments.html" class="btn btn-outline-secondary w-100">📥 Log</a></div>
         </div>
+    </div>
 
-        <div class="col-md-10 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="page-title mb-0">Products</h3>
-                <button class="btn btn-primary" onclick="openProductModal()">+ Add New Product</button>
-            </div>
-
-            <div id="lowStockAlert"></div>
-
-            <div class="panel mb-4">
-                <div class="row g-2">
-                    <div class="col-md-6"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search products..." oninput="debouncedLoad()"></div>
-                    <div class="col-md-4"><select id="categoryFilter" class="form-select" onchange="loadProducts()"><option>All Categories</option></select></div>
-                    <div class="col-md-2"><a href="/replenishments.html" class="btn btn-outline-secondary w-100">📥 Log</a></div>
-                </div>
-            </div>
-
-            <div class="panel p-0">
-                <table class="products-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 80px;">Image</th>
-                            <th>Product Details</th>
-                            <th style="width: 120px;">Category</th>
-                            <th class="text-end" style="width: 130px;">Cost Price</th>
-                            <th class="text-end" style="width: 130px;">Selling Price</th>
-                            <th class="text-center" style="width: 130px;">Current Stock</th>
-                            <th class="text-center" style="width: 100px;">Low Limit</th>
-                            <th class="text-end" style="width: 120px;">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+    <div class="panel p-0" style="overflow-x:auto;">
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th style="width: 80px;">Image</th>
+                    <th>Product Details</th>
+                    <th style="width: 120px;">Category</th>
+                    <th class="text-end" style="width: 130px;">Cost Price</th>
+                    <th class="text-end" style="width: 130px;">Selling Price</th>
+                    <th class="text-center" style="width: 130px;">Current Stock</th>
+                    <th class="text-center" style="width: 100px;">Low Limit</th>
+                    <th class="text-end" style="width: 120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productsTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+        </table>
     </div>
 </div>
 
+<!-- ADD/EDIT PRODUCT MODAL -->
 <div class="modal fade" id="productModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -185,7 +211,6 @@
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    // ===== MONEY FORMATTERS WITH COMMAS =====
     function peso(n) {
         return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
@@ -217,7 +242,25 @@
                     const isLow = p.stock <= p.low_limit;
                     const isOut = p.stock === 0;
                     let sc = ''; if (isOut) sc = 'out'; else if (isLow) sc = 'low';
-                    return `<tr><td>${renderThumb(p)}</td><td><div class="product-name">${p.name}</div><div class="product-desc">${p.description || 'No description.'}</div></td><td><span class="category-text">${p.category || 'General'}</span></td><td class="text-end price-text">${peso(p.cost_price)}</td><td class="text-end price-text">${peso(p.selling_price)}</td><td class="text-center"><span class="stock-pill ${sc}">${num(p.stock)} pc</span></td><td class="low-limit-text">${num(p.low_limit)}</td><td class="text-end"><div class="dropdown"><button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button><ul class="dropdown-menu dropdown-menu-end"><li><a class="dropdown-item" href="#" onclick="editProduct(${p.id}); return false;">✏️ Edit</a></li><li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li></ul></div></td></tr>`;
+                    return `<tr>
+                        <td>${renderThumb(p)}</td>
+                        <td><div class="product-name">${p.name}</div><div class="product-desc">${p.description || 'No description.'}</div></td>
+                        <td><span class="category-text">${p.category || 'General'}</span></td>
+                        <td class="text-end price-text">${peso(p.cost_price)}</td>
+                        <td class="text-end price-text">${peso(p.selling_price)}</td>
+                        <td class="text-center"><span class="stock-pill ${sc}">${num(p.stock)} pc</span></td>
+                        <td class="low-limit-text">${num(p.low_limit)}</td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-manage dropdown-toggle" data-bs-toggle="dropdown">Manage</button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" onclick="editProduct(${p.id}); return false;">✏️ Edit</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}'); return false;">🗑 Delete</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>`;
                 }).join('');
             });
     }
@@ -329,7 +372,7 @@
         if (!data.name) return alert('Product name is required.');
         const url = id ? `/api/products/${id}` : '/api/products';
         const method = id ? 'PUT' : 'POST';
-        fetch(url, { method: method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
             .then(res => res.json())
             .then(res => {
                 if (res.error) return alert('Error: ' + res.error);
@@ -347,6 +390,8 @@
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
         localStorage.removeItem('authToken');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 

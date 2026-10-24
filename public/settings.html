@@ -11,72 +11,36 @@
             --navy: #1e3a8a;
             --navy-dark: #1e293b;
             --blue: #3b82f6;
-            --blue-light: #60a5fa;
             --pink: #ec4899;
             --pink-soft: #fce7f3;
             --cream: #fef9f0;
             --green: #10b981;
         }
-        html, body { height: 100%; overflow: hidden; }
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
 
-        .sidebar {
-            background: linear-gradient(180deg, var(--navy-dark) 0%, #0f172a 100%);
-            color: white; height: 100vh; overflow-y: auto; padding-top: 20px;
-            border-right: 1px solid rgba(255,255,255,0.05);
-        }
-        .sidebar .logo-wrap { padding: 0 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 15px; }
-        .sidebar .logo-wrap img { max-width: 130px; height: auto; display: block; margin: 0 auto; }
-        .sidebar a {
-            color: #cbd5e1; text-decoration: none; padding: 12px 20px;
-            display: flex; align-items: center; gap: 8px;
-            font-size: 14px; border-radius: 6px; margin: 2px 10px;
-            transition: all 0.15s;
-        }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background: linear-gradient(135deg, var(--blue) 0%, var(--pink) 100%); color: white; font-weight: 600; }
-        .sidebar a.logout:hover { background-color: rgba(236,72,153,0.15); color: #f9a8d4; }
+        .sidebar { background: linear-gradient(180deg, var(--navy-dark) 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; height: auto; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, var(--blue) 0%, var(--pink) 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
 
-        .main-area { height: 100vh; overflow: hidden; background: var(--cream); display: flex; flex-direction: column; }
+        .main-area { margin-left: 16.66667%; min-height: 100vh; background: var(--cream); display: flex; flex-direction: column; }
 
-        .brand-header {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 60%, var(--pink) 150%);
-            color: white; padding: 28px 32px; position: relative; overflow: hidden;
-        }
-        .brand-header::after {
-            content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-            border-radius: 50%; pointer-events: none;
-        }
+        .brand-header { background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 60%, var(--pink) 150%); color: white; padding: 28px 32px; position: relative; overflow: hidden; }
+        .brand-header::after { content: ''; position: absolute; top: -50%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none; }
         .brand-header h2 { font-size: 24px; font-weight: 700; margin: 0 0 4px 0; display: flex; align-items: center; gap: 12px; z-index: 1; position: relative; }
-        .brand-header .avatar {
-            width: 48px; height: 48px; border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 20px; font-weight: 800; border: 2px solid rgba(255,255,255,0.4);
-        }
+        .brand-header .avatar { width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.2); display: inline-flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800; border: 2px solid rgba(255,255,255,0.4); }
         .brand-header .sub { font-size: 13px; opacity: 0.9; z-index: 1; position: relative; padding-left: 60px; }
-        .brand-header .role-badge {
-            display: inline-block; padding: 3px 12px;
-            background: rgba(255,255,255,0.25); border-radius: 20px;
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 1px; margin-left: 8px;
-        }
+        .brand-header .role-badge { display: inline-block; padding: 3px 12px; background: rgba(255,255,255,0.25); border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-left: 8px; }
 
-        .tabs-nav {
-            background: white; padding: 0 32px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0;
-        }
+        .tabs-nav { background: white; padding: 0 32px; border-bottom: 1px solid #e5e7eb; display: flex; gap: 6px; overflow-x: auto; flex-shrink: 0; }
         .tabs-nav::-webkit-scrollbar { height: 0; }
-        .tabs-nav button {
-            background: transparent; border: none;
-            padding: 16px 20px; font-size: 14px; font-weight: 600;
-            color: #64748b; cursor: pointer;
-            border-bottom: 3px solid transparent;
-            white-space: nowrap; transition: all 0.15s;
-            display: flex; align-items: center; gap: 6px;
-        }
+        .tabs-nav button { background: transparent; border: none; padding: 16px 20px; font-size: 14px; font-weight: 600; color: #64748b; cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; transition: all 0.15s; display: flex; align-items: center; gap: 6px; }
         .tabs-nav button:hover { color: var(--navy); background: #f8fafc; }
         .tabs-nav button.active { color: var(--navy); border-bottom-color: var(--pink); }
 
@@ -84,136 +48,59 @@
         .tab-content-area::-webkit-scrollbar { width: 10px; }
         .tab-content-area::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
 
-        .panel {
-            background: white; border-radius: 12px;
-            padding: 24px; margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
-            border-left: 4px solid var(--blue);
-            transition: box-shadow 0.2s;
-        }
+        .panel { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02); border-left: 4px solid var(--blue); transition: box-shadow 0.2s; }
         .panel:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
         .panel.panel-pink { border-left-color: var(--pink); }
         .panel.panel-navy { border-left-color: var(--navy); }
         .panel.panel-green { border-left-color: var(--green); }
 
-        .section-title {
-            font-size: 13px; letter-spacing: 1.5px;
-            text-transform: uppercase; color: var(--navy);
-            font-weight: 800; margin-bottom: 18px;
-            display: flex; align-items: center; gap: 10px;
-        }
-        .section-title .icon-box {
-            width: 32px; height: 32px; border-radius: 8px;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-size: 16px;
-        }
+        .section-title { font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); font-weight: 800; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+        .section-title .icon-box { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; }
         .icon-blue { background: #dbeafe; }
         .icon-pink { background: var(--pink-soft); }
         .icon-green { background: #d1fae5; }
         .icon-navy { background: #e0e7ff; }
 
-        .form-label.small {
-            font-size: 12px; color: #475569; font-weight: 600;
-            margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .form-control, .form-select {
-            border: 1.5px solid #e2e8f0; border-radius: 8px;
-            padding: 10px 14px; font-size: 14px;
-            transition: all 0.15s;
-        }
-        .form-control:focus, .form-select:focus {
-            border-color: var(--blue);
-            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
-        }
+        .form-label.small { font-size: 12px; color: #475569; font-weight: 600; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .form-control, .form-select { border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 14px; transition: all 0.15s; }
+        .form-control:focus, .form-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         .form-control:disabled { background: #f1f5f9; color: #64748b; }
 
-        .btn-brand {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
-            color: white; border: none; padding: 10px 24px;
-            font-weight: 600; border-radius: 8px; font-size: 14px;
-            transition: all 0.15s;
-        }
+        .btn-brand { background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%); color: white; border: none; padding: 10px 24px; font-weight: 600; border-radius: 8px; font-size: 14px; transition: all 0.15s; }
         .btn-brand:hover { color: white; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,58,138,0.3); }
-        .btn-pink {
-            background: linear-gradient(135deg, var(--pink) 0%, #db2777 100%);
-            color: white; border: none; padding: 10px 24px;
-            font-weight: 600; border-radius: 8px; font-size: 14px;
-        }
+        .btn-pink { background: linear-gradient(135deg, var(--pink) 0%, #db2777 100%); color: white; border: none; padding: 10px 24px; font-weight: 600; border-radius: 8px; font-size: 14px; }
         .btn-pink:hover { color: white; box-shadow: 0 4px 12px rgba(236,72,153,0.3); }
-        .btn-manage {
-            background: white; border: 1.5px solid #e2e8f0; color: #475569;
-            padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
-            transition: all 0.15s;
-        }
+        .btn-manage { background: white; border: 1.5px solid #e2e8f0; color: #475569; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; transition: all 0.15s; }
         .btn-manage:hover { background: var(--navy); color: white; border-color: var(--navy); }
-        .btn-danger-soft {
-            background: white; border: 1.5px solid #fecaca; color: #dc2626;
-            padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600;
-        }
+        .btn-danger-soft { background: white; border: 1.5px solid #fecaca; color: #dc2626; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; }
         .btn-danger-soft:hover { background: #dc2626; color: white; border-color: #dc2626; }
 
-        .user-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 14px 16px; border-radius: 10px;
-            border: 1px solid #f1f5f9; margin-bottom: 8px;
-            transition: all 0.15s;
-        }
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-radius: 10px; border: 1px solid #f1f5f9; margin-bottom: 8px; transition: all 0.15s; }
         .user-row:hover { border-color: #e2e8f0; background: #fafbfc; }
-        .user-avatar {
-            width: 40px; height: 40px; border-radius: 50%;
-            display: inline-flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: 15px; color: white; margin-right: 12px;
-        }
-        .badge-role {
-            padding: 4px 12px; border-radius: 20px;
-            font-size: 10px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; color: white; margin-right: 12px; }
+        .badge-role { padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
         .badge-owner { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e; }
         .badge-admin { background: #dbeafe; color: #1e40af; }
         .badge-cashier { background: #d1fae5; color: #065f46; }
 
-        .info-banner {
-            background: linear-gradient(135deg, #eff6ff 0%, #fce7f3 100%);
-            border-left: 4px solid var(--pink);
-            border-radius: 10px; padding: 14px 20px;
-            font-size: 13px; color: #1e293b; margin-bottom: 20px;
-        }
+        .info-banner { background: linear-gradient(135deg, #eff6ff 0%, #fce7f3 100%); border-left: 4px solid var(--pink); border-radius: 10px; padding: 14px 20px; font-size: 13px; color: #1e293b; margin-bottom: 20px; }
         .info-banner strong { color: var(--navy); }
 
-        .cashier-row {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 12px 0; border-bottom: 1px solid #f1f5f9;
-        }
-        .cashier-row:last-child { border-bottom: none; }
-        .cashier-name { font-weight: 700; color: var(--navy); }
-
         .modal-content { border: none; border-radius: 14px; overflow: hidden; }
-        .modal-header {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
-            color: white; border: none; padding: 20px 24px;
-        }
+        .modal-header { background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%); color: white; border: none; padding: 20px 24px; }
         .modal-header .btn-close { filter: invert(1); opacity: 0.8; }
         .modal-body { padding: 24px; }
         .modal-footer { border: none; padding: 16px 24px 20px; }
 
         .step-indicator { display: flex; justify-content: center; gap: 8px; margin-bottom: 24px; }
-        .step-dot {
-            width: 36px; height: 36px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 14px;
-            background: #e2e8f0; color: #94a3b8;
-        }
+        .step-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; background: #e2e8f0; color: #94a3b8; }
         .step-dot.active { background: linear-gradient(135deg, var(--navy), var(--blue)); color: white; }
         .step-dot.completed { background: var(--green); color: white; }
 
-        .optional-toggle {
-            background: #f8fafc; border: 1px dashed #cbd5e1;
-            border-radius: 8px; padding: 12px 14px; margin-top: 14px;
-        }
+        .optional-toggle { background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 14px; margin-top: 14px; }
         .optional-toggle label { font-size: 13px; color: #475569; cursor: pointer; margin: 0; }
 
-        [data-theme="dark"] html, [data-theme="dark"] body { background: #0f172a !important; }
+        [data-theme="dark"] body { background: #0f172a !important; }
         [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
         [data-theme="dark"] .main-area { background: #0f172a !important; }
         [data-theme="dark"] .panel { background: #1e293b !important; color: #e2e8f0 !important; }
@@ -227,8 +114,6 @@
         [data-theme="dark"] .tabs-nav button.active { color: #93c5fd; border-bottom-color: var(--pink); }
         [data-theme="dark"] .user-row { border-color: #334155; }
         [data-theme="dark"] .user-row:hover { background: #0f172a; }
-        [data-theme="dark"] .cashier-row { border-color: #334155 !important; }
-        [data-theme="dark"] .cashier-name { color: #e2e8f0 !important; }
         [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
         [data-theme="dark"] .info-banner { background: linear-gradient(135deg, #1e3a8a 0%, #831843 100%); color: #e2e8f0; }
         [data-theme="dark"] .info-banner strong { color: #93c5fd; }
@@ -246,7 +131,9 @@
         [data-theme="dark"] .optional-toggle { background: #0f172a; border-color: #475569; }
         [data-theme="dark"] .optional-toggle label { color: #cbd5e1; }
 
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .main-area { margin-left: 0 !important; }
             .brand-header { padding: 20px 16px; }
             .brand-header h2 { font-size: 20px; }
             .tabs-nav { padding: 0 16px; }
@@ -260,251 +147,141 @@
 </head>
 <body>
 
-<div class="container-fluid p-0">
-    <div class="row g-0">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="logo-wrap">
-                <img src="/logo.png" alt="Hawi's Lovada" onerror="this.style.display='none'">
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html" class="active">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-area">
+    <div class="brand-header">
+        <h2>
+            <span class="avatar" id="avatarInitials">?</span>
+            <span>Welcome back, <span id="headerName">User</span>!</span>
+            <span class="role-badge" id="headerRole">ROLE</span>
+        </h2>
+        <div class="sub">Manage your shop, team, and personal account all in one place.</div>
+    </div>
+
+    <div class="tabs-nav">
+        <button class="active" onclick="switchTab('account', this)">👤 My Account</button>
+        <button onclick="switchTab('shop', this)">🏪 Shop Info</button>
+        <button id="usersTabBtn" onclick="switchTab('users', this)">👥 Users</button>
+    </div>
+
+    <div class="tab-content-area">
+        <div id="tab-account">
+            <div class="info-banner"><strong>👤 Your personal account.</strong> Update your details below. Password changes require security verification.</div>
+            <div class="panel panel-navy">
+                <div class="section-title"><span class="icon-box icon-navy">👤</span>Profile Information</div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label small">Username (locked)</label><input type="text" id="myUsername" class="form-control" disabled></div>
+                    <div class="col-md-6"><label class="form-label small">Role</label><input type="text" id="myRole" class="form-control" disabled></div>
+                    <div class="col-md-6"><label class="form-label small">Full Name</label><input type="text" id="myFullName" class="form-control" placeholder="Your name"></div>
+                    <div class="col-md-6"><label class="form-label small">Email (for password recovery)</label><input type="email" id="myEmail" class="form-control" placeholder="you@example.com"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
+                    <button class="btn-pink" onclick="openPasswordFlow()">🔑 Change Password</button>
+                    <button class="btn-brand" onclick="saveMyProfile()">💾 Save Profile</button>
+                </div>
             </div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/bookings.html">📅 Bookings</a>
-            <a href="/settings.html" class="active">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" class="logout" onclick="logout()">🚪 Logout</a>
         </div>
 
-        <div class="col-md-10 main-area">
-            <div class="brand-header">
-                <h2>
-                    <span class="avatar" id="avatarInitials">?</span>
-                    <span>Welcome back, <span id="headerName">User</span>!</span>
-                    <span class="role-badge" id="headerRole">ROLE</span>
-                </h2>
-                <div class="sub">Manage your shop, team, and personal account all in one place.</div>
+        <div id="tab-shop" style="display: none;">
+            <div class="info-banner"><strong>🏪 Shop details.</strong> These appear on receipts and invoices.</div>
+            <div class="panel panel-navy">
+                <div class="section-title"><span class="icon-box icon-navy">🏪</span>Business Identity</div>
+                <div class="row g-3">
+                    <div class="col-md-8"><label class="form-label small">Registered Name</label><input type="text" id="shop_name" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label small">TIN</label><input type="text" id="tin" class="form-control"></div>
+                    <div class="col-md-12"><label class="form-label small">Tagline</label><input type="text" id="tagline" class="form-control"></div>
+                </div>
             </div>
-
-            <div class="tabs-nav">
-                <button class="active" onclick="switchTab('account', this)">👤 My Account</button>
-                <button onclick="switchTab('shop', this)">🏪 Shop Info</button>
-                <button id="usersTabBtn" onclick="switchTab('users', this)">👥 Users</button>
+            <div class="panel">
+                <div class="section-title"><span class="icon-box icon-blue">📞</span>Contact Details</div>
+                <div class="row g-3">
+                    <div class="col-md-12"><label class="form-label small">Address</label><textarea id="address" class="form-control" rows="2"></textarea></div>
+                    <div class="col-md-6"><label class="form-label small">Phone</label><input type="text" id="phone" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label small">Email</label><input type="email" id="email" class="form-control"></div>
+                    <div class="col-md-12"><label class="form-label small">Facebook Page</label><input type="text" id="facebook" class="form-control"></div>
+                </div>
             </div>
-
-            <div class="tab-content-area">
-
-                <!-- MY ACCOUNT -->
-                <div id="tab-account">
-                    <div class="info-banner">
-                        <strong>👤 Your personal account.</strong> Update your details below. Password changes require security verification.
+            <div class="panel panel-pink">
+                <div class="section-title"><span class="icon-box icon-pink">💵</span>Receipts & Pricing</div>
+                <div class="row g-3">
+                    <div class="col-md-6"><label class="form-label small">Currency</label>
+                        <select id="currency" class="form-select"><option value="₱">₱ Philippine Peso</option><option value="$">$ US Dollar</option><option value="€">€ Euro</option></select>
                     </div>
-
-                    <div class="panel panel-navy">
-                        <div class="section-title">
-                            <span class="icon-box icon-navy">👤</span>
-                            Profile Information
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small">Username (locked)</label>
-                                <input type="text" id="myUsername" class="form-control" disabled>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small">Role</label>
-                                <input type="text" id="myRole" class="form-control" disabled>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small">Full Name</label>
-                                <input type="text" id="myFullName" class="form-control" placeholder="Your name">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small">Email (for password recovery)</label>
-                                <input type="email" id="myEmail" class="form-control" placeholder="you@example.com">
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mt-4 flex-wrap gap-2">
-                            <button class="btn-pink" onclick="openPasswordFlow()">🔑 Change Password</button>
-                            <button class="btn-brand" onclick="saveMyProfile()">💾 Save Profile</button>
-                        </div>
+                    <div class="col-md-6"><label class="form-label small">Tax Type</label>
+                        <select id="tax_type" class="form-select"><option value="Non-VAT">Non-VAT</option><option value="VAT 12%">VAT 12%</option><option value="VAT 0%">VAT 0%</option></select>
                     </div>
                 </div>
+                <div class="text-end mt-4"><button class="btn-brand" onclick="saveSettings()">💾 Save Shop Info</button></div>
+            </div>
+        </div>
 
-                <!-- SHOP INFO -->
-                <div id="tab-shop" style="display: none;">
-                    <div class="info-banner">
-                        <strong>🏪 Shop details.</strong> These appear on receipts and invoices.
+        <div id="tab-users" style="display: none;">
+            <div class="info-banner"><strong>👥 Team management.</strong> Cashier = POS only. Admin = full access.</div>
+            <div class="panel panel-green">
+                <div class="section-title"><span class="icon-box icon-green">➕</span>Add New User</div>
+                <div class="row g-3">
+                    <div class="col-md-3"><label class="form-label small">Username *</label><input type="text" id="nuUsername" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label small">Full Name</label><input type="text" id="nuFullName" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label small">Email</label><input type="email" id="nuEmail" class="form-control"></div>
+                    <div class="col-md-3"><label class="form-label small">Temporary Password *</label><input type="text" id="nuPassword" class="form-control" placeholder="Min 6 chars"></div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Role *</label>
+                        <select id="nuRole" class="form-select"><option value="cashier">Cashier (POS only)</option><option value="admin">Admin (full access)</option></select>
                     </div>
-
-                    <div class="panel panel-navy">
-                        <div class="section-title">
-                            <span class="icon-box icon-navy">🏪</span>
-                            Business Identity
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-8">
-                                <label class="form-label small">Registered Name</label>
-                                <input type="text" id="shop_name" class="form-control">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small">TIN</label>
-                                <input type="text" id="tin" class="form-control">
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label small">Tagline</label>
-                                <input type="text" id="tagline" class="form-control">
-                            </div>
-                        </div>
+                    <div class="col-md-4">
+                        <label class="form-label small">Security Question (optional)</label>
+                        <select id="nuSecQuestion" class="form-select">
+                            <option value="">-- None --</option>
+                            <option value="What is your mother's maiden name?">Mother's maiden name</option>
+                            <option value="What is your favorite pet's name?">Favorite pet's name</option>
+                            <option value="What was the name of your first school?">First school</option>
+                        </select>
                     </div>
-
-                    <div class="panel">
-                        <div class="section-title">
-                            <span class="icon-box icon-blue">📞</span>
-                            Contact Details
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <label class="form-label small">Address</label>
-                                <textarea id="address" class="form-control" rows="2"></textarea>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small">Phone</label>
-                                <input type="text" id="phone" class="form-control">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small">Email</label>
-                                <input type="email" id="email" class="form-control">
-                            </div>
-                            <div class="col-md-12">
-                                <label class="form-label small">Facebook Page</label>
-                                <input type="text" id="facebook" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="panel panel-pink">
-                        <div class="section-title">
-                            <span class="icon-box icon-pink">💵</span>
-                            Receipts & Pricing
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label small">Currency</label>
-                                <select id="currency" class="form-select">
-                                    <option value="₱">₱ Philippine Peso</option>
-                                    <option value="$">$ US Dollar</option>
-                                    <option value="€">€ Euro</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label small">Tax Type</label>
-                                <select id="tax_type" class="form-select">
-                                    <option value="Non-VAT">Non-VAT</option>
-                                    <option value="VAT 12%">VAT 12%</option>
-                                    <option value="VAT 0%">VAT 0%</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="text-end mt-4">
-                            <button class="btn-brand" onclick="saveSettings()">💾 Save Shop Info</button>
-                        </div>
-                    </div>
+                    <div class="col-md-4"><label class="form-label small">Security Answer</label><input type="text" id="nuSecAnswer" class="form-control"></div>
+                    <div class="col-md-12 text-end"><button class="btn-brand" onclick="addNewUser()">➕ Add User</button></div>
                 </div>
-
-                <!-- USERS -->
-                <div id="tab-users" style="display: none;">
-                    <div class="info-banner">
-                        <strong>👥 Team management.</strong> Cashier = POS only. Admin = full access.
-                    </div>
-
-                    <div class="panel panel-green">
-                        <div class="section-title">
-                            <span class="icon-box icon-green">➕</span>
-                            Add New User
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-md-3">
-                                <label class="form-label small">Username *</label>
-                                <input type="text" id="nuUsername" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small">Full Name</label>
-                                <input type="text" id="nuFullName" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small">Email</label>
-                                <input type="email" id="nuEmail" class="form-control">
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label small">Temporary Password *</label>
-                                <input type="text" id="nuPassword" class="form-control" placeholder="Min 6 chars">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small">Role *</label>
-                                <select id="nuRole" class="form-select">
-                                    <option value="cashier">Cashier (POS only)</option>
-                                    <option value="admin">Admin (full access)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small">Security Question (optional)</label>
-                                <select id="nuSecQuestion" class="form-select">
-                                    <option value="">-- None --</option>
-                                    <option value="What is your mother's maiden name?">Mother's maiden name</option>
-                                    <option value="What is your favorite pet's name?">Favorite pet's name</option>
-                                    <option value="What was the name of your first school?">First school</option>
-                                </select>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label small">Security Answer</label>
-                                <input type="text" id="nuSecAnswer" class="form-control">
-                            </div>
-                            <div class="col-md-12 text-end">
-                                <button class="btn-brand" onclick="addNewUser()">➕ Add User</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="panel">
-                        <div class="section-title">
-                            <span class="icon-box icon-blue">👥</span>
-                            Registered Users <span id="userCount" class="badge bg-secondary ms-2">0</span>
-                        </div>
-                        <div id="usersList"><p class="text-muted small">Loading...</p></div>
-                    </div>
-                </div>
-
+            </div>
+            <div class="panel">
+                <div class="section-title"><span class="icon-box icon-blue">👥</span>Registered Users <span id="userCount" class="badge bg-secondary ms-2">0</span></div>
+                <div id="usersList"><p class="text-muted small">Loading...</p></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- STEP 1: VERIFY IDENTITY -->
 <div class="modal fade" id="verifyModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">🔐 Verify Your Identity</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+            <div class="modal-header"><h5 class="modal-title">🔐 Verify Your Identity</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
-                <div class="step-indicator">
-                    <div class="step-dot active" id="step1dot">1</div>
-                    <div class="step-dot" id="step2dot">2</div>
-                </div>
+                <div class="step-indicator"><div class="step-dot active">1</div><div class="step-dot">2</div></div>
                 <p class="text-muted small text-center mb-3">To change your password, please answer your security question first.</p>
-                <div class="mb-3">
-                    <label class="form-label small">Your Security Question</label>
-                    <div id="secQuestionDisplay" style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-weight: 600; color: var(--navy);">Loading...</div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">Your Answer</label>
-                    <input type="text" id="verifyAnswer" class="form-control" placeholder="Enter your answer" autocomplete="off">
-                    <small class="text-muted">Not case-sensitive.</small>
-                </div>
+                <div class="mb-3"><label class="form-label small">Your Security Question</label><div id="secQuestionDisplay" style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-weight: 600; color: var(--navy);">Loading...</div></div>
+                <div class="mb-3"><label class="form-label small">Your Answer</label><input type="text" id="verifyAnswer" class="form-control" autocomplete="off"><small class="text-muted">Not case-sensitive.</small></div>
                 <div id="verifyError" class="text-danger small mt-2" style="display: none;"></div>
             </div>
             <div class="modal-footer">
@@ -515,38 +292,19 @@
     </div>
 </div>
 
-<!-- STEP 2: CHANGE PASSWORD (+ optional security question) -->
 <div class="modal fade" id="changePassModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header" style="background: linear-gradient(135deg, var(--pink) 0%, #db2777 100%);">
-                <h5 class="modal-title">🔑 Change Your Password</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--pink) 0%, #db2777 100%);"><h5 class="modal-title">🔑 Change Your Password</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
-                <div class="step-indicator">
-                    <div class="step-dot completed" id="step1dotB">✓</div>
-                    <div class="step-dot active" id="step2dotB">2</div>
-                </div>
+                <div class="step-indicator"><div class="step-dot completed">✓</div><div class="step-dot active">2</div></div>
                 <p class="text-muted small text-center mb-3">Identity verified ✅ Choose your new password below.</p>
-
-                <div class="mb-3">
-                    <label class="form-label small">New Password</label>
-                    <input type="password" id="modalNewPass" class="form-control" placeholder="Min 6 characters" autocomplete="new-password">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">Confirm New Password</label>
-                    <input type="password" id="modalNewPass2" class="form-control" placeholder="Repeat new password" autocomplete="new-password">
-                </div>
-
+                <div class="mb-3"><label class="form-label small">New Password</label><input type="password" id="modalNewPass" class="form-control" placeholder="Min 6 characters" autocomplete="new-password"></div>
+                <div class="mb-3"><label class="form-label small">Confirm New Password</label><input type="password" id="modalNewPass2" class="form-control" placeholder="Repeat new password" autocomplete="new-password"></div>
                 <div class="optional-toggle">
-                    <label>
-                        <input type="checkbox" id="alsoChangeSec" onchange="toggleSecFields()">
-                        &nbsp; <strong>Also update my security question</strong> (optional)
-                    </label>
+                    <label><input type="checkbox" id="alsoChangeSec" onchange="toggleSecFields()">&nbsp; <strong>Also update my security question</strong> (optional)</label>
                     <div id="secFieldsWrap" style="display: none; margin-top: 12px;">
-                        <div class="mb-3">
-                            <label class="form-label small">New Security Question</label>
+                        <div class="mb-3"><label class="form-label small">New Security Question</label>
                             <select id="modalSecQuestion" class="form-select">
                                 <option value="">-- Choose --</option>
                                 <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
@@ -556,13 +314,9 @@
                                 <option value="What is your favorite food?">What is your favorite food?</option>
                             </select>
                         </div>
-                        <div class="mb-0">
-                            <label class="form-label small">New Security Answer</label>
-                            <input type="text" id="modalSecAnswer" class="form-control" placeholder="Not case-sensitive">
-                        </div>
+                        <div class="mb-0"><label class="form-label small">New Security Answer</label><input type="text" id="modalSecAnswer" class="form-control" placeholder="Not case-sensitive"></div>
                     </div>
                 </div>
-
                 <div id="changePassError" class="text-danger small mt-3" style="display: none;"></div>
                 <div id="changePassSuccess" class="text-success small mt-3" style="display: none;"></div>
             </div>
@@ -575,11 +329,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="/role-guard.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     const fields = ['shop_name', 'tagline', 'tin', 'address', 'phone', 'email', 'facebook', 'currency', 'tax_type'];
-
     let verifiedAnswer = '';
 
     function switchTab(tab, btn) {
@@ -618,11 +370,8 @@
                 document.getElementById('headerRole').innerText = (data.role || 'user').toUpperCase();
                 const initials = name.split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase();
                 document.getElementById('avatarInitials').innerText = initials;
-                if (data.role !== 'owner' && data.role !== 'admin') {
-                    document.getElementById('usersTabBtn').style.display = 'none';
-                } else {
-                    loadUsers();
-                }
+                if (data.role !== 'owner' && data.role !== 'admin') document.getElementById('usersTabBtn').style.display = 'none';
+                else loadUsers();
             });
     }
 
@@ -631,23 +380,15 @@
         const email = document.getElementById('myEmail').value.trim();
         fetch('/api/users/me', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ full_name, email }) })
             .then(res => res.json())
-            .then(data => {
-                if (data.error) return alert('Error: ' + data.error);
-                localStorage.setItem('userName', full_name || 'User');
-                alert('✅ Profile saved!');
-                loadMyProfile();
-            });
+            .then(data => { if (data.error) return alert('Error: ' + data.error); localStorage.setItem('userName', full_name || 'User'); alert('✅ Profile saved!'); loadMyProfile(); });
     }
 
-    // ===== PASSWORD CHANGE FLOW =====
     function openPasswordFlow() {
         fetch('/api/users/me', { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
             .then(data => {
                 if (data.error) return alert('Error loading profile.');
-                if (!data.security_question) {
-                    return alert('⚠️ You have no security question set. Please ask your admin to set one first.');
-                }
+                if (!data.security_question) return alert('⚠️ You have no security question set.');
                 document.getElementById('secQuestionDisplay').innerText = data.security_question;
                 document.getElementById('verifyAnswer').value = '';
                 document.getElementById('verifyError').style.display = 'none';
@@ -662,58 +403,30 @@
         const errorMsg = document.getElementById('verifyError');
         const btn = document.getElementById('verifyBtn');
         errorMsg.style.display = 'none';
-
-        if (!answer) {
-            errorMsg.innerText = 'Please enter your answer.';
-            errorMsg.style.display = 'block';
-            return;
-        }
-
-        btn.innerText = 'Verifying...';
-        btn.disabled = true;
-
-        fetch('/api/users/me/verify-answer', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ answer })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                verifiedAnswer = answer;
-                bootstrap.Modal.getInstance(document.getElementById('verifyModal')).hide();
-                setTimeout(() => {
-                    document.getElementById('modalNewPass').value = '';
-                    document.getElementById('modalNewPass2').value = '';
-                    document.getElementById('alsoChangeSec').checked = false;
-                    document.getElementById('secFieldsWrap').style.display = 'none';
-                    document.getElementById('modalSecQuestion').value = '';
-                    document.getElementById('modalSecAnswer').value = '';
-                    document.getElementById('changePassError').style.display = 'none';
-                    document.getElementById('changePassSuccess').style.display = 'none';
-                    document.getElementById('changePassBtn').disabled = false;
-                    document.getElementById('changePassBtn').innerText = '🔑 Update Password';
-                    new bootstrap.Modal(document.getElementById('changePassModal')).show();
-                }, 300);
-            } else {
-                errorMsg.innerText = data.error || 'Wrong answer. Try again.';
-                errorMsg.style.display = 'block';
-                btn.innerText = '✅ Verify & Continue';
-                btn.disabled = false;
-            }
-        })
-        .catch(() => {
-            errorMsg.innerText = 'Connection error. Try again.';
-            errorMsg.style.display = 'block';
-            btn.innerText = '✅ Verify & Continue';
-            btn.disabled = false;
-        });
+        if (!answer) { errorMsg.innerText = 'Please enter your answer.'; errorMsg.style.display = 'block'; return; }
+        btn.innerText = 'Verifying...'; btn.disabled = true;
+        fetch('/api/users/me/verify-answer', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ answer }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    verifiedAnswer = answer;
+                    bootstrap.Modal.getInstance(document.getElementById('verifyModal')).hide();
+                    setTimeout(() => {
+                        document.getElementById('modalNewPass').value = '';
+                        document.getElementById('modalNewPass2').value = '';
+                        document.getElementById('alsoChangeSec').checked = false;
+                        document.getElementById('secFieldsWrap').style.display = 'none';
+                        document.getElementById('changePassError').style.display = 'none';
+                        document.getElementById('changePassSuccess').style.display = 'none';
+                        document.getElementById('changePassBtn').disabled = false;
+                        document.getElementById('changePassBtn').innerText = '🔑 Update Password';
+                        new bootstrap.Modal(document.getElementById('changePassModal')).show();
+                    }, 300);
+                } else { errorMsg.innerText = data.error || 'Wrong answer. Try again.'; errorMsg.style.display = 'block'; btn.innerText = '✅ Verify & Continue'; btn.disabled = false; }
+            }).catch(() => { errorMsg.innerText = 'Connection error. Try again.'; errorMsg.style.display = 'block'; btn.innerText = '✅ Verify & Continue'; btn.disabled = false; });
     }
 
-    function toggleSecFields() {
-        const checked = document.getElementById('alsoChangeSec').checked;
-        document.getElementById('secFieldsWrap').style.display = checked ? 'block' : 'none';
-    }
+    function toggleSecFields() { document.getElementById('secFieldsWrap').style.display = document.getElementById('alsoChangeSec').checked ? 'block' : 'none'; }
 
     function submitNewPassword() {
         const newPass = document.getElementById('modalNewPass').value;
@@ -724,66 +437,18 @@
         const errorMsg = document.getElementById('changePassError');
         const successMsg = document.getElementById('changePassSuccess');
         const btn = document.getElementById('changePassBtn');
-        errorMsg.style.display = 'none';
-        successMsg.style.display = 'none';
-
-        if (newPass.length < 6) {
-            errorMsg.innerText = 'Password must be at least 6 characters.';
-            errorMsg.style.display = 'block';
-            return;
-        }
-        if (newPass !== newPass2) {
-            errorMsg.innerText = 'Passwords do not match.';
-            errorMsg.style.display = 'block';
-            return;
-        }
-        if (alsoChangeSec) {
-            if (!newSecQ || !newSecA) {
-                errorMsg.innerText = 'Please complete both security question fields or uncheck the option.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-        }
-
-        btn.innerText = 'Updating...';
-        btn.disabled = true;
-
-        const payload = {
-            answer: verifiedAnswer,
-            new_password: newPass,
-            update_security: alsoChangeSec,
-            security_question: newSecQ,
-            security_answer: newSecA
-        };
-
-        fetch('/api/users/me/change-password-verified', {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify(payload)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                successMsg.innerText = '✅ Password updated successfully!';
-                successMsg.style.display = 'block';
-                btn.innerText = '🔑 Update Password';
-                btn.disabled = false;
-                setTimeout(() => {
-                    bootstrap.Modal.getInstance(document.getElementById('changePassModal')).hide();
-                }, 1500);
-            } else {
-                errorMsg.innerText = data.error || 'Failed to update password.';
-                errorMsg.style.display = 'block';
-                btn.innerText = '🔑 Update Password';
-                btn.disabled = false;
-            }
-        })
-        .catch(() => {
-            errorMsg.innerText = 'Connection error. Try again.';
-            errorMsg.style.display = 'block';
-            btn.innerText = '🔑 Update Password';
-            btn.disabled = false;
-        });
+        errorMsg.style.display = 'none'; successMsg.style.display = 'none';
+        if (newPass.length < 6) { errorMsg.innerText = 'Password must be at least 6 characters.'; errorMsg.style.display = 'block'; return; }
+        if (newPass !== newPass2) { errorMsg.innerText = 'Passwords do not match.'; errorMsg.style.display = 'block'; return; }
+        if (alsoChangeSec && (!newSecQ || !newSecA)) { errorMsg.innerText = 'Please complete both security fields.'; errorMsg.style.display = 'block'; return; }
+        btn.innerText = 'Updating...'; btn.disabled = true;
+        const payload = { answer: verifiedAnswer, new_password: newPass, update_security: alsoChangeSec, security_question: newSecQ, security_answer: newSecA };
+        fetch('/api/users/me/change-password-verified', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) { successMsg.innerText = '✅ Password updated successfully!'; successMsg.style.display = 'block'; btn.innerText = '🔑 Update Password'; btn.disabled = false; setTimeout(() => { bootstrap.Modal.getInstance(document.getElementById('changePassModal')).hide(); }, 1500); }
+                else { errorMsg.innerText = data.error || 'Failed to update password.'; errorMsg.style.display = 'block'; btn.innerText = '🔑 Update Password'; btn.disabled = false; }
+            }).catch(() => { errorMsg.innerText = 'Connection error. Try again.'; errorMsg.style.display = 'block'; btn.innerText = '🔑 Update Password'; btn.disabled = false; });
     }
 
     function loadUsers() {
@@ -798,23 +463,16 @@
                     let badgeClass = 'badge-cashier';
                     if (u.role === 'owner') badgeClass = 'badge-owner';
                     else if (u.role === 'admin') badgeClass = 'badge-admin';
-
                     let roleControl = `<span class="badge-role ${badgeClass}">${u.role}</span>`;
                     if (u.role !== 'owner') {
-                        roleControl = `<select class="form-select" style="width:auto; font-size:12px; padding: 4px 24px 4px 10px; display: inline-block;" onchange="changeUserRole(${u.id}, this.value)">
-                            <option value="cashier" ${u.role === 'cashier' ? 'selected' : ''}>cashier</option>
-                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option>
-                        </select>`;
+                        roleControl = `<select class="form-select" style="width:auto; font-size:12px; padding: 4px 24px 4px 10px; display: inline-block;" onchange="changeUserRole(${u.id}, this.value)"><option value="cashier" ${u.role === 'cashier' ? 'selected' : ''}>cashier</option><option value="admin" ${u.role === 'admin' ? 'selected' : ''}>admin</option></select>`;
                     }
-
                     const delBtn = u.role !== 'owner' ? `<button class="btn-danger-soft ms-1" onclick="deleteUserById(${u.id}, '${u.username.replace(/'/g, "\\'")}')">🗑 Delete</button>` : '';
-
                     let avatarBg = 'linear-gradient(135deg, #3b82f6, #1e40af)';
                     if (u.role === 'owner') avatarBg = 'linear-gradient(135deg, #f59e0b, #d97706)';
                     else if (u.role === 'admin') avatarBg = 'linear-gradient(135deg, #8b5cf6, #6d28d9)';
                     else if (u.role === 'cashier') avatarBg = 'linear-gradient(135deg, #10b981, #059669)';
                     const initials = (u.full_name || u.username).split(' ').map(p => p[0]).join('').substring(0, 2).toUpperCase();
-
                     return `<div class="user-row">
                         <div class="d-flex align-items-center flex-grow-1">
                             <span class="user-avatar" style="background: ${avatarBg};">${initials}</span>
@@ -837,10 +495,7 @@
     function changeUserRole(id, role) {
         fetch('/api/users/' + id + '/role', { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ role }) })
             .then(res => res.json())
-            .then(data => {
-                if (data.error) { alert('Error: ' + data.error); loadUsers(); }
-                else { alert('✅ Role updated to ' + role); loadUsers(); }
-            });
+            .then(data => { if (data.error) { alert('Error: ' + data.error); loadUsers(); } else { alert('✅ Role updated to ' + role); loadUsers(); } });
     }
 
     function addNewUser() {
@@ -853,19 +508,15 @@
         const security_answer = document.getElementById('nuSecAnswer').value.trim();
         if (!username || !password) return alert('Username and password required.');
         if (password.length < 6) return alert('Password must be at least 6 characters.');
-        fetch('/api/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
-            body: JSON.stringify({ username, password, email, full_name, role, security_question, security_answer })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.error) return alert('Error: ' + data.error);
-            alert('✅ User added!');
-            ['nuUsername', 'nuFullName', 'nuEmail', 'nuPassword', 'nuSecAnswer'].forEach(id => document.getElementById(id).value = '');
-            document.getElementById('nuSecQuestion').value = '';
-            loadUsers();
-        });
+        fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ username, password, email, full_name, role, security_question, security_answer }) })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return alert('Error: ' + data.error);
+                alert('✅ User added!');
+                ['nuUsername', 'nuFullName', 'nuEmail', 'nuPassword', 'nuSecAnswer'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('nuSecQuestion').value = '';
+                loadUsers();
+            });
     }
 
     function resetUserPassword(id, username) {
@@ -887,15 +538,14 @@
     function logout() {
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userRole');
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 
     loadSettings();
     loadMyProfile();
 </script>
+<script src="/role-guard.js"></script>
 <script src="/bookings-badge.js"></script>
 <script src="/theme.js"></script>
 </body>

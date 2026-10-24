@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="/logo.png">
+    <title>Capital - Hawi's Lovada</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
+        .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
+        .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
+        .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 20px; }
+        .btn-primary { background: #1e40af; border-color: #1e40af; font-weight: 700; padding: 10px 20px; border-radius: 10px; }
+        .capital-table { width: 100%; border-collapse: collapse; }
+        .capital-table thead th { font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800; padding: 12px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        .capital-table tbody td { padding: 14px 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+        .capital-table tbody tr:hover { background: #f8fafc; }
+        .kpi-card { background: white; border-radius: 12px; padding: 20px; border-left: 4px solid #10b981; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .kpi-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; }
+        .kpi-card .value { font-size: 28px; font-weight: 900; color: #10b981; }
+        [data-theme="dark"] body { background: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
+        [data-theme="dark"] .panel, [data-theme="dark"] .kpi-card, [data-theme="dark"] .modal-content { background: #1e293b !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .kpi-card .value { color: #e2e8f0 !important; }
+        [data-theme="dark"] .capital-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .capital-table tbody td { color: #e2e8f0 !important; border-color: #334155 !important; }
+        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+        @media (max-width: 767px) {
+            .sidebar { display: none !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
+            .page-title { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html" class="active">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <h1 class="page-title">💵 Owner's Capital</h1>
+            <p class="page-sub mb-0">Money invested into the business by the owner</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal()">+ Add Capital</button>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-6"><div class="kpi-card"><div class="label">Total Capital Invested</div><div class="value" id="totalCapital">₱0.00</div></div></div>
+        <div class="col-12 col-md-6"><div class="kpi-card" style="border-left-color:#3b82f6;"><div class="label">Number of Entries</div><div class="value" id="totalEntries" style="color:#3b82f6;">0</div></div></div>
+    </div>
+
+    <div class="panel">
+        <table class="capital-table">
+            <thead><tr><th>Date</th><th>Description</th><th>Category</th><th class="text-end">Amount</th><th>Notes</th><th class="text-end">Actions</th></tr></thead>
+            <tbody id="capitalTable"><tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:40px;">Loading...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="capitalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Add Capital Entry</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="mb-3"><label class="form-label small">Description *</label><input type="text" id="cDesc" class="form-control" placeholder="e.g. Initial cash investment"></div>
+                <div class="mb-3">
+                    <label class="form-label small">Category</label>
+                    <select id="cCategory" class="form-select">
+                        <option>Startup</option><option>Deposit</option><option>Permit</option>
+                        <option>Renovation</option><option>Equipment</option><option>Cash Injection</option><option>Other</option>
+                    </select>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-6"><label class="form-label small">Amount (₱) *</label><input type="number" id="cAmount" class="form-control" step="0.01"></div>
+                    <div class="col-6"><label class="form-label small">Date</label><input type="date" id="cDate" class="form-control"></div>
+                </div>
+                <div class="mb-3"><label class="form-label small">Notes</label><textarea id="cNotes" class="form-control" rows="2"></textarea></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="saveCapital()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) { window.location.href = '/login.html'; }
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    let allCapital = [];
+
+    function loadCapital() {
+        fetch('/api/capital', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(items => {
+                if (!Array.isArray(items)) return;
+                allCapital = items;
+                const total = items.reduce((s, c) => s + (parseFloat(c.amount) || 0), 0);
+                document.getElementById('totalCapital').innerText = peso(total);
+                document.getElementById('totalEntries').innerText = items.length;
+                const table = document.getElementById('capitalTable');
+                if (items.length === 0) { table.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:40px;">No capital entries yet. Click "+ Add Capital" to start.</td></tr>'; return; }
+                table.innerHTML = items.map(c => {
+                    const date = new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    return `<tr><td><small>${date}</small></td><td><strong>${c.description}</strong></td><td>${c.category}</td><td class="text-end" style="color:#10b981;font-weight:800;">${peso(c.amount)}</td><td><small style="color:#94a3b8;">${c.notes || '—'}</small></td><td class="text-end"><button class="btn btn-sm btn-outline-primary" onclick="editCapital(${c.id})">✏️</button><button class="btn btn-sm btn-outline-danger" onclick="deleteCapital(${c.id})">🗑</button></td></tr>`;
+                }).join('');
+            });
+    }
+
+    function openModal() {
+        document.querySelector('.modal-title').innerText = 'Add Capital Entry';
+        document.getElementById('cDesc').value = '';
+        document.getElementById('cCategory').value = 'Startup';
+        document.getElementById('cAmount').value = '';
+        document.getElementById('cDate').value = new Date().toISOString().split('T')[0];
+        document.getElementById('cNotes').value = '';
+        document.getElementById('capitalModal').dataset.editId = '';
+        new bootstrap.Modal(document.getElementById('capitalModal')).show();
+    }
+
+    function editCapital(id) {
+        const c = allCapital.find(x => x.id === id);
+        if (!c) return;
+        document.querySelector('.modal-title').innerText = 'Edit Capital Entry';
+        document.getElementById('cDesc').value = c.description;
+        document.getElementById('cCategory').value = c.category || 'Startup';
+        document.getElementById('cAmount').value = c.amount;
+        document.getElementById('cDate').value = c.date ? c.date.split('T')[0] : '';
+        document.getElementById('cNotes').value = c.notes || '';
+        document.getElementById('capitalModal').dataset.editId = id;
+        new bootstrap.Modal(document.getElementById('capitalModal')).show();
+    }
+
+    function saveCapital() {
+        const editId = document.getElementById('capitalModal').dataset.editId;
+        const data = {
+            description: document.getElementById('cDesc').value.trim(),
+            category: document.getElementById('cCategory').value,
+            amount: document.getElementById('cAmount').value,
+            date: document.getElementById('cDate').value,
+            notes: document.getElementById('cNotes').value.trim()
+        };
+        if (!data.description) return alert('Description required');
+        if (!data.amount || parseFloat(data.amount) <= 0) return alert('Valid amount required');
+        const url = editId ? `/api/capital/${editId}` : '/api/capital';
+        const method = editId ? 'PUT' : 'POST';
+        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
+            .then(res => res.json())
+            .then(res => { if (res.error) return alert(res.error); bootstrap.Modal.getInstance(document.getElementById('capitalModal')).hide(); loadCapital(); });
+    }
+
+    function deleteCapital(id) {
+        if (!confirm('Delete this capital entry?')) return;
+        fetch(`/api/capital/${id}`, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadCapital());
+    }
+
+    function logout() {
+        const token = localStorage.getItem('authToken');
+        if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
+        window.location.href = '/login.html';
+    }
+
+    loadCapital();
+</script>
+<script src="/role-guard.js"></script>
+<script src="/bookings-badge.js"></script>
+<script src="/theme.js"></script>
+</body>
+</html>

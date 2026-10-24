@@ -6,10 +6,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background-color: #3b82f6; color: white; }
+
+        .sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
         .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 20px; }
         .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .stat-card { background: white; border-radius: 10px; padding: 18px; border-left: 4px solid #1e40af; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
@@ -36,9 +45,7 @@
         .desc-text { color: #1e293b; font-weight: 600; }
         .meta-text { color: #94a3b8; font-size: 12px; }
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
         [data-theme="dark"] .panel, [data-theme="dark"] .stat-card { background-color: #1e293b !important; }
         [data-theme="dark"] .page-title, [data-theme="dark"] .stat-card .value { color: #e2e8f0 !important; }
         [data-theme="dark"] .audit-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
@@ -50,179 +57,118 @@
         [data-theme="dark"] .cash-panel .stat-card { background: #1e293b !important; }
         @media (max-width: 767px) {
             .sidebar { display: none !important; }
-            .col-md-10 { padding: 14px !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
             .page-title { font-size: 18px; }
         }
     </style>
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="text-center mb-4">
-                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html" class="active">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-area">
+    <h3 class="page-title">🔍 Audit Trail</h3>
+
+    <div class="panel mb-3 cash-panel" style="border-left: 4px solid #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #92400e; font-weight: 700;">💰 Cash on Hand</div>
+                <div style="font-size: 12px; color: #92400e;" id="cashPeriod">All time</div>
             </div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/audit.html" class="active">🔍 Audit Trail</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/bookings.html">📅 Bookings</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
-        </div>
-
-        <div class="col-md-10 p-4">
-            <h3 class="page-title">🔍 Audit Trail</h3>
-
-            <!-- CASH ON HAND -->
-            <div class="panel mb-3 cash-panel" style="border-left: 4px solid #f59e0b; background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <div>
-                        <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #92400e; font-weight: 700;">
-                            💰 Cash on Hand
-                        </div>
-                        <div style="font-size: 12px; color: #92400e;" id="cashPeriod">All time</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #92400e; font-weight: 700;">Should be in drawer</div>
-                        <div style="font-size: 36px; font-weight: 900; line-height: 1; color: #78350f;" id="cashOnHand">₱0.00</div>
-                        <div style="font-size: 12px; color: #92400e;" id="cashHint">Count your cash and compare</div>
-                    </div>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card green" style="background: white;">
-                            <div class="label">✓ Paid Today</div>
-                            <div class="value" id="cashPaid" style="color: #10b981;">₱0.00</div>
-                            <div class="sub">Money received</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card orange" style="background: white;">
-                            <div class="label">💸 Spent</div>
-                            <div class="value" id="cashOutflow" style="color: #f59e0b;">₱0.00</div>
-                            <div class="sub">Expenses + Replenishments</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card blue" style="background: white;">
-                            <div class="label">🏦 Capital In</div>
-                            <div class="value" id="cashCapital" style="color: #3b82f6;">₱0.00</div>
-                            <div class="sub">Owner money</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card" style="background: white; border-left-color: #dc2626;">
-                            <div class="label">⏳ Unpaid</div>
-                            <div class="value" id="cashUnpaid" style="color: #dc2626;">₱0.00</div>
-                            <div class="sub">Still owed to you</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- FINANCIAL SUMMARY -->
-            <div class="panel mb-3" style="border-left: 4px solid #10b981;">
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                    <div>
-                        <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700;">
-                            💰 Financial Summary
-                        </div>
-                        <div style="font-size: 12px; color: #94a3b8;" id="finPeriod">All time</div>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700;">Net Profit</div>
-                        <div style="font-size: 28px; font-weight: 900; line-height: 1;" id="finNetProfit">₱0.00</div>
-                        <div style="font-size: 12px; color: #94a3b8;" id="finMargin">0% margin</div>
-                    </div>
-                </div>
-
-                <div class="row g-3">
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card green">
-                            <div class="label">Revenue</div>
-                            <div class="value" id="finRevenue">₱0.00</div>
-                            <div class="sub" id="finOrders">0 orders</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card orange">
-                            <div class="label">Expenses</div>
-                            <div class="value" id="finExpenses">₱0.00</div>
-                            <div class="sub" id="finExpenseCount">0 entries</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card purple">
-                            <div class="label">Replenishments</div>
-                            <div class="value" id="finReplenish">₱0.00</div>
-                            <div class="sub" id="finReplenishCount">0 entries</div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="stat-card blue">
-                            <div class="label">Total Spent</div>
-                            <div class="value" id="finTotalSpent">₱0.00</div>
-                            <div class="sub">Expenses + Replenishments</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel mb-4">
-                <div class="row g-2">
-                    <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search description or user..." oninput="debouncedLoad()"></div>
-                    <div class="col-md-2">
-                        <select id="entityFilter" class="form-select" onchange="loadAudit()">
-                            <option value="all">All Entities</option>
-                            <option value="order">Orders</option>
-                            <option value="service">Services</option>
-                            <option value="product">Products</option>
-                            <option value="expense">Expenses</option>
-                            <option value="user">Users</option>
-                            <option value="booking">Bookings</option>
-                            <option value="settings">Settings</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select id="actionFilter" class="form-select" onchange="loadAudit()">
-                            <option value="all">All Actions</option>
-                            <option value="CREATE">Create</option>
-                            <option value="UPDATE">Update</option>
-                            <option value="DELETE">Delete</option>
-                            <option value="LOGIN">Login</option>
-                            <option value="LOGOUT">Logout</option>
-                            <option value="ARCHIVE">Archive</option>
-                            <option value="REPLENISH">Replenish</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2"><input type="date" id="dateFrom" class="form-control" onchange="loadAudit(); loadFinancial(); loadCash();"></div>
-                    <div class="col-md-2"><input type="date" id="dateTo" class="form-control" onchange="loadAudit(); loadFinancial(); loadCash();"></div>
-                </div>
-            </div>
-
-            <div class="panel p-0" style="overflow-x: auto;">
-                <table class="audit-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 170px;">Timestamp</th>
-                            <th style="width: 160px;">User</th>
-                            <th style="width: 110px;">Action</th>
-                            <th style="width: 130px;">Entity</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody id="auditTable"><tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr></tbody>
-                </table>
+            <div style="text-align: right;">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #92400e; font-weight: 700;">Should be in drawer</div>
+                <div style="font-size: 36px; font-weight: 900; line-height: 1; color: #78350f;" id="cashOnHand">₱0.00</div>
+                <div style="font-size: 12px; color: #92400e;" id="cashHint">Count your cash and compare</div>
             </div>
         </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-3"><div class="stat-card green" style="background: white;"><div class="label">✓ Paid Today</div><div class="value" id="cashPaid" style="color: #10b981;">₱0.00</div><div class="sub">Money received</div></div></div>
+            <div class="col-6 col-md-3"><div class="stat-card orange" style="background: white;"><div class="label">💸 Spent</div><div class="value" id="cashOutflow" style="color: #f59e0b;">₱0.00</div><div class="sub">Expenses + Replenishments</div></div></div>
+            <div class="col-6 col-md-3"><div class="stat-card blue" style="background: white;"><div class="label">🏦 Capital In</div><div class="value" id="cashCapital" style="color: #3b82f6;">₱0.00</div><div class="sub">Owner money</div></div></div>
+            <div class="col-6 col-md-3"><div class="stat-card" style="background: white; border-left-color: #dc2626;"><div class="label">⏳ Unpaid</div><div class="value" id="cashUnpaid" style="color: #dc2626;">₱0.00</div><div class="sub">Still owed to you</div></div></div>
+        </div>
+    </div>
+
+    <div class="panel mb-3" style="border-left: 4px solid #10b981;">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700;">💰 Financial Summary</div>
+                <div style="font-size: 12px; color: #94a3b8;" id="finPeriod">All time</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #64748b; font-weight: 700;">Net Profit</div>
+                <div style="font-size: 28px; font-weight: 900; line-height: 1;" id="finNetProfit">₱0.00</div>
+                <div style="font-size: 12px; color: #94a3b8;" id="finMargin">0% margin</div>
+            </div>
+        </div>
+        <div class="row g-3">
+            <div class="col-6 col-md-3"><div class="stat-card green"><div class="label">Revenue</div><div class="value" id="finRevenue">₱0.00</div><div class="sub" id="finOrders">0 orders</div></div></div>
+            <div class="col-6 col-md-3"><div class="stat-card orange"><div class="label">Expenses</div><div class="value" id="finExpenses">₱0.00</div><div class="sub" id="finExpenseCount">0 entries</div></div></div>
+            <div class="col-6 col-md-3"><div class="stat-card purple"><div class="label">Replenishments</div><div class="value" id="finReplenish">₱0.00</div><div class="sub" id="finReplenishCount">0 entries</div></div></div>
+            <div class="col-6 col-md-3"><div class="stat-card blue"><div class="label">Total Spent</div><div class="value" id="finTotalSpent">₱0.00</div><div class="sub">Expenses + Replenishments</div></div></div>
+        </div>
+    </div>
+
+    <div class="panel mb-4">
+        <div class="row g-2">
+            <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search description or user..." oninput="debouncedLoad()"></div>
+            <div class="col-md-2">
+                <select id="entityFilter" class="form-select" onchange="loadAudit()">
+                    <option value="all">All Entities</option>
+                    <option value="order">Orders</option>
+                    <option value="service">Services</option>
+                    <option value="product">Products</option>
+                    <option value="expense">Expenses</option>
+                    <option value="user">Users</option>
+                    <option value="booking">Bookings</option>
+                    <option value="settings">Settings</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="actionFilter" class="form-select" onchange="loadAudit()">
+                    <option value="all">All Actions</option>
+                    <option value="CREATE">Create</option>
+                    <option value="UPDATE">Update</option>
+                    <option value="DELETE">Delete</option>
+                    <option value="LOGIN">Login</option>
+                    <option value="LOGOUT">Logout</option>
+                    <option value="ARCHIVE">Archive</option>
+                    <option value="REPLENISH">Replenish</option>
+                </select>
+            </div>
+            <div class="col-md-2"><input type="date" id="dateFrom" class="form-control" onchange="loadAudit(); loadFinancial(); loadCash();"></div>
+            <div class="col-md-2"><input type="date" id="dateTo" class="form-control" onchange="loadAudit(); loadFinancial(); loadCash();"></div>
+        </div>
+    </div>
+
+    <div class="panel p-0" style="overflow-x: auto;">
+        <table class="audit-table">
+            <thead><tr><th style="width: 170px;">Timestamp</th><th style="width: 160px;">User</th><th style="width: 110px;">Action</th><th style="width: 130px;">Entity</th><th>Description</th></tr></thead>
+            <tbody id="auditTable"><tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+        </table>
     </div>
 </div>
 
@@ -232,28 +178,16 @@
 
     let searchTimeout;
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(loadAudit, 300); }
-
-    function peso(n) {
-        return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    function num(n) {
-        return parseInt(n || 0).toLocaleString('en-PH');
-    }
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function num(n) { return parseInt(n || 0).toLocaleString('en-PH'); }
 
     function loadCash() {
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
         let url = '/api/audit/cash';
-        if (dateFrom || dateTo) {
-            url += `?dateFrom=${dateFrom}&dateTo=${dateTo}`;
-        }
-
-        const periodText = (dateFrom && dateTo) ? `${dateFrom} → ${dateTo}`
-            : dateFrom ? `From ${dateFrom}`
-            : dateTo ? `Until ${dateTo}`
-            : 'All time';
+        if (dateFrom || dateTo) url += `?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+        const periodText = (dateFrom && dateTo) ? `${dateFrom} → ${dateTo}` : dateFrom ? `From ${dateFrom}` : dateTo ? `Until ${dateTo}` : 'All time';
         document.getElementById('cashPeriod').innerText = periodText;
-
         fetch(url, { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
             .then(d => {
@@ -263,34 +197,20 @@
                 document.getElementById('cashCapital').innerText = peso(d.totalCapital);
                 document.getElementById('cashUnpaid').innerText = peso(d.unpaidRevenue);
                 document.getElementById('cashOnHand').innerText = peso(d.cashOnHand);
-
                 const cashEl = document.getElementById('cashOnHand');
                 const hintEl = document.getElementById('cashHint');
-                if (d.cashOnHand < 0) {
-                    cashEl.style.color = '#dc2626';
-                    hintEl.innerText = '⚠️ You spent more than you received';
-                } else {
-                    cashEl.style.color = '#78350f';
-                    hintEl.innerText = 'Count your cash and compare';
-                }
-            })
-            .catch(() => {});
+                if (d.cashOnHand < 0) { cashEl.style.color = '#dc2626'; hintEl.innerText = '⚠️ You spent more than you received'; }
+                else { cashEl.style.color = '#78350f'; hintEl.innerText = 'Count your cash and compare'; }
+            }).catch(() => {});
     }
 
     function loadFinancial() {
         const dateFrom = document.getElementById('dateFrom').value;
         const dateTo = document.getElementById('dateTo').value;
         let url = '/api/audit/financial';
-        if (dateFrom || dateTo) {
-            url += `?dateFrom=${dateFrom}&dateTo=${dateTo}`;
-        }
-
-        const periodText = (dateFrom && dateTo) ? `${dateFrom} → ${dateTo}`
-            : dateFrom ? `From ${dateFrom}`
-            : dateTo ? `Until ${dateTo}`
-            : 'All time';
+        if (dateFrom || dateTo) url += `?dateFrom=${dateFrom}&dateTo=${dateTo}`;
+        const periodText = (dateFrom && dateTo) ? `${dateFrom} → ${dateTo}` : dateFrom ? `From ${dateFrom}` : dateTo ? `Until ${dateTo}` : 'All time';
         document.getElementById('finPeriod').innerText = periodText;
-
         fetch(url, { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
             .then(d => {
@@ -304,15 +224,8 @@
                 document.getElementById('finTotalSpent').innerText = peso(d.totalSpent);
                 document.getElementById('finNetProfit').innerText = peso(d.netProfit);
                 document.getElementById('finMargin').innerText = d.margin.toFixed(1) + '% margin';
-
-                const npEl = document.getElementById('finNetProfit');
-                if (d.netProfit >= 0) {
-                    npEl.style.color = '#10b981';
-                } else {
-                    npEl.style.color = '#dc2626';
-                }
-            })
-            .catch(() => {});
+                document.getElementById('finNetProfit').style.color = d.netProfit >= 0 ? '#10b981' : '#dc2626';
+            }).catch(() => {});
     }
 
     function loadAudit() {
@@ -324,12 +237,8 @@
         let url = `/api/audit?search=${encodeURIComponent(search)}&entity_type=${entity_type}&action=${action}`;
         if (dateFrom) url += '&dateFrom=' + dateFrom;
         if (dateTo) url += '&dateTo=' + dateTo;
-
         fetch(url, { headers: { 'x-auth-token': authToken } })
-            .then(res => {
-                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
-                return res.json();
-            })
+            .then(res => { if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; } return res.json(); })
             .then(logs => {
                 if (!Array.isArray(logs)) return;
                 const table = document.getElementById('auditTable');
@@ -338,27 +247,19 @@
                     const date = new Date(l.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
                     return `<tr>
                         <td><small>${date}</small></td>
-                        <td>
-                            <div style="font-weight:700;color:#1e293b;">${l.username || 'system'}</div>
-                            <div class="meta-text">${(l.user_role || '').toUpperCase()}</div>
-                        </td>
+                        <td><div style="font-weight:700;color:#1e293b;">${l.username || 'system'}</div><div class="meta-text">${(l.user_role || '').toUpperCase()}</div></td>
                         <td><span class="action-badge action-${l.action}">${l.action}</span></td>
                         <td><span class="meta-text">${l.entity_type}${l.entity_id ? ' #' + l.entity_id : ''}</span></td>
                         <td><span class="desc-text">${l.description || '—'}</span></td>
                     </tr>`;
                 }).join('');
-            })
-            .catch(() => {
-                document.getElementById('auditTable').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Failed to load audit trail.</td></tr>';
-            });
+            }).catch(() => { document.getElementById('auditTable').innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">Failed to load audit trail.</td></tr>'; });
     }
 
     function logout() {
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userRole');
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 

@@ -29,20 +29,10 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS hidden BOOLEAN DEFAULT FALSE;`);
         await pool.query(`CREATE TABLE IF NOT EXISTS service_materials (id SERIAL PRIMARY KEY, service_id INTEGER REFERENCES services(id) ON DELETE CASCADE, product_id INTEGER REFERENCES products(id), quantity INTEGER DEFAULT 1, amount NUMERIC DEFAULT 0);`);
         
-        // AUDIT
         await pool.query(`CREATE TABLE IF NOT EXISTS audit_logs (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER,
-            username TEXT,
-            user_role TEXT,
-            action TEXT NOT NULL,
-            entity_type TEXT NOT NULL,
-            entity_id INTEGER,
-            description TEXT,
-            old_values JSONB,
-            new_values JSONB,
-            ip_address TEXT,
-            user_agent TEXT,
+            id SERIAL PRIMARY KEY, user_id INTEGER, username TEXT, user_role TEXT,
+            action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id INTEGER, description TEXT,
+            old_values JSONB, new_values JSONB, ip_address TEXT, user_agent TEXT,
             created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_audit_created_at ON audit_logs(created_at DESC);`);
@@ -65,14 +55,9 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMPTZ DEFAULT NOW();`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;`);
 
-        // Service Flows
         await pool.query(`CREATE TABLE IF NOT EXISTS service_flows (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            flow_key TEXT NOT NULL UNIQUE,
-            steps JSONB NOT NULL,
-            is_custom BOOLEAN DEFAULT FALSE,
-            created_at TIMESTAMPTZ DEFAULT NOW()
+            id SERIAL PRIMARY KEY, name TEXT NOT NULL, flow_key TEXT NOT NULL UNIQUE,
+            steps JSONB NOT NULL, is_custom BOOLEAN DEFAULT FALSE, created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
         const defaultFlows = [
@@ -90,44 +75,36 @@ async function initDatabase() {
             );
         }
 
-        // Assets
         await pool.query(`CREATE TABLE IF NOT EXISTS assets (
-            id SERIAL PRIMARY KEY,
-            name TEXT NOT NULL,
-            category TEXT DEFAULT 'Equipment',
-            purchase_price NUMERIC NOT NULL DEFAULT 0,
-            purchase_date DATE DEFAULT CURRENT_DATE,
-            useful_life_months INTEGER DEFAULT 60,
-            salvage_value NUMERIC DEFAULT 0,
-            notes TEXT,
-            status TEXT DEFAULT 'Active',
-            created_at TIMESTAMPTZ DEFAULT NOW()
+            id SERIAL PRIMARY KEY, name TEXT NOT NULL, category TEXT DEFAULT 'Equipment',
+            purchase_price NUMERIC NOT NULL DEFAULT 0, purchase_date DATE DEFAULT CURRENT_DATE,
+            useful_life_months INTEGER DEFAULT 60, salvage_value NUMERIC DEFAULT 0,
+            notes TEXT, status TEXT DEFAULT 'Active', created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
-        // Capital
         await pool.query(`CREATE TABLE IF NOT EXISTS capital_investments (
-            id SERIAL PRIMARY KEY,
-            description TEXT NOT NULL,
-            amount NUMERIC NOT NULL DEFAULT 0,
-            category TEXT DEFAULT 'Startup',
-            date DATE DEFAULT CURRENT_DATE,
-            notes TEXT,
-            created_at TIMESTAMPTZ DEFAULT NOW()
+            id SERIAL PRIMARY KEY, description TEXT NOT NULL, amount NUMERIC NOT NULL DEFAULT 0,
+            category TEXT DEFAULT 'Startup', date DATE DEFAULT CURRENT_DATE,
+            notes TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
-        // ===== BOOKINGS =====
+        await pool.query(`CREATE TABLE IF NOT EXISTS liabilities (
+            id SERIAL PRIMARY KEY, description TEXT NOT NULL, category TEXT DEFAULT 'Loan',
+            amount NUMERIC NOT NULL DEFAULT 0, amount_paid NUMERIC DEFAULT 0,
+            date DATE DEFAULT CURRENT_DATE, due_date DATE, notes TEXT,
+            status TEXT DEFAULT 'Active', created_at TIMESTAMPTZ DEFAULT NOW()
+        );`);
+
+        await pool.query(`CREATE TABLE IF NOT EXISTS owner_withdrawals (
+            id SERIAL PRIMARY KEY, description TEXT NOT NULL, amount NUMERIC NOT NULL DEFAULT 0,
+            date DATE DEFAULT CURRENT_DATE, notes TEXT, created_at TIMESTAMPTZ DEFAULT NOW()
+        );`);
+
         await pool.query(`CREATE TABLE IF NOT EXISTS bookings (
-            id SERIAL PRIMARY KEY,
-            customer_name TEXT NOT NULL,
-            customer_phone TEXT NOT NULL,
-            customer_address TEXT NOT NULL,
-            service_type TEXT,
-            preferred_date DATE NOT NULL,
-            preferred_time TEXT NOT NULL,
-            notes TEXT,
-            status TEXT DEFAULT 'Pending',
-            created_at TIMESTAMPTZ DEFAULT NOW(),
-            updated_at TIMESTAMPTZ DEFAULT NOW()
+            id SERIAL PRIMARY KEY, customer_name TEXT NOT NULL, customer_phone TEXT NOT NULL,
+            customer_address TEXT NOT NULL, service_type TEXT, preferred_date DATE NOT NULL,
+            preferred_time TEXT NOT NULL, notes TEXT, status TEXT DEFAULT 'Pending',
+            created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
         );`);
 
         await pool.query(`UPDATE services SET service_type = 'wash_dry_fold' WHERE service_type IS NULL OR service_type = 'Per Load';`);
@@ -146,7 +123,6 @@ async function initDatabase() {
             await pool.query(`INSERT INTO services (name, price, unit) VALUES ('Wash Dry & Fold', 240.00, 'kg'), ('Wash & Dry', 180.00, 'kg'), ('Dry Only', 50.00, 'kg')`);
         }
 
-        // Optional: prune old logs
         await pool.query(`DELETE FROM audit_logs WHERE created_at < NOW() - INTERVAL '365 days'`);
 
         console.log('Database initialized.');
@@ -175,10 +151,7 @@ async function logAudit(data) {
 async function getAuditLogs(search, entity_type, action, dateFrom, dateTo) {
     const conditions = [];
     const params = [];
-    if (search) {
-        params.push('%' + search + '%');
-        conditions.push(`(description ILIKE $${params.length} OR username ILIKE $${params.length})`);
-    }
+    if (search) { params.push('%' + search + '%'); conditions.push(`(description ILIKE $${params.length} OR username ILIKE $${params.length})`); }
     if (entity_type && entity_type !== 'all') { params.push(entity_type); conditions.push(`entity_type = $${params.length}`); }
     if (action && action !== 'all') { params.push(action); conditions.push(`action = $${params.length}`); }
     if (dateFrom) { params.push(dateFrom); conditions.push(`created_at::timestamptz >= $${params.length}::timestamptz`); }
@@ -203,102 +176,220 @@ async function getAuditStats() {
 async function getFinancialAuditSummary(dateFrom, dateTo) {
     const params = [];
     let dateFilter = '';
-    if (dateFrom && dateTo) {
-        params.push(dateFrom, dateTo + ' 23:59:59');
-        dateFilter = `AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`;
-    } else if (dateFrom) {
-        params.push(dateFrom);
-        dateFilter = `AND date::timestamptz >= $1::timestamptz`;
-    } else if (dateTo) {
-        params.push(dateTo + ' 23:59:59');
-        dateFilter = `AND date::timestamptz <= $1::timestamptz`;
-    }
+    if (dateFrom && dateTo) { params.push(dateFrom, dateTo + ' 23:59:59'); dateFilter = `AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`; }
+    else if (dateFrom) { params.push(dateFrom); dateFilter = `AND date::timestamptz >= $1::timestamptz`; }
+    else if (dateTo) { params.push(dateTo + ' 23:59:59'); dateFilter = `AND date::timestamptz <= $1::timestamptz`; }
 
-    const revSql = `SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS cnt FROM orders WHERE archived_at IS NULL ${dateFilter}`;
-    const revRes = await pool.query(revSql, params);
+    const revRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS cnt FROM orders WHERE archived_at IS NULL ${dateFilter}`, params);
     const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
     const orderCount = parseInt(revRes.rows[0].cnt) || 0;
 
-    const expSql = `SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt FROM expenses WHERE 1=1 ${dateFilter}`;
-    const expRes = await pool.query(expSql, params);
+    const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total, COUNT(*) AS cnt FROM expenses WHERE 1=1 ${dateFilter}`, params);
     const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
     const expenseCount = parseInt(expRes.rows[0].cnt) || 0;
 
-    const repSql = `SELECT COALESCE(SUM(cost * quantity), 0) AS total, COUNT(*) AS cnt FROM replenishments WHERE 1=1 ${dateFilter}`;
-    const repRes = await pool.query(repSql, params);
+    const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total, COUNT(*) AS cnt FROM replenishments WHERE 1=1 ${dateFilter}`, params);
     const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
     const replenishCount = parseInt(repRes.rows[0].cnt) || 0;
 
-    const catSql = `SELECT category, COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE 1=1 ${dateFilter} GROUP BY category ORDER BY total DESC`;
-    const catRes = await pool.query(catSql, params);
-    const categories = catRes.rows;
+    const catRes = await pool.query(`SELECT category, COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE 1=1 ${dateFilter} GROUP BY category ORDER BY total DESC`, params);
 
     const totalSpent = totalExpenses + totalReplenish;
     const netProfit = totalRevenue - totalSpent;
     const margin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
 
-    return {
-        revenue: totalRevenue,
-        orderCount,
-        expenses: totalExpenses,
-        expenseCount,
-        replenishments: totalReplenish,
-        replenishCount,
-        categories: categories,
-        totalSpent,
-        netProfit,
-        margin
-    };
+    return { revenue: totalRevenue, orderCount, expenses: totalExpenses, expenseCount, replenishments: totalReplenish, replenishCount, categories: catRes.rows, totalSpent, netProfit, margin };
 }
 
 async function getCashOnHand(dateFrom, dateTo) {
     const params = [];
     let dateFilter = '';
-    if (dateFrom && dateTo) {
-        params.push(dateFrom, dateTo + ' 23:59:59');
-        dateFilter = `AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`;
-    } else if (dateFrom) {
-        params.push(dateFrom);
-        dateFilter = `AND date::timestamptz >= $1::timestamptz`;
-    } else if (dateTo) {
-        params.push(dateTo + ' 23:59:59');
-        dateFilter = `AND date::timestamptz <= $1::timestamptz`;
+    if (dateFrom && dateTo) { params.push(dateFrom, dateTo + ' 23:59:59'); dateFilter = `AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`; }
+    else if (dateFrom) { params.push(dateFrom); dateFilter = `AND date::timestamptz >= $1::timestamptz`; }
+    else if (dateTo) { params.push(dateTo + ' 23:59:59'); dateFilter = `AND date::timestamptz <= $1::timestamptz`; }
+
+    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' ${dateFilter}`, params);
+    const unpaidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Pending' ${dateFilter}`, params);
+    const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE 1=1 ${dateFilter}`, params);
+    const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE 1=1 ${dateFilter}`, params);
+    const capRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE 1=1 ${dateFilter}`, params);
+    const wdRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM owner_withdrawals WHERE 1=1 ${dateFilter}`, params);
+
+    const paidRevenue = parseFloat(paidRes.rows[0].total) || 0;
+    const unpaidRevenue = parseFloat(unpaidRes.rows[0].total) || 0;
+    const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
+    const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
+    const totalCapital = parseFloat(capRes.rows[0].total) || 0;
+    const totalWithdrawals = parseFloat(wdRes.rows[0].total) || 0;
+
+    const cashOnHand = paidRevenue + totalCapital - totalExpenses - totalReplenish - totalWithdrawals;
+    return { paidRevenue, unpaidRevenue, totalExpenses, totalReplenish, totalCapital, totalWithdrawals, totalOutflow: totalExpenses + totalReplenish + totalWithdrawals, cashOnHand };
+}
+
+// ===== FINANCIAL STATEMENTS =====
+async function getIncomeStatement(dateFrom, dateTo) {
+    const params = [dateFrom, dateTo + ' 23:59:59'];
+    const revByServiceRes = await pool.query(`
+        SELECT oi.service_name, COALESCE(SUM(oi.quantity * oi.price), 0) AS revenue, COALESCE(SUM(oi.quantity), 0) AS total_qty
+        FROM order_items oi JOIN orders o ON o.id = oi.order_id
+        WHERE o.archived_at IS NULL AND o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
+        GROUP BY oi.service_name ORDER BY revenue DESC`, params);
+    const revenueByService = revByServiceRes.rows.map(r => ({ service: r.service_name, revenue: parseFloat(r.revenue) || 0, qty: parseFloat(r.total_qty) || 0 }));
+    const revenue = revenueByService.reduce((s, r) => s + r.revenue, 0);
+
+    const orderCountRes = await pool.query(`SELECT COUNT(*) AS count FROM orders WHERE archived_at IS NULL AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const orderCount = parseInt(orderCountRes.rows[0].count) || 0;
+
+    const cogsRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const cogs = parseFloat(cogsRes.rows[0].total) || 0;
+
+    const expRes = await pool.query(`SELECT category, COALESCE(SUM(amount), 0) AS total FROM expenses WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz GROUP BY category ORDER BY total DESC`, params);
+    const operatingExpenses = expRes.rows.map(r => ({ category: r.category, amount: parseFloat(r.total) || 0 }));
+    const totalOperatingExpenses = operatingExpenses.reduce((s, e) => s + e.amount, 0);
+
+    const assetsRes = await pool.query(`SELECT * FROM assets WHERE status = 'Active'`);
+    let depreciation = 0;
+    const monthCount = Math.max(1, (new Date(dateTo) - new Date(dateFrom)) / (30 * 24 * 60 * 60 * 1000));
+    for (const a of assetsRes.rows) {
+        const price = parseFloat(a.purchase_price) || 0;
+        const salvage = parseFloat(a.salvage_value) || 0;
+        const lifeMonths = parseInt(a.useful_life_months) || 60;
+        const monthlyDep = (price - salvage) / lifeMonths;
+        depreciation += monthlyDep * monthCount;
     }
 
-    const paidOrdersRes = await pool.query(
-        `SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' ${dateFilter}`,
-        params
-    );
-    const paidRevenue = parseFloat(paidOrdersRes.rows[0].total) || 0;
+    const grossProfit = revenue - cogs;
+    const netProfit = grossProfit - totalOperatingExpenses - depreciation;
+    const grossMargin = revenue > 0 ? (grossProfit / revenue) * 100 : 0;
+    const netMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+    const avgRevenuePerLoad = orderCount > 0 ? revenue / orderCount : 0;
 
-    const unpaidOrdersRes = await pool.query(
-        `SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Pending' ${dateFilter}`,
-        params
-    );
-    const unpaidRevenue = parseFloat(unpaidOrdersRes.rows[0].total) || 0;
-
-    const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE 1=1 ${dateFilter}`, params);
-    const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
-
-    const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE 1=1 ${dateFilter}`, params);
-    const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
-
-    const capRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE 1=1 ${dateFilter}`, params);
-    const totalCapital = parseFloat(capRes.rows[0].total) || 0;
-
-    const cashOnHand = paidRevenue + totalCapital - totalExpenses - totalReplenish;
-    const totalOutflow = totalExpenses + totalReplenish;
-
-    return {
-        paidRevenue,
-        unpaidRevenue,
-        totalExpenses,
-        totalReplenish,
-        totalCapital,
-        totalOutflow,
-        cashOnHand
-    };
+    return { revenue, revenueByService, orderCount, cogs, grossProfit, grossMargin, operatingExpenses, totalOperatingExpenses, depreciation, netProfit, netMargin, avgRevenuePerLoad };
 }
+
+async function getBalanceSheet(dateTo) {
+    const endDate = dateTo + ' 23:59:59';
+    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' AND date::timestamptz <= $1::timestamptz`, [endDate]);
+    const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
+    const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
+    const capRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
+    const wdRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM owner_withdrawals WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
+    const loanRecRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM liabilities WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
+    const loanPaidRes = await pool.query(`SELECT COALESCE(SUM(amount_paid), 0) AS total FROM liabilities WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
+
+    const cash = (parseFloat(paidRes.rows[0].total) || 0) + (parseFloat(capRes.rows[0].total) || 0) + (parseFloat(loanRecRes.rows[0].total) || 0) - (parseFloat(expRes.rows[0].total) || 0) - (parseFloat(repRes.rows[0].total) || 0) - (parseFloat(wdRes.rows[0].total) || 0) - (parseFloat(loanPaidRes.rows[0].total) || 0);
+
+    const invRes = await pool.query(`SELECT COALESCE(SUM(stock * cost_price), 0) AS total FROM products`);
+    const inventory = parseFloat(invRes.rows[0].total) || 0;
+
+    const assetsRes = await pool.query(`SELECT * FROM assets WHERE status = 'Active'`);
+    let equipmentCost = 0;
+    let accDep = 0;
+    const now = new Date();
+    for (const a of assetsRes.rows) {
+        const price = parseFloat(a.purchase_price) || 0;
+        const salvage = parseFloat(a.salvage_value) || 0;
+        const lifeMonths = parseInt(a.useful_life_months) || 60;
+        equipmentCost += price;
+        const monthsOwned = Math.floor((now - new Date(a.purchase_date)) / (30 * 24 * 60 * 60 * 1000));
+        const totalDep = Math.max(0, price - salvage);
+        accDep += (totalDep / lifeMonths) * Math.min(monthsOwned, lifeMonths);
+    }
+    const equipmentNet = equipmentCost - accDep;
+
+    const arRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Pending' AND date::timestamptz <= $1::timestamptz`, [endDate]);
+    const accountsReceivable = parseFloat(arRes.rows[0].total) || 0;
+
+    const totalAssets = cash + inventory + equipmentNet + accountsReceivable;
+
+    const liabRes = await pool.query(`SELECT id, description, category, amount, amount_paid FROM liabilities WHERE date::timestamptz <= $1::timestamptz AND (amount - COALESCE(amount_paid, 0)) > 0 ORDER BY date`, [endDate]);
+    const liabilitiesList = liabRes.rows.map(l => ({ id: l.id, description: l.description, category: l.category, outstanding: (parseFloat(l.amount) || 0) - (parseFloat(l.amount_paid) || 0) }));
+    const totalLiabilities = liabilitiesList.reduce((s, l) => s + l.outstanding, 0);
+
+    const totalCapital = parseFloat(capRes.rows[0].total) || 0;
+    const totalWithdrawals = parseFloat(wdRes.rows[0].total) || 0;
+    const retainedEarnings = totalAssets - totalCapital + totalWithdrawals - totalLiabilities;
+    const totalEquity = totalCapital - totalWithdrawals + retainedEarnings;
+
+    return { cash, inventory, equipmentCost, accumulatedDepreciation: accDep, equipmentNet, accountsReceivable, totalAssets, liabilitiesList, totalLiabilities, totalCapital, totalWithdrawals, retainedEarnings, totalEquity, balanceCheck: totalAssets - (totalLiabilities + totalEquity) };
+}
+
+async function getCashFlowStatement(dateFrom, dateTo) {
+    const params = [dateFrom, dateTo + ' 23:59:59'];
+    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const assetRes = await pool.query(`SELECT COALESCE(SUM(purchase_price), 0) AS total FROM assets WHERE purchase_date >= $1::date AND purchase_date <= $2::date`, [dateFrom, dateTo]);
+    const capRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const wdRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM owner_withdrawals WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const loanRecRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM liabilities WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const loanPaidRes = await pool.query(`SELECT COALESCE(SUM(amount_paid), 0) AS total FROM liabilities WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+
+    const cashFromCustomers = parseFloat(paidRes.rows[0].total) || 0;
+    const cashPaidForSupplies = parseFloat(repRes.rows[0].total) || 0;
+    const cashPaidForExpenses = parseFloat(expRes.rows[0].total) || 0;
+    const cashPaidForAssets = parseFloat(assetRes.rows[0].total) || 0;
+    const cashFromCapital = parseFloat(capRes.rows[0].total) || 0;
+    const cashFromWithdrawals = -(parseFloat(wdRes.rows[0].total) || 0);
+    const cashFromLoans = parseFloat(loanRecRes.rows[0].total) || 0;
+    const cashPaidForLoans = -(parseFloat(loanPaidRes.rows[0].total) || 0);
+
+    const netOperating = cashFromCustomers - cashPaidForSupplies - cashPaidForExpenses;
+    const netInvesting = -cashPaidForAssets;
+    const netFinancing = cashFromCapital + cashFromWithdrawals + cashFromLoans + cashPaidForLoans;
+    const netCashChange = netOperating + netInvesting + netFinancing;
+
+    const bPaid = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' AND date::timestamptz < $1::timestamptz`, [dateFrom]);
+    const bExp = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
+    const bRep = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
+    const bCap = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
+    const bWd = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM owner_withdrawals WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
+    const bLoan = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM liabilities WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
+    const bLoanPaid = await pool.query(`SELECT COALESCE(SUM(amount_paid), 0) AS total FROM liabilities WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
+
+    const beginningCash = (parseFloat(bPaid.rows[0].total) || 0) + (parseFloat(bCap.rows[0].total) || 0) + (parseFloat(bLoan.rows[0].total) || 0) - (parseFloat(bExp.rows[0].total) || 0) - (parseFloat(bRep.rows[0].total) || 0) - (parseFloat(bWd.rows[0].total) || 0) - (parseFloat(bLoanPaid.rows[0].total) || 0);
+    const endingCash = beginningCash + netCashChange;
+
+    return { cashFromCustomers, cashPaidForSupplies, cashPaidForExpenses, netOperating, cashPaidForAssets, netInvesting, cashFromCapital, cashFromWithdrawals, cashFromLoans, cashPaidForLoans, netFinancing, netCashChange, beginningCash, endingCash };
+}
+
+// ===== LIABILITIES =====
+async function getLiabilities() {
+    const result = await pool.query("SELECT * FROM liabilities ORDER BY date DESC, id DESC");
+    return result.rows;
+}
+
+async function addLiability(data) {
+    const result = await pool.query(
+        `INSERT INTO liabilities (description, category, amount, date, due_date, notes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+        [data.description, data.category || 'Loan', parseFloat(data.amount) || 0, data.date || new Date().toISOString().split('T')[0], data.due_date || null, data.notes || '']
+    );
+    return result.rows[0];
+}
+
+async function updateLiability(id, data) {
+    await pool.query(`UPDATE liabilities SET description = $1, category = $2, amount = $3, amount_paid = $4, date = $5, due_date = $6, notes = $7, status = $8 WHERE id = $9`,
+        [data.description, data.category || 'Loan', parseFloat(data.amount) || 0, parseFloat(data.amount_paid) || 0, data.date, data.due_date || null, data.notes || '', data.status || 'Active', id]);
+}
+
+async function deleteLiability(id) { await pool.query("DELETE FROM liabilities WHERE id = $1", [id]); }
+async function payLiability(id, amount) {
+    await pool.query(`UPDATE liabilities SET amount_paid = amount_paid + $1, status = CASE WHEN amount_paid + $1 >= amount THEN 'Paid' ELSE 'Active' END WHERE id = $2`, [parseFloat(amount) || 0, id]);
+}
+
+// ===== OWNER WITHDRAWALS =====
+async function getOwnerWithdrawals() {
+    const result = await pool.query("SELECT * FROM owner_withdrawals ORDER BY date DESC, id DESC");
+    return result.rows;
+}
+
+async function addOwnerWithdrawal(data) {
+    const result = await pool.query(`INSERT INTO owner_withdrawals (description, amount, date, notes) VALUES ($1, $2, $3, $4) RETURNING *`,
+        [data.description, parseFloat(data.amount) || 0, data.date || new Date().toISOString().split('T')[0], data.notes || '']);
+    return result.rows[0];
+}
+
+async function deleteOwnerWithdrawal(id) { await pool.query("DELETE FROM owner_withdrawals WHERE id = $1", [id]); }
 
 // ===== SERVICES =====
 async function getServices() {
@@ -323,33 +414,17 @@ async function getAllServiceFlows() {
 
 async function addServiceFlow(name, steps) {
     const flow_key = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '') + '_' + Date.now().toString(36);
-    const result = await pool.query(
-        `INSERT INTO service_flows (name, flow_key, steps, is_custom) VALUES ($1, $2, $3, TRUE) RETURNING *`,
-        [name, flow_key, JSON.stringify(steps)]
-    );
+    const result = await pool.query(`INSERT INTO service_flows (name, flow_key, steps, is_custom) VALUES ($1, $2, $3, TRUE) RETURNING *`, [name, flow_key, JSON.stringify(steps)]);
     return result.rows[0];
 }
 
-async function updateServiceFlow(id, name, steps) {
-    await pool.query(`UPDATE service_flows SET name = $1, steps = $2 WHERE id = $3 AND is_custom = TRUE`, [name, JSON.stringify(steps), id]);
-}
-
-async function deleteServiceFlow(id) {
-    await pool.query(`DELETE FROM service_flows WHERE id = $1 AND is_custom = TRUE`, [id]);
-}
-
-async function getServiceFlowByKey(flow_key) {
-    const result = await pool.query("SELECT * FROM service_flows WHERE flow_key = $1", [flow_key]);
-    return result.rows[0];
-}
+async function updateServiceFlow(id, name, steps) { await pool.query(`UPDATE service_flows SET name = $1, steps = $2 WHERE id = $3 AND is_custom = TRUE`, [name, JSON.stringify(steps), id]); }
+async function deleteServiceFlow(id) { await pool.query(`DELETE FROM service_flows WHERE id = $1 AND is_custom = TRUE`, [id]); }
+async function getServiceFlowByKey(flow_key) { const result = await pool.query("SELECT * FROM service_flows WHERE flow_key = $1", [flow_key]); return result.rows[0]; }
 
 async function addService(data) {
-    const result = await pool.query(
-        `INSERT INTO services (name, price, unit, status, color, service_type, minimum, unit_label, image_data, hidden)
-         VALUES ($1, $2, $3, 'Available', $4, $5, $6, $7, $8, $9) RETURNING id`,
-        [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg', data.color || '#4f46e5',
-         data.service_type || 'Per Load', parseFloat(data.minimum) || 1, data.unit_label || 'kg',
-         data.image_data || null, data.hidden || false]);
+    const result = await pool.query(`INSERT INTO services (name, price, unit, status, color, service_type, minimum, unit_label, image_data, hidden) VALUES ($1, $2, $3, 'Available', $4, $5, $6, $7, $8, $9) RETURNING id`,
+        [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg', data.color || '#4f46e5', data.service_type || 'Per Load', parseFloat(data.minimum) || 1, data.unit_label || 'kg', data.image_data || null, data.hidden || false]);
     const serviceId = result.rows[0].id;
     if (Array.isArray(data.materials)) {
         for (const m of data.materials) {
@@ -362,11 +437,8 @@ async function addService(data) {
 }
 
 async function updateService(id, data) {
-    await pool.query(
-        `UPDATE services SET name = $1, price = $2, unit = $3, color = $4, service_type = $5, minimum = $6, unit_label = $7, image_data = $8, hidden = $9 WHERE id = $10`,
-        [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg', data.color || '#4f46e5',
-         data.service_type || 'Per Load', parseFloat(data.minimum) || 1, data.unit_label || 'kg',
-         data.image_data || null, data.hidden || false, id]);
+    await pool.query(`UPDATE services SET name = $1, price = $2, unit = $3, color = $4, service_type = $5, minimum = $6, unit_label = $7, image_data = $8, hidden = $9 WHERE id = $10`,
+        [data.name, parseFloat(data.price) || 0, data.unit_label || 'kg', data.color || '#4f46e5', data.service_type || 'Per Load', parseFloat(data.minimum) || 1, data.unit_label || 'kg', data.image_data || null, data.hidden || false, id]);
     await pool.query("DELETE FROM service_materials WHERE service_id = $1", [id]);
     if (Array.isArray(data.materials)) {
         for (const m of data.materials) {
@@ -389,8 +461,7 @@ async function saveOrder(customer, total, cartItems, paymentStatus, cashierName,
     const orderResult = await pool.query(
         `INSERT INTO orders (date, customer, total, payment_status, cashier_name, status, service_flow, current_step, pickup_delivery, customer_phone, status_history, status_updated_at)
          VALUES ($1, $2, $3, $4, $5, 'Received', $6, 0, $7, $8, $9, NOW()) RETURNING id`,
-        [date, customer, total, status, cashierName || 'Admin', JSON.stringify(serviceFlow), pickupDelivery || false, customerPhone || null,
-         JSON.stringify([{ status: 'Received', at: new Date().toISOString(), by: cashierName || 'Admin' }])]
+        [date, customer, total, status, cashierName || 'Admin', JSON.stringify(serviceFlow), pickupDelivery || false, customerPhone || null, JSON.stringify([{ status: 'Received', at: new Date().toISOString(), by: cashierName || 'Admin' }])]
     );
     const orderId = orderResult.rows[0].id;
     for (const item of cartItems) {
@@ -421,11 +492,7 @@ async function getOrders(filter, search, dateFrom, dateTo) {
     else if (filter === 'drying') conditions.push("status = 'Drying'");
     else if (filter === 'ready') conditions.push("status = 'Done (Ready to Pickup)'");
     else if (filter === 'pickedup') conditions.push("status IN ('Delivered', 'Picked Up')");
-    if (search) {
-        params.push('%' + search + '%');
-        params.push(search);
-        conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`);
-    }
+    if (search) { params.push('%' + search + '%'); params.push(search); conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`); }
     if (dateFrom) { params.push(dateFrom); conditions.push(`date::timestamptz >= $${params.length}::timestamptz`); }
     if (dateTo) { params.push(dateTo + ' 23:59:59'); conditions.push(`date::timestamptz <= $${params.length}::timestamptz`); }
     let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at FROM orders";
@@ -438,11 +505,7 @@ async function getOrders(filter, search, dateFrom, dateTo) {
 async function getArchivedOrders(filter, search) {
     const conditions = ["archived_at IS NOT NULL"];
     const params = [];
-    if (search) {
-        params.push('%' + search + '%');
-        params.push(search);
-        conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`);
-    }
+    if (search) { params.push('%' + search + '%'); params.push(search); conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`); }
     let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at FROM orders";
     query += " WHERE " + conditions.join(" AND ");
     query += " ORDER BY archived_at DESC LIMIT 500";
@@ -450,32 +513,20 @@ async function getArchivedOrders(filter, search) {
     return result.rows;
 }
 
-async function getOrderById(id) {
-    const result = await pool.query("SELECT * FROM orders WHERE id = $1", [id]);
-    return result.rows[0];
-}
-
+async function getOrderById(id) { const result = await pool.query("SELECT * FROM orders WHERE id = $1", [id]); return result.rows[0]; }
 async function archiveOrder(id) { await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = $1", [id]); }
 async function restoreOrder(id) { await pool.query("UPDATE orders SET archived_at = NULL WHERE id = $1", [id]); }
-async function archiveBatch(ids) {
-    if (!ids || ids.length === 0) return 0;
-    await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = ANY($1::int[])", [ids]);
-    return ids.length;
-}
-async function cleanupOldArchive() {
-    const result = await pool.query("DELETE FROM orders WHERE archived_at IS NOT NULL AND archived_at < NOW() - INTERVAL '7 days' RETURNING id");
-    return result.rowCount;
-}
+async function archiveBatch(ids) { if (!ids || ids.length === 0) return 0; await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = ANY($1::int[])", [ids]); return ids.length; }
+async function cleanupOldArchive() { const result = await pool.query("DELETE FROM orders WHERE archived_at IS NOT NULL AND archived_at < NOW() - INTERVAL '7 days' RETURNING id"); return result.rowCount; }
 async function markAsPaid(id) { await pool.query("UPDATE orders SET payment_status = 'Paid' WHERE id = $1", [id]); }
 async function markAsUnpaid(id) { await pool.query("UPDATE orders SET payment_status = 'Pending' WHERE id = $1", [id]); }
+
 async function deleteOrder(id) {
     const orderResult = await pool.query("SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name FROM orders WHERE id = $1", [id]);
     if (orderResult.rows.length === 0) return;
     const order = orderResult.rows[0];
-    const archivedResult = await pool.query(
-        `INSERT INTO archived_orders (original_id, date, customer, total, payment_status, status, cashier_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-        [order.id, order.date, order.customer, order.total, order.payment_status, order.status, order.cashier_name]
-    );
+    const archivedResult = await pool.query(`INSERT INTO archived_orders (original_id, date, customer, total, payment_status, status, cashier_name) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [order.id, order.date, order.customer, order.total, order.payment_status, order.status, order.cashier_name]);
     const archivedId = archivedResult.rows[0].id;
     const items = await pool.query("SELECT service_name, quantity, price FROM order_items WHERE order_id = $1", [id]);
     for (const item of items.rows) {
@@ -486,10 +537,8 @@ async function deleteOrder(id) {
 }
 
 async function updateOrderStatus(id, status, step = null, history = null, riderName = null) {
-    await pool.query(
-        `UPDATE orders SET status = $1, current_step = COALESCE($2, current_step), status_history = COALESCE($3, status_history), rider_name = COALESCE($4, rider_name), status_updated_at = NOW() WHERE id = $5`,
-        [status, step, history, riderName, id]
-    );
+    await pool.query(`UPDATE orders SET status = $1, current_step = COALESCE($2, current_step), status_history = COALESCE($3, status_history), rider_name = COALESCE($4, rider_name), status_updated_at = NOW() WHERE id = $5`,
+        [status, step, history, riderName, id]);
 }
 
 // ===== CUSTOMERS =====
@@ -506,14 +555,9 @@ async function addCustomer(name, phone, address, notes) {
     const result = await pool.query("INSERT INTO customers (name, phone, address, notes) VALUES ($1, $2, $3, $4) RETURNING id", [name, phone || null, address || null, notes || null]);
     return result.rows[0].id;
 }
-async function updateCustomer(id, name, phone, address, notes) {
-    await pool.query("UPDATE customers SET name = $1, phone = $2, address = $3, notes = $4 WHERE id = $5", [name, phone || null, address || null, notes || null, id]);
-}
+async function updateCustomer(id, name, phone, address, notes) { await pool.query("UPDATE customers SET name = $1, phone = $2, address = $3, notes = $4 WHERE id = $5", [name, phone || null, address || null, notes || null, id]); }
 async function deleteCustomer(id) { await pool.query("DELETE FROM customers WHERE id = $1", [id]); }
-async function getCustomerOrders(name) {
-    const result = await pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE customer = $1 ORDER BY id DESC LIMIT 50", [name]);
-    return result.rows;
-}
+async function getCustomerOrders(name) { const result = await pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE customer = $1 ORDER BY id DESC LIMIT 50", [name]); return result.rows; }
 
 // ===== REPORTS =====
 async function getReportSummary(dateFrom, dateTo) {
@@ -543,11 +587,9 @@ async function getReportTopServices(dateFrom, dateTo) {
     const result = await pool.query(`
         SELECT service_name, SUM(quantity) AS total_qty, SUM(quantity * price) AS total_revenue
         FROM (
-            SELECT oi.service_name, oi.quantity, oi.price FROM order_items oi JOIN orders o ON o.id = oi.order_id
-            WHERE o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
+            SELECT oi.service_name, oi.quantity, oi.price FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
             UNION ALL
-            SELECT aoi.service_name, aoi.quantity, aoi.price FROM archived_order_items aoi JOIN archived_orders ao ON ao.id = aoi.archived_order_id
-            WHERE ao.date::timestamptz >= $1::timestamptz AND ao.date::timestamptz <= $2::timestamptz
+            SELECT aoi.service_name, aoi.quantity, aoi.price FROM archived_order_items aoi JOIN archived_orders ao ON ao.id = aoi.archived_order_id WHERE ao.date::timestamptz >= $1::timestamptz AND ao.date::timestamptz <= $2::timestamptz
         ) combined GROUP BY service_name ORDER BY total_revenue DESC LIMIT 10`, [dateFrom, dateTo + ' 23:59:59']);
     return result.rows;
 }
@@ -614,10 +656,7 @@ async function getReplenishments() {
     const result = await pool.query(`SELECT r.id, r.quantity, r.cost, r.date, r.notes, r.supplier, r.category, p.name AS product_name, p.icon AS product_icon, p.image_data AS product_image FROM replenishments r JOIN products p ON p.id = r.product_id ORDER BY r.id DESC LIMIT 200`);
     return result.rows;
 }
-async function getReplenishmentCategories() {
-    const result = await pool.query("SELECT DISTINCT category FROM replenishments WHERE category IS NOT NULL AND category != '' ORDER BY category");
-    return result.rows.map(r => r.category);
-}
+async function getReplenishmentCategories() { const result = await pool.query("SELECT DISTINCT category FROM replenishments WHERE category IS NOT NULL AND category != '' ORDER BY category"); return result.rows.map(r => r.category); }
 async function getLowStockProducts() { const result = await pool.query("SELECT id, name, stock, low_limit FROM products WHERE stock <= low_limit"); return result.rows; }
 
 // ===== EXPENSES =====
@@ -653,10 +692,7 @@ async function getUnifiedLedger(dateFrom, dateTo, search) {
     if (dateTo) { params.push(dateTo + ' 23:59:59'); conditions.push(`date::timestamptz <= $${params.length}::timestamptz`); }
     if (search) { params.push('%' + search + '%'); conditions.push(`(description ILIKE $${params.length} OR si_or_number ILIKE $${params.length} OR account ILIKE $${params.length})`); }
     const whereClause = conditions.length > 0 ? 'WHERE ' + conditions.join(' AND ') : '';
-    const query = `
-        SELECT 'expense-' || e.id AS unique_id, e.id AS ref_id, e.date, COALESCE(e.description, e.category) AS description, e.si_or_number, COALESCE(e.account, 'Operating Expense') AS account, 'Manual' AS source, e.amount, e.category, e.supplier, e.notes
-        FROM expenses e ${whereClause}
-        ORDER BY date DESC LIMIT 500`;
+    const query = `SELECT 'expense-' || e.id AS unique_id, e.id AS ref_id, e.date, COALESCE(e.description, e.category) AS description, e.si_or_number, COALESCE(e.account, 'Operating Expense') AS account, 'Manual' AS source, e.amount, e.category, e.supplier, e.notes FROM expenses e ${whereClause} ORDER BY date DESC LIMIT 500`;
     const result = await pool.query(query, params);
     return result.rows;
 }
@@ -675,136 +711,74 @@ async function getLedgerStats(dateFrom, dateTo) {
 }
 
 // ===== ASSETS =====
-async function getAssets() {
-    const result = await pool.query("SELECT * FROM assets WHERE status != 'Retired' ORDER BY purchase_date DESC, id DESC");
-    return result.rows;
-}
-
+async function getAssets() { const result = await pool.query("SELECT * FROM assets WHERE status != 'Retired' ORDER BY purchase_date DESC, id DESC"); return result.rows; }
 async function addAsset(data) {
-    const result = await pool.query(
-        `INSERT INTO assets (name, category, purchase_price, purchase_date, useful_life_months, salvage_value, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [data.name, data.category || 'Equipment', parseFloat(data.purchase_price) || 0,
-         data.purchase_date || new Date().toISOString().split('T')[0],
-         parseInt(data.useful_life_months) || 60, parseFloat(data.salvage_value) || 0, data.notes || '']
-    );
+    const result = await pool.query(`INSERT INTO assets (name, category, purchase_price, purchase_date, useful_life_months, salvage_value, notes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [data.name, data.category || 'Equipment', parseFloat(data.purchase_price) || 0, data.purchase_date || new Date().toISOString().split('T')[0], parseInt(data.useful_life_months) || 60, parseFloat(data.salvage_value) || 0, data.notes || '']);
     return result.rows[0];
 }
-
 async function updateAsset(id, data) {
-    await pool.query(
-        `UPDATE assets SET name = $1, category = $2, purchase_price = $3, purchase_date = $4, useful_life_months = $5, salvage_value = $6, notes = $7 WHERE id = $8`,
-        [data.name, data.category || 'Equipment', parseFloat(data.purchase_price) || 0,
-         data.purchase_date, parseInt(data.useful_life_months) || 60, parseFloat(data.salvage_value) || 0, data.notes || '', id]
-    );
+    await pool.query(`UPDATE assets SET name = $1, category = $2, purchase_price = $3, purchase_date = $4, useful_life_months = $5, salvage_value = $6, notes = $7 WHERE id = $8`,
+        [data.name, data.category || 'Equipment', parseFloat(data.purchase_price) || 0, data.purchase_date, parseInt(data.useful_life_months) || 60, parseFloat(data.salvage_value) || 0, data.notes || '', id]);
 }
-
-async function deleteAsset(id) {
-    await pool.query("DELETE FROM assets WHERE id = $1", [id]);
-}
+async function deleteAsset(id) { await pool.query("DELETE FROM assets WHERE id = $1", [id]); }
 
 // ===== CAPITAL =====
-async function getCapital() {
-    const result = await pool.query("SELECT * FROM capital_investments ORDER BY date DESC, id DESC");
-    return result.rows;
-}
-
+async function getCapital() { const result = await pool.query("SELECT * FROM capital_investments ORDER BY date DESC, id DESC"); return result.rows; }
 async function addCapital(data) {
-    const result = await pool.query(
-        `INSERT INTO capital_investments (description, amount, category, date, notes)
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [data.description, parseFloat(data.amount) || 0, data.category || 'Startup',
-         data.date || new Date().toISOString().split('T')[0], data.notes || '']
-    );
+    const result = await pool.query(`INSERT INTO capital_investments (description, amount, category, date, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [data.description, parseFloat(data.amount) || 0, data.category || 'Startup', data.date || new Date().toISOString().split('T')[0], data.notes || '']);
     return result.rows[0];
 }
-
 async function updateCapital(id, data) {
-    await pool.query(
-        `UPDATE capital_investments SET description = $1, amount = $2, category = $3, date = $4, notes = $5 WHERE id = $6`,
-        [data.description, parseFloat(data.amount) || 0, data.category || 'Startup', data.date, data.notes || '', id]
-    );
+    await pool.query(`UPDATE capital_investments SET description = $1, amount = $2, category = $3, date = $4, notes = $5 WHERE id = $6`,
+        [data.description, parseFloat(data.amount) || 0, data.category || 'Startup', data.date, data.notes || '', id]);
 }
-
-async function deleteCapital(id) {
-    await pool.query("DELETE FROM capital_investments WHERE id = $1", [id]);
-}
+async function deleteCapital(id) { await pool.query("DELETE FROM capital_investments WHERE id = $1", [id]); }
 
 // ===== ROI =====
 async function getROIData() {
     const capitalRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments");
     const totalCapital = parseFloat(capitalRes.rows[0].total) || 0;
-
     const assetsRes = await pool.query("SELECT * FROM assets WHERE status = 'Active'");
     const assets = assetsRes.rows;
     let totalAssets = 0;
     let monthlyDepreciation = 0;
-
     const now = new Date();
     for (const a of assets) {
         const price = parseFloat(a.purchase_price) || 0;
         const salvage = parseFloat(a.salvage_value) || 0;
         const lifeMonths = parseInt(a.useful_life_months) || 60;
         totalAssets += price;
-
-        const purchaseDate = new Date(a.purchase_date);
-        const monthsOwned = Math.floor((now - purchaseDate) / (30 * 24 * 60 * 60 * 1000));
+        const monthsOwned = Math.floor((now - new Date(a.purchase_date)) / (30 * 24 * 60 * 60 * 1000));
         const totalDepreciation = Math.max(0, price - salvage);
         const monthlyDep = totalDepreciation / lifeMonths;
-
-        if (monthsOwned < lifeMonths) {
-            monthlyDepreciation += monthlyDep;
-        }
+        if (monthsOwned < lifeMonths) monthlyDepreciation += monthlyDep;
     }
-
     const revRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL`);
     const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
-
     const expRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses");
     const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
-
     const repRes = await pool.query("SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments");
     const totalReplenish = parseFloat(repRes.rows[0].total) || 0;
-
     const totalInvestment = totalCapital + totalAssets;
-
     let totalDepreciationToDate = 0;
     for (const a of assets) {
         const price = parseFloat(a.purchase_price) || 0;
         const salvage = parseFloat(a.salvage_value) || 0;
         const lifeMonths = parseInt(a.useful_life_months) || 60;
-        const purchaseDate = new Date(a.purchase_date);
-        const monthsOwned = Math.floor((now - purchaseDate) / (30 * 24 * 60 * 60 * 1000));
+        const monthsOwned = Math.floor((now - new Date(a.purchase_date)) / (30 * 24 * 60 * 60 * 1000));
         const totalDep = Math.max(0, price - salvage);
         const monthsToCount = Math.min(monthsOwned, lifeMonths);
         totalDepreciationToDate += (totalDep / lifeMonths) * monthsToCount;
     }
-
     const netProfit = totalRevenue - totalExpenses - totalReplenish - totalDepreciationToDate;
     const roi = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
-
-    const monthsActive = await pool.query(`
-        SELECT EXTRACT(EPOCH FROM (NOW() - MIN(date::timestamptz)))/2629800 AS months FROM orders
-    `);
+    const monthsActive = await pool.query(`SELECT EXTRACT(EPOCH FROM (NOW() - MIN(date::timestamptz)))/2629800 AS months FROM orders`);
     const activeMonths = Math.max(1, parseFloat(monthsActive.rows[0].months) || 1);
     const avgMonthlyProfit = netProfit / activeMonths;
     const paybackMonths = avgMonthlyProfit > 0 ? totalInvestment / avgMonthlyProfit : 0;
-
-    return {
-        totalCapital,
-        totalAssets,
-        totalInvestment,
-        monthlyDepreciation,
-        totalDepreciationToDate,
-        totalRevenue,
-        totalExpenses: totalExpenses + totalReplenish,
-        netProfit,
-        roi,
-        paybackMonths,
-        activeMonths,
-        assetCount: assets.length,
-        paybackRecovered: netProfit >= totalInvestment
-    };
+    return { totalCapital, totalAssets, totalInvestment, monthlyDepreciation, totalDepreciationToDate, totalRevenue, totalExpenses: totalExpenses + totalReplenish, netProfit, roi, paybackMonths, activeMonths, assetCount: assets.length, paybackRecovered: netProfit >= totalInvestment };
 }
 
 // ===== BOOKINGS =====
@@ -813,12 +787,10 @@ async function getBookings(filter) {
     const params = [];
     const today = new Date().toISOString().split('T')[0];
     const tomorrow = new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0];
-
     if (filter === 'today') { conditions.push(`preferred_date = $${params.length + 1}`); params.push(today); }
     else if (filter === 'tomorrow') { conditions.push(`preferred_date = $${params.length + 1}`); params.push(tomorrow); }
     else if (filter === 'pending') { conditions.push(`status = 'Pending'`); }
     else if (filter === 'upcoming') { conditions.push(`preferred_date >= $${params.length + 1} AND status = 'Pending'`); params.push(today); }
-
     let query = "SELECT * FROM bookings";
     if (conditions.length > 0) query += " WHERE " + conditions.join(" AND ");
     query += " ORDER BY preferred_date ASC, preferred_time ASC, id DESC LIMIT 500";
@@ -827,27 +799,14 @@ async function getBookings(filter) {
 }
 
 async function addBooking(data) {
-    const result = await pool.query(
-        `INSERT INTO bookings (customer_name, customer_phone, customer_address, service_type, preferred_date, preferred_time, notes)
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [data.customer_name, data.customer_phone, data.customer_address,
-         data.service_type || '', data.preferred_date, data.preferred_time, data.notes || '']
-    );
+    const result = await pool.query(`INSERT INTO bookings (customer_name, customer_phone, customer_address, service_type, preferred_date, preferred_time, notes) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [data.customer_name, data.customer_phone, data.customer_address, data.service_type || '', data.preferred_date, data.preferred_time, data.notes || '']);
     return result.rows[0];
 }
 
-async function updateBookingStatus(id, status) {
-    await pool.query("UPDATE bookings SET status = $1, updated_at = NOW() WHERE id = $2", [status, id]);
-}
-
-async function deleteBooking(id) {
-    await pool.query("DELETE FROM bookings WHERE id = $1", [id]);
-}
-
-async function getBookingById(id) {
-    const result = await pool.query("SELECT * FROM bookings WHERE id = $1", [id]);
-    return result.rows[0];
-}
+async function updateBookingStatus(id, status) { await pool.query("UPDATE bookings SET status = $1, updated_at = NOW() WHERE id = $2", [status, id]); }
+async function deleteBooking(id) { await pool.query("DELETE FROM bookings WHERE id = $1", [id]); }
+async function getBookingById(id) { const result = await pool.query("SELECT * FROM bookings WHERE id = $1", [id]); return result.rows[0]; }
 
 // ===== USERS =====
 async function getUserByUsername(username) { const result = await pool.query("SELECT * FROM users WHERE username = $1", [username]); return result.rows[0]; }
@@ -856,10 +815,8 @@ async function getUserById(id) { const result = await pool.query("SELECT * FROM 
 async function getAllUsers() { const result = await pool.query("SELECT id, username, email, full_name, role, created_at, last_login FROM users ORDER BY id ASC"); return result.rows; }
 async function getUserCount() { const result = await pool.query("SELECT COUNT(*) AS count FROM users"); return parseInt(result.rows[0].count); }
 async function createUser(data) {
-    const result = await pool.query(
-        `INSERT INTO users (username, password_hash, email, full_name, role, security_question, security_answer_hash) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
-        [data.username, data.password_hash, data.email || null, data.full_name || null, data.role || 'admin', data.security_question || null, data.security_answer_hash || null]
-    );
+    const result = await pool.query(`INSERT INTO users (username, password_hash, email, full_name, role, security_question, security_answer_hash) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+        [data.username, data.password_hash, data.email || null, data.full_name || null, data.role || 'admin', data.security_question || null, data.security_answer_hash || null]);
     return result.rows[0].id;
 }
 async function updateUserPassword(id, password_hash) { await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [password_hash, id]); }
@@ -873,8 +830,7 @@ async function updateUserRole(id, role) { await pool.query("UPDATE users SET rol
 module.exports = {
     pool, getServices, addService, updateService, deleteService, getPickupService,
     getAllServiceFlows, addServiceFlow, updateServiceFlow, deleteServiceFlow, getServiceFlowByKey,
-    saveOrder, getOrders, getArchivedOrders, getOrderById,
-    archiveOrder, restoreOrder, archiveBatch, cleanupOldArchive,
+    saveOrder, getOrders, getArchivedOrders, getOrderById, archiveOrder, restoreOrder, archiveBatch, cleanupOldArchive,
     markAsPaid, markAsUnpaid, deleteOrder, updateOrderStatus,
     getCustomers, getCustomer, addCustomer, updateCustomer, deleteCustomer, getCustomerOrders,
     getReportSummary, getReportDaily, getReportTopServices, getReportTopCustomers,
@@ -889,7 +845,9 @@ module.exports = {
     getROIData,
     getBookings, addBooking, updateBookingStatus, deleteBooking, getBookingById,
     getUserByUsername, getUserByEmail, getUserById, getAllUsers, getUserCount,
-    createUser, updateUserPassword, updateLastLogin, setResetToken,
-    getUserByResetToken, clearResetToken, deleteUser, updateUserRole,
-    logAudit, getAuditLogs, getAuditStats, getFinancialAuditSummary, getCashOnHand
+    createUser, updateUserPassword, updateLastLogin, setResetToken, getUserByResetToken, clearResetToken, deleteUser, updateUserRole,
+    logAudit, getAuditLogs, getAuditStats, getFinancialAuditSummary, getCashOnHand,
+    getIncomeStatement, getBalanceSheet, getCashFlowStatement,
+    getLiabilities, addLiability, updateLiability, deleteLiability, payLiability,
+    getOwnerWithdrawals, addOwnerWithdrawal, deleteOwnerWithdrawal
 };

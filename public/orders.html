@@ -9,19 +9,26 @@
     <meta name="theme-color" content="#1e3a8a">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        html, body { height: 100%; overflow: hidden; }
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; }
-        .sidebar { background-color: #1e293b; color: white; height: 100vh; overflow-y: auto; padding-top: 20px; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background-color: #3b82f6; color: white; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
+
+        .sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; height: auto; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
+
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
         .page-title { font-size: 22px; font-weight: 700; color: #1e293b; margin-bottom: 16px; }
         .panel { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .btn-primary { background: #1e40af; border-color: #1e40af; }
         .filter-btn { margin-right: 6px; margin-bottom: 6px; font-size: 13px; padding: 6px 14px; border-radius: 20px; font-weight: 600; }
         .period-btn.active { background: #1e40af !important; color: white !important; border-color: #1e40af !important; }
 
-        /* TABS */
         .order-tabs { display: flex; background: #f1f5f9; border-radius: 12px; padding: 5px; margin-bottom: 14px; border: 1.5px solid #e2e8f0; }
         .order-tabs button { flex: 1; border: none; background: transparent; padding: 12px 8px; border-radius: 8px; font-size: 14px; font-weight: 800; color: #64748b; cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
         .order-tabs button.active { background: #1e40af; color: white; box-shadow: 0 2px 8px rgba(30,64,175,0.25); }
@@ -64,13 +71,11 @@
         .batch-bar.show { display: flex; }
         .batch-bar .count { font-weight: bold; color: #60a5fa; margin-right: 10px; }
 
-        /* MOBILE */
         @media (max-width: 767px) {
-            html, body { height: auto !important; overflow: visible !important; }
             .sidebar { display: none !important; }
+            .main-area { margin-left: 0 !important; padding: 12px !important; }
             .orders-scroll-box { max-height: none; overflow: visible; }
             .page-title { font-size: 18px; margin-bottom: 8px; }
-            .col-md-10 { padding: 12px !important; }
             .orders-table thead { display: none; }
             .orders-table, .orders-table tbody, .orders-table tr, .orders-table td { display: block; width: 100%; }
             .orders-table tbody tr { background: white; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 14px; padding: 14px 16px; border: 1px solid #e2e8f0; position: relative; }
@@ -88,14 +93,11 @@
             .order-tabs button { font-size: 13px; padding: 10px 6px; }
         }
 
-        [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; }
-        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] body { background-color: #0f172a !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
         [data-theme="dark"] .panel { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .orders-table thead th { color: #f1f5f9 !important; border-color: #475569 !important; background: #0f172a !important; }
         [data-theme="dark"] .orders-table tbody td { border-color: #334155 !important; color: #ffffff !important; background: #1e293b !important; }
-        [data-theme="dark"] .orders-table tbody tr { background-color: #1e293b !important; border-color: #334155 !important; }
         [data-theme="dark"] .customer-name, [data-theme="dark"] .total-cell { color: #ffffff !important; }
         [data-theme="dark"] .page-title { color: #ffffff !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
@@ -106,108 +108,110 @@
 </head>
 <body>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar d-none d-md-block">
-            <div class="text-center mb-4"><img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'"></div>
-            <a href="/">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/audit.html">🔍 Audit Trail</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html" class="active">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/bookings.html">📅 Bookings</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html" class="active">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="page-title mb-0">Orders</h3>
+        <a href="/" class="btn btn-primary btn-sm">← POS</a>
+    </div>
+
+    <div class="order-tabs" id="orderTabs">
+        <button id="tabActive" class="active" onclick="switchTab('active')">📥 Active <span id="activeCount">(0)</span></button>
+        <button id="tabArchive" onclick="switchTab('archive')">📦 Archive <span id="archiveCount">(0)</span></button>
+    </div>
+
+    <div id="activeFilters">
+        <div class="panel mb-3">
+            <div class="row g-2">
+                <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search" oninput="debouncedLoad()"></div>
+                <div class="col-md-3"><input type="date" id="dateFrom" class="form-control" onchange="loadOrders()"></div>
+                <div class="col-md-3"><input type="date" id="dateTo" class="form-control" onchange="loadOrders()"></div>
+                <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
+            </div>
         </div>
-
-        <div class="col-md-10 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="page-title mb-0">Orders</h3>
-                <a href="/" class="btn btn-primary btn-sm">← POS</a>
-            </div>
-
-            <!-- TABS -->
-            <div class="order-tabs" id="orderTabs">
-                <button id="tabActive" class="active" onclick="switchTab('active')">📥 Active <span id="activeCount">(0)</span></button>
-                <button id="tabArchive" onclick="switchTab('archive')">📦 Archive <span id="archiveCount">(0)</span></button>
-            </div>
-
-            <!-- ACTIVE FILTERS -->
-            <div id="activeFilters">
-                <div class="panel mb-3">
-                    <div class="row g-2">
-                        <div class="col-md-4"><input type="text" id="searchBox" class="form-control" placeholder="🔍 Search" oninput="debouncedLoad()"></div>
-                        <div class="col-md-3"><input type="date" id="dateFrom" class="form-control" onchange="loadOrders()"></div>
-                        <div class="col-md-3"><input type="date" id="dateTo" class="form-control" onchange="loadOrders()"></div>
-                        <div class="col-md-2"><button class="btn btn-outline-secondary w-100" onclick="clearFilters()">Clear</button></div>
-                    </div>
-                </div>
-                <div class="panel p-0">
-                    <div class="p-3 border-bottom">
-                        <div class="mb-2">
-                            <small class="text-muted fw-bold me-2">PERIOD:</small>
-                            <button class="btn filter-btn period-btn" data-period="today" onclick="setPeriod('today', this)">Today</button>
-                            <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">Week</button>
-                            <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">Month</button>
-                            <button class="btn filter-btn period-btn active" data-period="all" onclick="setPeriod('all', this)">All</button>
-                        </div>
-                    </div>
-                    <div class="orders-scroll-box">
-                        <table class="orders-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 50px;"><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
-                                    <th style="width: 70px;">#</th>
-                                    <th style="width: 130px;">Date</th>
-                                    <th>Customer</th>
-                                    <th class="text-end" style="width: 110px;">Total</th>
-                                    <th style="width: 100px;">Payment</th>
-                                    <th style="width: 150px;">Status</th>
-                                    <th class="text-end" style="width: 260px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
-                        </table>
-                    </div>
+        <div class="panel p-0">
+            <div class="p-3 border-bottom">
+                <div class="mb-2">
+                    <small class="text-muted fw-bold me-2">PERIOD:</small>
+                    <button class="btn filter-btn period-btn" data-period="today" onclick="setPeriod('today', this)">Today</button>
+                    <button class="btn filter-btn period-btn" data-period="week" onclick="setPeriod('week', this)">Week</button>
+                    <button class="btn filter-btn period-btn" data-period="month" onclick="setPeriod('month', this)">Month</button>
+                    <button class="btn filter-btn period-btn active" data-period="all" onclick="setPeriod('all', this)">All</button>
                 </div>
             </div>
+            <div class="orders-scroll-box">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;"><input type="checkbox" id="selectAll" class="order-checkbox" onchange="toggleSelectAll(this)"></th>
+                            <th style="width: 70px;">#</th>
+                            <th style="width: 130px;">Date</th>
+                            <th>Customer</th>
+                            <th class="text-end" style="width: 110px;">Total</th>
+                            <th style="width: 100px;">Payment</th>
+                            <th style="width: 150px;">Status</th>
+                            <th class="text-end" style="width: 260px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-            <!-- ARCHIVE VIEW -->
-            <div id="archiveView" style="display: none;">
-                <div class="panel mb-3">
-                    <div class="row g-2">
-                        <div class="col-md-8"><input type="text" id="archiveSearchBox" class="form-control" placeholder="🔍 Search archive" oninput="debouncedArchiveLoad()"></div>
-                        <div class="col-md-4 text-end">
-                            <button class="btn btn-warning" onclick="forceCleanup()">🧹 Clean Up Old</button>
-                        </div>
-                    </div>
+    <div id="archiveView" style="display: none;">
+        <div class="panel mb-3">
+            <div class="row g-2">
+                <div class="col-md-8"><input type="text" id="archiveSearchBox" class="form-control" placeholder="🔍 Search archive" oninput="debouncedArchiveLoad()"></div>
+                <div class="col-md-4 text-end">
+                    <button class="btn btn-warning" onclick="forceCleanup()">🧹 Clean Up Old</button>
                 </div>
-                <div class="panel p-0">
-                    <div class="p-3 border-bottom" style="background: #fffbeb; color: #92400e; font-size: 13px;">
-                        📦 <strong>Archive</strong> — Orders auto-delete after <strong>7 days</strong>. You can retrieve them anytime before then.
-                    </div>
-                    <div class="orders-scroll-box">
-                        <table class="orders-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 70px;">#</th>
-                                    <th style="width: 130px;">Date</th>
-                                    <th>Customer</th>
-                                    <th class="text-end" style="width: 110px;">Total</th>
-                                    <th style="width: 100px;">Payment</th>
-                                    <th style="width: 130px;">Status</th>
-                                    <th style="width: 130px;">Expires</th>
-                                    <th class="text-end" style="width: 200px;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="archiveTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+            </div>
+        </div>
+        <div class="panel p-0">
+            <div class="p-3 border-bottom" style="background: #fffbeb; color: #92400e; font-size: 13px;">
+                📦 <strong>Archive</strong> — Orders auto-delete after <strong>7 days</strong>. You can retrieve them anytime before then.
+            </div>
+            <div class="orders-scroll-box">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">#</th>
+                            <th style="width: 130px;">Date</th>
+                            <th>Customer</th>
+                            <th class="text-end" style="width: 110px;">Total</th>
+                            <th style="width: 100px;">Payment</th>
+                            <th style="width: 130px;">Status</th>
+                            <th style="width: 130px;">Expires</th>
+                            <th class="text-end" style="width: 200px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="archiveTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -283,20 +287,8 @@
         const tabArchive = document.getElementById('tabArchive');
         const activeView = document.getElementById('activeFilters');
         const archiveView = document.getElementById('archiveView');
-
-        if (tab === 'active') {
-            tabActive.className = 'active';
-            tabArchive.className = '';
-            activeView.style.display = 'block';
-            archiveView.style.display = 'none';
-            loadOrders();
-        } else {
-            tabActive.className = '';
-            tabArchive.className = 'archive-active';
-            activeView.style.display = 'none';
-            archiveView.style.display = 'block';
-            loadArchive();
-        }
+        if (tab === 'active') { tabActive.className = 'active'; tabArchive.className = ''; activeView.style.display = 'block'; archiveView.style.display = 'none'; loadOrders(); }
+        else { tabActive.className = ''; tabArchive.className = 'archive-active'; activeView.style.display = 'none'; archiveView.style.display = 'block'; loadArchive(); }
     }
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
@@ -332,16 +324,11 @@
     }
 
     function getSelectedIds() { return Array.from(document.querySelectorAll('.order-checkbox-row:checked')).map(cb => parseInt(cb.value)); }
-    function updateBatchBar() {
-        const ids = getSelectedIds();
-        document.getElementById('selectedCount').innerText = ids.length;
-        document.getElementById('batchBar').classList.toggle('show', ids.length > 0);
-    }
+    function updateBatchBar() { const ids = getSelectedIds(); document.getElementById('selectedCount').innerText = ids.length; document.getElementById('batchBar').classList.toggle('show', ids.length > 0); }
     function toggleSelectAll(source) { document.querySelectorAll('.order-checkbox-row').forEach(cb => { cb.checked = source.checked; cb.closest('tr').classList.toggle('row-selected', source.checked); }); updateBatchBar(); }
     function toggleRowCheckbox(cb) { cb.closest('tr').classList.toggle('row-selected', cb.checked); const all = document.querySelectorAll('.order-checkbox-row'); const checked = document.querySelectorAll('.order-checkbox-row:checked'); document.getElementById('selectAll').checked = (all.length > 0 && all.length === checked.length); updateBatchBar(); }
     function clearSelection() { document.querySelectorAll('.order-checkbox-row').forEach(cb => { cb.checked = false; cb.closest('tr').classList.remove('row-selected'); }); document.getElementById('selectAll').checked = false; updateBatchBar(); }
 
-    // ===== LOAD ACTIVE ORDERS =====
     function loadOrders() {
         const search = document.getElementById('searchBox').value.trim();
         let dateFrom = document.getElementById('dateFrom').value;
@@ -351,12 +338,8 @@
         if (search) url += '&search=' + encodeURIComponent(search);
         if (dateFrom) url += '&dateFrom=' + dateFrom;
         if (dateTo) url += '&dateTo=' + dateTo;
-
         fetch(url, { headers: { 'x-auth-token': authToken } })
-            .then(res => {
-                if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; }
-                return res.json();
-            })
+            .then(res => { if (res.status === 401) { localStorage.removeItem('authToken'); window.location.href = '/login.html'; return; } return res.json(); })
             .then(orders => {
                 if (!orders) return;
                 document.getElementById('activeCount').innerText = '(' + orders.length + ')';
@@ -392,19 +375,14 @@
                 }).join('');
                 document.getElementById('selectAll').checked = false;
                 updateBatchBar();
-            })
-            .catch(err => console.error(err));
+            }).catch(err => console.error(err));
     }
 
-    // ===== LOAD ARCHIVE =====
     function loadArchive() {
-        // First, trigger cleanup in background
         fetch('/api/orders/archive/cleanup', { method: 'POST', headers: { 'x-auth-token': authToken } }).catch(() => {});
-
         const search = document.getElementById('archiveSearchBox').value.trim();
         let url = '/api/orders/archive';
         if (search) url += '?search=' + encodeURIComponent(search);
-
         fetch(url, { headers: { 'x-auth-token': authToken } })
             .then(res => res.json())
             .then(orders => {
@@ -435,60 +413,15 @@
                         </td>
                     </tr>`;
                 }).join('');
-            })
-            .catch(err => console.error(err));
+            }).catch(err => console.error(err));
     }
 
-    // ===== ACTIONS =====
-    function archiveOrder(id) {
-        if (!confirm('Move order #' + id + ' to Archive?')) return;
-        fetch('/api/orders/' + id + '/archive', { method: 'POST', headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) return alert('Error: ' + data.error);
-                loadOrders();
-            });
-    }
-
-    function retrieveOrder(id) {
-        if (!confirm('Retrieve order #' + id + ' back to Active?')) return;
-        fetch('/api/orders/' + id + '/restore', { method: 'POST', headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) return alert('Error: ' + data.error);
-                loadArchive();
-            });
-    }
-
-    function batchArchive() {
-        const ids = getSelectedIds();
-        if (ids.length === 0) return;
-        if (!confirm(`Archive ${ids.length} order(s)?`)) return;
-        fetch('/api/orders/batch/archive', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) })
-            .then(res => res.json())
-            .then(data => { if (data.error) return alert('Error: ' + data.error); clearSelection(); loadOrders(); });
-    }
-
-    function forceCleanup() {
-        if (!confirm('Delete ALL archived orders older than 7 days? This cannot be undone.')) return;
-        fetch('/api/orders/archive/cleanup', { method: 'POST', headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(data => {
-                if (data.error) return alert('Error: ' + data.error);
-                alert('✅ Deleted ' + data.deleted + ' old archived orders.');
-                loadArchive();
-            });
-    }
-
-    function advanceOrder(id) {
-        fetch('/api/orders/' + id + '/next-status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({}) })
-        .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
-    }
-    function advanceWithRider(id) {
-        const rider = prompt('Rider name (optional):', '');
-        fetch('/api/orders/' + id + '/next-status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ riderName: rider || null }) })
-        .then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); });
-    }
+    function archiveOrder(id) { if (!confirm('Move order #' + id + ' to Archive?')) return; fetch('/api/orders/' + id + '/archive', { method: 'POST', headers: { 'x-auth-token': authToken } }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); }); }
+    function retrieveOrder(id) { if (!confirm('Retrieve order #' + id + ' back to Active?')) return; fetch('/api/orders/' + id + '/restore', { method: 'POST', headers: { 'x-auth-token': authToken } }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadArchive(); }); }
+    function batchArchive() { const ids = getSelectedIds(); if (ids.length === 0) return; if (!confirm(`Archive ${ids.length} order(s)?`)) return; fetch('/api/orders/batch/archive', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); clearSelection(); loadOrders(); }); }
+    function forceCleanup() { if (!confirm('Delete ALL archived orders older than 7 days? This cannot be undone.')) return; fetch('/api/orders/archive/cleanup', { method: 'POST', headers: { 'x-auth-token': authToken } }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); alert('✅ Deleted ' + data.deleted + ' old archived orders.'); loadArchive(); }); }
+    function advanceOrder(id) { fetch('/api/orders/' + id + '/next-status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({}) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); }); }
+    function advanceWithRider(id) { const rider = prompt('Rider name (optional):', ''); fetch('/api/orders/' + id + '/next-status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ riderName: rider || null }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); }); }
     function markPaid(id) { fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function markUnpaid(id) { fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function deleteOrder(id) { if (userRole === 'cashier') return alert('Cashiers cannot delete orders.'); if (!confirm('Delete order #' + id + '?')) return; fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
@@ -502,7 +435,6 @@
             .then(data => { if (data.error) return alert('Error: ' + data.error); renderReceipt(data, size); });
     }
 
-    // ===== RECEIPT (ASCII) =====
     function dividerLine(size) { return (size === '58' ? '-'.repeat(31) : '-'.repeat(47)); }
     function doubleDividerLine(size) { return (size === '58' ? '='.repeat(31) : '='.repeat(47)); }
     function padRight(str, len) { str = String(str || ''); if (str.length >= len) return str.substring(0, len); return str + ' '.repeat(len - str.length); }
@@ -524,7 +456,6 @@
         hrs = hrs % 12 || 12;
         const shortDate = months[dateObj.getMonth()] + ' ' + dateObj.getDate() + ', ' + hrs + ':' + mins + ampm;
         let lines = [];
-
         lines.push(doubleDividerLine(size));
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
@@ -554,7 +485,6 @@
         lines.push('');
         lines.push('');
         lines.push('');
-
         lines.push(doubleDividerLine(size));
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
@@ -583,9 +513,7 @@
             const a = document.createElement('a');
             a.href = 'rawbt:base64,' + encoded;
             a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
             return;
         }
         renderReceiptDesktop(order, size);
@@ -609,22 +537,17 @@
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.quantity}</td></tr>`;
         }).join('');
         const formattedDate = new Date(order.date).toLocaleString();
-
         const customerCopyHtml = `<div class="receipt-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div><div class="info">#${order.id} - ${formattedDate}</div><div class="info">${customerFullName}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table><div class="divider"></div><table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${parseFloat(order.total).toFixed(2)}</td></tr></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider"></div><div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div><div class="divider-solid"></div><div class="footer">Thank you! Come again!</div><div class="center" style="margin-top: 12px;">-------- CUT HERE --------</div><div style="height: 30px;"></div></div>`;
         const shopCopyHtml = `<div class="receipt-copy shop-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div><div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div><div class="info" style="text-align: left;">#${order.id} - ${formattedDate}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider-solid"></div><div class="footer">Thank you!</div></div>`;
-
         const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${order.id}</title><style>@page { size: ${pageWidth} auto; margin: 0; } body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; } .receipt-copy { padding-bottom: 10px; } .receipt-copy.shop-copy { border-top: 2px dashed #000; padding-top: 12px; margin-top: 10px; } .center { text-align: center; } .bold { font-weight: 900; } .big { font-size: ${size === '58' ? 14 : 16}px; } .divider { border-top: 1px dashed #000; margin: 4px 0; } .divider-solid { border-top: 2px solid #000; margin: 6px 0; } table { width: 100%; border-collapse: collapse; } .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; } .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; color: #000; background: #fff; } .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; } .info { font-size: ${fontSize}px; margin: 2px 0; } .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; } @media print { .print-btn { display: none; } body { padding: 2mm; } * { color: #000 !important; background: #fff !important; } }</style></head><body>${customerCopyHtml}${shopCopyHtml}<br><br><br><button class="print-btn" onclick="window.print()">Print Both Copies</button></body></html>`;
         const w = window.open('', '_blank', 'width=400,height=700');
-        w.document.write(receiptHtml);
-        w.document.close();
+        w.document.write(receiptHtml); w.document.close();
     }
 
     function logout() {
         const token = localStorage.getItem('authToken');
         if (token) fetch('/api/logout', { method: 'POST', headers: { 'x-auth-token': token } });
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userRole');
+        localStorage.removeItem('authToken'); localStorage.removeItem('userName'); localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
 

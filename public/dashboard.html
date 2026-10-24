@@ -4,785 +4,270 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/logo.png">
+    <title>Dashboard - Hawi's Lovada</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        html, body {
-            background-color: #f4f6f9;
-            font-family: 'Segoe UI', sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            overflow-y: auto;
-            height: auto;
-            min-height: 100%;
-        }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; margin: 0; }
 
+        /* FIXED SIDEBAR — never moves */
         .sidebar {
-            background-color: #1e293b;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
             color: white;
-            height: 100vh;
-            padding-top: 20px;
             position: fixed;
-            top: 0;
-            left: 0;
+            top: 0; left: 0;
             width: 16.66667%;
+            height: 100vh;
+            padding: 20px 0;
             overflow-y: auto;
             z-index: 100;
         }
         .sidebar::-webkit-scrollbar { width: 6px; }
         .sidebar::-webkit-scrollbar-track { background: #0f172a; }
         .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background-color: #3b82f6; color: white; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; height: auto; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
 
-        .main-content {
-            margin-left: 16.66667%;
-            padding: 24px 24px 100px;
-        }
+        .main-area { margin-left: 16.66667%; padding: 24px; min-height: 100vh; }
+        .page-title { font-size: 26px; font-weight: 800; color: #0f172a; margin: 0; }
+        .page-sub { font-size: 13px; color: #64748b; margin: 2px 0 24px 0; }
 
-        .page-title { font-size: 24px; font-weight: 800; color: #0f172a; margin: 0; }
-        .page-sub { font-size: 13px; color: #64748b; margin: 4px 0 20px 0; }
+        .kpi-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border-left: 5px solid #1e40af; transition: transform 0.15s, box-shadow 0.15s; cursor: pointer; }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+        .kpi-card.green { border-left-color: #10b981; } .kpi-card.green .value { color: #10b981; }
+        .kpi-card.orange { border-left-color: #f59e0b; } .kpi-card.orange .value { color: #f59e0b; }
+        .kpi-card.red { border-left-color: #dc2626; } .kpi-card.red .value { color: #dc2626; }
+        .kpi-card.purple { border-left-color: #8b5cf6; } .kpi-card.purple .value { color: #8b5cf6; }
+        .kpi-card.gold { border-left-color: #eab308; } .kpi-card.gold .value { color: #ca8a04; }
+        .kpi-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 8px; }
+        .kpi-card .value { font-size: 26px; font-weight: 900; color: #0f172a; line-height: 1.1; }
+        .kpi-card .sub { font-size: 11px; color: #94a3b8; margin-top: 6px; font-weight: 500; }
 
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 18px 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            border-left: 4px solid #1e40af;
-        }
-        .stat-card .label { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 6px; }
-        .stat-card .value { font-size: 24px; font-weight: 800; color: #0f172a; line-height: 1.1; }
-        .stat-card .sub { font-size: 11px; color: #94a3b8; margin-top: 4px; }
-        .stat-card.green { border-left-color: #10b981; }
-        .stat-card.blue { border-left-color: #3b82f6; }
-        .stat-card.orange { border-left-color: #f59e0b; }
-        .stat-card.purple { border-left-color: #8b5cf6; }
+        .section-title { font-size: 13px; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 1.5px; margin: 32px 0 14px 0; display: flex; align-items: center; gap: 8px; }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
 
-        .section-title {
-            font-size: 14px;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 24px 0 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .nav-card { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); display: flex; align-items: center; gap: 14px; text-decoration: none; color: #0f172a; transition: all 0.15s; border: 2px solid transparent; height: 100%; }
+        .nav-card:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.1); border-color: #3b82f6; }
+        .nav-card .icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+        .nav-card .icon.blue { background: #dbeafe; }
+        .nav-card .icon.green { background: #d1fae5; }
+        .nav-card .icon.orange { background: #fef3c7; }
+        .nav-card .icon.red { background: #fee2e2; }
+        .nav-card .icon.purple { background: #ede9fe; }
+        .nav-card .icon.gold { background: #fef3c7; }
+        .nav-card .icon.teal { background: #ccfbf1; }
+        .nav-card .label { font-weight: 800; font-size: 14px; color: #0f172a; }
+        .nav-card .desc { font-size: 11.5px; color: #64748b; margin-top: 2px; }
+        .nav-card .arrow { margin-left: auto; font-size: 18px; color: #cbd5e1; }
+        .nav-card:hover .arrow { color: #3b82f6; }
 
-        .roi-panel {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            border-radius: 14px;
-            padding: 22px;
-            color: white;
-            box-shadow: 0 4px 14px rgba(30,64,175,0.25);
-        }
-        .roi-panel .roi-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .roi-panel .roi-head h4 {
-            font-size: 15px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            margin: 0;
-            text-transform: uppercase;
-        }
-        .roi-panel .roi-head button {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.3);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 12px;
-            cursor: pointer;
-            margin-left: 6px;
-        }
-        .roi-panel .roi-head button:hover { background: rgba(255,255,255,0.25); }
-
-        .roi-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-        .roi-stat {
-            background: rgba(255,255,255,0.12);
-            border-radius: 10px;
-            padding: 12px 14px;
-            border: 1px solid rgba(255,255,255,0.15);
-        }
-        .roi-stat .lbl { font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.85; font-weight: 700; margin-bottom: 4px; }
-        .roi-stat .val { font-size: 17px; font-weight: 800; word-break: break-all; }
-        .roi-stat .sub { font-size: 10px; opacity: 0.75; margin-top: 2px; }
-
-        .roi-big-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .roi-big {
-            background: rgba(255,255,255,0.18);
-            border-radius: 12px;
-            padding: 18px;
-            text-align: center;
-            border: 2px solid rgba(255,255,255,0.3);
-        }
-        .roi-big .lbl { font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; opacity: 0.9; font-weight: 700; }
-        .roi-big .val { font-size: 32px; font-weight: 900; line-height: 1; margin-top: 6px; }
-        .roi-big .sub { font-size: 11px; opacity: 0.85; margin-top: 6px; }
-        .roi-big.recovered { background: linear-gradient(135deg, rgba(16,185,129,0.4), rgba(16,185,129,0.25)); border-color: #10b981; }
-
-        .panel {
-            background: white;
-            border-radius: 12px;
-            padding: 18px 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .panel h5 {
-            font-size: 14px;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 0 0 12px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .list-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 4px;
-            border-bottom: 1px solid #f1f5f9;
-            font-size: 13px;
-        }
-        .list-row:last-child { border-bottom: none; }
-        .list-row .name { font-weight: 700; color: #1e293b; font-size: 13px; }
-        .list-row .meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-        .list-row .amount { font-weight: 800; color: #1e40af; }
-        .list-row .btns { display: flex; gap: 4px; margin-left: 8px; }
-        .list-row .btns button {
-            background: white;
-            border: 1px solid #e2e8f0;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            cursor: pointer;
-        }
-        .list-row .btns button.del { color: #dc2626; border-color: #fecaca; }
+        .panel { background: white; border-radius: 14px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px; }
+        .panel h5 { font-size: 14px; font-weight: 800; color: #0f172a; margin: 0 0 14px 0; display: flex; align-items: center; justify-content: space-between; }
 
         .clean-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .clean-table thead th {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #64748b;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            padding: 10px 8px;
-            border-bottom: 2px solid #e2e8f0;
-            text-align: left;
-        }
-        .clean-table tbody td {
-            padding: 12px 8px;
-            border-bottom: 1px solid #f1f5f9;
-            color: #1e293b;
-        }
+        .clean-table thead th { font-size: 10px; text-transform: uppercase; color: #64748b; font-weight: 800; letter-spacing: 0.5px; padding: 10px 8px; border-bottom: 2px solid #e2e8f0; text-align: left; }
+        .clean-table tbody td { padding: 12px 8px; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
         .clean-table tbody tr:hover { background: #f8fafc; }
         .clean-table .num { text-align: right; font-weight: 700; }
 
-        .empty-state {
-            text-align: center;
-            padding: 30px 20px;
-            color: #94a3b8;
-            font-size: 13px;
-        }
+        .chart-container { display: flex; align-items: flex-end; gap: 12px; height: 200px; padding: 10px 0; border-bottom: 2px solid #e2e8f0; overflow-x: auto; }
+        .chart-bar-wrap { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
+        .chart-label-top { font-size: 10px; font-weight: 700; color: #1e293b; margin-bottom: 6px; white-space: nowrap; }
+        .chart-bar { width: 38px; background: linear-gradient(180deg, #3b82f6, #1e40af); border-radius: 6px 6px 0 0; }
+        .chart-label-bottom { font-size: 11px; font-weight: 700; color: #0f172a; margin-top: 8px; }
+        .chart-label-sub { font-size: 10px; color: #64748b; }
 
-        .modal-content { border-radius: 14px; border: none; }
-        .modal-header {
-            background: linear-gradient(135deg, #1e40af, #3b82f6);
-            color: white;
-            border-radius: 14px 14px 0 0;
-            padding: 18px 22px;
-        }
-        .modal-header .btn-close { filter: invert(1); opacity: 0.9; }
-        .modal-body { padding: 22px; }
+        .alert-card { background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; }
+        .alert-card.danger { background: #fee2e2; border-left-color: #dc2626; }
+        .alert-card .icon { font-size: 22px; }
+        .alert-card .text { flex: 1; font-size: 13px; color: #1e293b; }
+        .alert-card .text strong { font-weight: 800; }
+        .alert-card a { color: #92400e; font-weight: 700; text-decoration: underline; }
 
-        #backToTop {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #1e40af;
-            color: white;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(30,64,175,0.4);
-            display: none;
-            z-index: 999;
-        }
-        #backToTop:hover { background: #1e3a8a; }
-
-        [data-theme="dark"] html, [data-theme="dark"] body { background-color: #0f172a !important; color: #f1f5f9 !important; }
-        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
-        [data-theme="dark"] .stat-card,
-        [data-theme="dark"] .panel { background-color: #1e293b !important; }
-        [data-theme="dark"] .stat-card .value,
-        [data-theme="dark"] .page-title,
-        [data-theme="dark"] .section-title,
-        [data-theme="dark"] .panel h5 { color: #ffffff !important; }
-        [data-theme="dark"] .stat-card .label,
-        [data-theme="dark"] .stat-card .sub { color: #94a3b8 !important; }
-        [data-theme="dark"] .list-row { border-color: #334155 !important; }
-        [data-theme="dark"] .list-row .name { color: #ffffff !important; }
+        [data-theme="dark"] body { background: #0f172a !important; color: #e2e8f0 !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
+        [data-theme="dark"] .kpi-card, [data-theme="dark"] .panel, [data-theme="dark"] .nav-card { background-color: #1e293b !important; }
+        [data-theme="dark"] .page-title, [data-theme="dark"] .kpi-card .value, [data-theme="dark"] .nav-card .label, [data-theme="dark"] .panel h5 { color: #e2e8f0 !important; }
         [data-theme="dark"] .clean-table thead th { color: #94a3b8 !important; border-color: #334155 !important; }
         [data-theme="dark"] .clean-table tbody td { color: #e2e8f0 !important; border-color: #334155 !important; }
         [data-theme="dark"] .clean-table tbody tr:hover { background: #0f172a !important; }
-        [data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .modal-content { background-color: #1e293b !important; }
-        [data-theme="dark"] .text-muted { color: #94a3b8 !important; }
+        [data-theme="dark"] .section-title { color: #94a3b8 !important; }
+        [data-theme="dark"] .section-title::after { background: #334155 !important; }
 
         @media (max-width: 767px) {
             .sidebar { display: none !important; }
-            .main-content { margin-left: 0 !important; padding: 14px 14px 100px !important; }
+            .main-area { margin-left: 0 !important; padding: 14px !important; }
             .page-title { font-size: 20px; }
-            .stat-card .value { font-size: 18px; }
-            .roi-stat .val { font-size: 15px; }
-            .roi-big-wrap { grid-template-columns: 1fr; }
-            .roi-big .val { font-size: 26px; }
-            .roi-panel { padding: 18px; }
+            .kpi-card .value { font-size: 20px; }
         }
     </style>
 </head>
 <body>
 
 <div class="sidebar d-none d-md-block">
-    <div class="text-center mb-4">
-        <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;">
-    </div>
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
     <a href="/">🧺 POS</a>
     <a href="/dashboard.html" class="active">📊 Dashboard</a>
-    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
     <a href="/services.html">🧴 Services</a>
     <a href="/products.html">📦 Products</a>
-    <a href="/orders.html">📋 Orders</a>    
     <a href="/replenishments.html">📥 Replenishments</a>
-    <a href="/expenses.html">💰 Expenses</a>
-    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
     <a href="/settings.html">⚙️ Settings</a>
     <a href="#" class="theme-toggle">🌙 Dark Mode</a>
     <a href="#" onclick="logout()">🚪 Logout</a>
 </div>
 
-<div class="main-content">
-    <h1 class="page-title">Dashboard</h1>
-    <p class="page-sub">Overview of your shop's performance</p>
+<div class="main-area">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+        <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-sub" id="todayLabel">Loading...</p>
+        </div>
+        <a href="/" class="btn btn-primary" style="background:#1e40af;border:none;font-weight:700;padding:10px 20px;border-radius:10px;">🛒 New Sale</a>
+    </div>
 
+    <div id="alertsBox"></div>
+
+    <div class="section-title">Today's Snapshot</div>
     <div class="row g-3 mb-2">
-        <div class="col-6 col-md-3">
-            <div class="stat-card green">
-                <div class="label">Today's Revenue</div>
-                <div class="value" id="todayRevenue">₱0.00</div>
-                <div class="sub" id="todayOrdersSub">0 orders</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card blue">
-                <div class="label">All-Time Revenue</div>
-                <div class="value" id="allTimeRevenue">₱0.00</div>
-                <div class="sub" id="allTimeSub">0 orders</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card orange">
-                <div class="label">Pending Payments</div>
-                <div class="value" id="pendingOrders">0</div>
-                <div class="sub">Unpaid orders</div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="stat-card purple">
-                <div class="label">Avg Order Value</div>
-                <div class="value" id="avgOrder">₱0.00</div>
-                <div class="sub">Per transaction</div>
-            </div>
-        </div>
+        <div class="col-6 col-md-3"><a href="/orders.html" style="text-decoration:none;"><div class="kpi-card green"><div class="label">Today's Revenue</div><div class="value" id="todayRevenue">₱0.00</div><div class="sub" id="todayOrdersSub">0 orders</div></div></a></div>
+        <div class="col-6 col-md-3"><a href="/orders.html?filter=unpaid" style="text-decoration:none;"><div class="kpi-card orange"><div class="label">Pending Payments</div><div class="value" id="pendingPayments">0</div><div class="sub">Unpaid orders</div></div></a></div>
+        <div class="col-6 col-md-3"><a href="/bookings.html" style="text-decoration:none;"><div class="kpi-card purple"><div class="label">Pending Bookings</div><div class="value" id="pendingBookings">0</div><div class="sub">Awaiting confirmation</div></div></a></div>
+        <div class="col-6 col-md-3"><a href="/products.html" style="text-decoration:none;"><div class="kpi-card red"><div class="label">Low Stock</div><div class="value" id="lowStockCount">0</div><div class="sub">Items to replenish</div></div></a></div>
     </div>
 
-    <div class="section-title">💰 Investment &amp; ROI</div>
-    <div class="roi-panel mb-4">
-        <div class="roi-head">
-            <h4>Investment Overview</h4>
-            <div>
-                <button onclick="openAssetModal()">+ Asset</button>
-                <button onclick="openCapitalModal()">+ Capital</button>
-            </div>
-        </div>
-
-        <div class="roi-stats">
-            <div class="roi-stat">
-                <div class="lbl">Capital</div>
-                <div class="val" id="roiCapital">₱0.00</div>
-                <div class="sub" id="roiCapitalCount">0 entries</div>
-            </div>
-            <div class="roi-stat">
-                <div class="lbl">Assets</div>
-                <div class="val" id="roiAssets">₱0.00</div>
-                <div class="sub" id="roiAssetsCount">0 assets</div>
-            </div>
-            <div class="roi-stat">
-                <div class="lbl">Total Invested</div>
-                <div class="val" id="roiTotalInvest">₱0.00</div>
-                <div class="sub">Capital + Assets</div>
-            </div>
-            <div class="roi-stat">
-                <div class="lbl">Depreciation/mo</div>
-                <div class="val" id="roiDepr">₱0.00</div>
-                <div class="sub">Auto-calculated</div>
-            </div>
-            <div class="roi-stat">
-                <div class="lbl">Net Profit</div>
-                <div class="val" id="roiNetProfit">₱0.00</div>
-                <div class="sub">Revenue − Expenses</div>
-            </div>
-        </div>
-
-        <div class="roi-big-wrap">
-            <div class="roi-big" id="roiBig">
-                <div class="lbl">Return on Investment</div>
-                <div class="val" id="roiPercent">0%</div>
-                <div class="sub" id="roiNetProfitSub">Net Profit: ₱0.00</div>
-            </div>
-            <div class="roi-big" id="paybackBig">
-                <div class="lbl">Payback Period</div>
-                <div class="val" id="paybackValue">—</div>
-                <div class="sub" id="paybackSub">Loading...</div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-md-6">
-            <div class="panel">
-                <h5>🏗️ Your Assets <span class="badge bg-primary" id="assetBadge">0</span></h5>
-                <div id="assetsList"></div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="panel">
-                <h5>🏦 Capital Invested <span class="badge bg-success" id="capitalBadge">0</span></h5>
-                <div id="capitalList"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="section-title">📈 Sales Performance</div>
-    <div class="panel mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-            <h5 class="mb-0">Revenue Chart</h5>
-            <div>
-                <select id="yearSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()"></select>
-                <select id="monthSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()">
-                    <option value="all">Whole Year</option>
-                    <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
-                    <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
-                    <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
-                    <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
-                </select>
-            </div>
-        </div>
-        <div id="weeklyChart" style="display:flex;align-items:flex-end;gap:12px;height:220px;padding:10px 0;border-bottom:2px solid #e2e8f0;overflow-x:auto;"></div>
-    </div>
-
+    <div class="section-title">Financial Position</div>
     <div class="row g-3">
-        <div class="col-md-5">
+        <div class="col-6 col-md-3"><a href="/statements.html" style="text-decoration:none;"><div class="kpi-card green"><div class="label">Cash on Hand</div><div class="value" id="cashOnHand">₱0.00</div><div class="sub">Physical cash</div></div></a></div>
+        <div class="col-6 col-md-3"><a href="/statements.html" style="text-decoration:none;"><div class="kpi-card"><div class="label">Total Assets</div><div class="value" id="totalAssets">₱0.00</div><div class="sub">Cash + Inventory + Equipment</div></div></a></div>
+        <div class="col-6 col-md-3"><a href="/liabilities.html" style="text-decoration:none;"><div class="kpi-card orange"><div class="label">Total Liabilities</div><div class="value" id="totalLiabilities">₱0.00</div><div class="sub">Loans + unpaid bills</div></div></a></div>
+        <div class="col-6 col-md-3"><a href="/statements.html" style="text-decoration:none;"><div class="kpi-card gold"><div class="label">Owner's Equity</div><div class="value" id="totalEquity">₱0.00</div><div class="sub">Assets − Liabilities</div></div></a></div>
+    </div>
+
+    <div class="section-title">This Month</div>
+    <div class="row g-3">
+        <div class="col-6 col-md-3"><div class="kpi-card"><div class="label">Revenue</div><div class="value" id="monthRevenue">₱0.00</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card orange"><div class="label">Expenses</div><div class="value" id="monthExpenses">₱0.00</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card" id="monthProfitCard"><div class="label">Net Profit</div><div class="value" id="monthProfit">₱0.00</div></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card purple"><div class="label">Profit Margin</div><div class="value" id="monthMargin">0%</div></div></div>
+    </div>
+
+    <div class="section-title">Quick Access</div>
+    <div class="row g-3">
+        <div class="col-12 col-md-6 col-lg-3"><a href="/statements.html" class="nav-card"><div class="icon blue">📑</div><div><div class="label">Financial Statements</div><div class="desc">P&L, Balance Sheet, Cash Flow</div></div><div class="arrow">→</div></a></div>
+        <div class="col-12 col-md-6 col-lg-3"><a href="/liabilities.html" class="nav-card"><div class="icon orange">💳</div><div><div class="label">Liabilities</div><div class="desc">Loans & unpaid bills</div></div><div class="arrow">→</div></a></div>
+        <div class="col-12 col-md-6 col-lg-3"><a href="/withdrawals.html" class="nav-card"><div class="icon red">💸</div><div><div class="label">Owner Withdrawals</div><div class="desc">Personal cash taken out</div></div><div class="arrow">→</div></a></div>
+        <div class="col-12 col-md-6 col-lg-3"><a href="/capital.html" class="nav-card"><div class="icon green">💵</div><div><div class="label">Capital</div><div class="desc">Owner's investment</div></div><div class="arrow">→</div></a></div>
+        <div class="col-12 col-md-6 col-lg-3"><a href="/assets.html" class="nav-card"><div class="icon purple">🏗️</div><div><div class="label">Assets</div><div class="desc">Equipment & fixtures</div></div><div class="arrow">→</div></a></div>
+        <div class="col-12 col-md-6 col-lg-3"><a href="/expenses.html" class="nav-card"><div class="icon orange">💸</div><div><div class="label">Expenses</div><div class="desc">Operating costs</div></div><div class="arrow">→</div></a></div>
+        <div class="col-12 col-md-6 col-lg-3"><a href="/audit.html" class="nav-card"><div class="icon teal">🔍</div><div><div class="label">Audit Trail</div><div class="desc">Full activity log</div></div><div class="arrow">→</div></a></div>
+        <div class="col-12 col-md-6 col-lg-3"><a href="/settings.html" class="nav-card"><div class="icon red">⚙️</div><div><div class="label">Settings</div><div class="desc">Shop & user config</div></div><div class="arrow">→</div></a></div>
+    </div>
+
+    <div class="row g-3 mt-2">
+        <div class="col-lg-7">
             <div class="panel">
-                <h5>Top Services</h5>
-                <table class="clean-table">
-                    <thead><tr><th>Service</th><th class="num">Qty</th><th class="num">Revenue</th></tr></thead>
-                    <tbody id="topServicesTable"></tbody>
-                </table>
+                <h5><span>📈 Revenue Trend</span><div><select id="yearSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()" style="font-size:12px;font-weight:600;"></select><select id="monthSelect" class="form-select form-select-sm d-inline-block w-auto" onchange="loadChart()" style="font-size:12px;font-weight:600;"><option value="all">Whole Year</option><option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option><option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option></select></div></h5>
+                <div id="weeklyChart" class="chart-container"></div>
             </div>
         </div>
-        <div class="col-md-7">
+        <div class="col-lg-5">
             <div class="panel">
-                <h5>Recent Orders</h5>
-                <table class="clean-table">
-                    <thead><tr><th>#</th><th>Date</th><th>Customer</th><th class="num">Total</th><th>Status</th></tr></thead>
-                    <tbody id="recentOrdersTable"></tbody>
-                </table>
+                <h5><span>🕐 Recent Orders</span> <a href="/orders.html" style="font-size:11px;color:#1e40af;font-weight:700;text-decoration:none;">View all →</a></h5>
+                <table class="clean-table"><thead><tr><th>#</th><th>Customer</th><th class="num">Total</th></tr></thead><tbody id="recentOrdersTable"></tbody></table>
             </div>
         </div>
     </div>
-</div>
 
-<button id="backToTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" title="Back to top">↑</button>
-
-<div class="modal fade" id="assetModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="assetModalTitle">Add Asset</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="assetId">
-                <div class="mb-3">
-                    <label class="form-label small">Asset Name *</label>
-                    <input type="text" id="aName" class="form-control" placeholder="e.g., Washing Machine">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">Category</label>
-                    <select id="aCategory" class="form-select">
-                        <option>Equipment</option>
-                        <option>Furniture</option>
-                        <option>Electronics</option>
-                        <option>Vehicle</option>
-                        <option>Fixtures</option>
-                        <option>Other</option>
-                    </select>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small">Purchase Price (₱) *</label>
-                        <input type="number" id="aPrice" class="form-control" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small">Salvage Value (₱)</label>
-                        <input type="number" id="aSalvage" class="form-control" placeholder="0.00" step="0.01" value="0">
-                    </div>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small">Purchase Date</label>
-                        <input type="date" id="aDate" class="form-control">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small">Useful Life (months)</label>
-                        <input type="number" id="aLife" class="form-control" value="60">
-                    </div>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small">Notes</label>
-                    <input type="text" id="aNotes" class="form-control" placeholder="Optional">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" onclick="saveAsset()">💾 Save Asset</button>
-            </div>
-        </div>
+    <div class="panel mt-3">
+        <h5><span>🏆 Top Services</span></h5>
+        <table class="clean-table"><thead><tr><th>Service</th><th class="num">Quantity</th><th class="num">Revenue</th></tr></thead><tbody id="topServicesTable"></tbody></table>
     </div>
 </div>
 
-<div class="modal fade" id="capitalModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="capitalModalTitle">Add Capital</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="capitalId">
-                <div class="mb-3">
-                    <label class="form-label small">Description *</label>
-                    <input type="text" id="cDesc" class="form-control" placeholder="e.g., Initial Cash Investment">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small">Amount (₱) *</label>
-                    <input type="number" id="cAmount" class="form-control" placeholder="0.00" step="0.01">
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small">Category</label>
-                        <select id="cCategory" class="form-select">
-                            <option>Startup</option>
-                            <option>Deposit</option>
-                            <option>Permit</option>
-                            <option>Renovation</option>
-                            <option>Equipment</option>
-                            <option>Cash Injection</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small">Date</label>
-                        <input type="date" id="cDate" class="form-control">
-                    </div>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label small">Notes</label>
-                    <input type="text" id="cNotes" class="form-control" placeholder="Optional">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" onclick="saveCapital()">💾 Save Capital</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     if (!authToken) { window.location.href = '/login.html'; }
 
-    // ===== FORMATTERS WITH COMMAS + CENTS EVERYWHERE =====
-    function peso(n) {
-        const v = parseFloat(n) || 0;
-        return '₱' + v.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    function num(n) {
-        return (parseFloat(n) || 0).toLocaleString('en-PH');
-    }
+    function peso(n) { return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function num(n) { return parseFloat(n || 0).toLocaleString('en-PH'); }
+    function toISO(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+
+    const today = new Date();
+    document.getElementById('todayLabel').innerText = today.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     fetch('/api/dashboard', { headers: { 'x-auth-token': authToken } })
         .then(res => res.json())
-        .then(data => {
-            if (!data || data.error) return;
-            document.getElementById('todayRevenue').innerText = peso(data.today.revenue);
-            document.getElementById('todayOrdersSub').innerText = num(data.today.orders) + ' order' + (data.today.orders === 1 ? '' : 's');
-            document.getElementById('allTimeRevenue').innerText = peso(data.allTime.revenue);
-            document.getElementById('allTimeSub').innerText = num(data.allTime.orders) + ' order' + (data.allTime.orders === 1 ? '' : 's');
-            document.getElementById('pendingOrders').innerText = num(data.pending);
-            const avg = data.allTime.orders > 0 ? (data.allTime.revenue / data.allTime.orders) : 0;
-            document.getElementById('avgOrder').innerText = peso(avg);
+        .then(d => {
+            if (!d || d.error) return;
+            document.getElementById('todayRevenue').innerText = peso(d.today.revenue);
+            document.getElementById('todayOrdersSub').innerText = num(d.today.orders) + ' order' + (d.today.orders === 1 ? '' : 's');
+            document.getElementById('pendingPayments').innerText = num(d.pending);
+            document.getElementById('topServicesTable').innerHTML = d.topServices.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px;">No sales yet</td></tr>' : d.topServices.map(s => `<tr><td><strong>${s.service_name}</strong></td><td class="num">${num(s.total_qty)}</td><td class="num">${peso(s.total_revenue)}</td></tr>`).join('');
+            document.getElementById('recentOrdersTable').innerHTML = d.recentOrders.length === 0 ? '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:20px;">No orders yet</td></tr>' : d.recentOrders.slice(0, 5).map(o => `<tr><td>#${o.id}</td><td>${o.customer}</td><td class="num">${peso(o.total)}</td></tr>`).join('');
+        });
 
-            document.getElementById('topServicesTable').innerHTML = data.topServices.length === 0
-                ? '<tr><td colspan="3" class="empty-state">No sales yet</td></tr>'
-                : data.topServices.map(s => `<tr><td>${s.service_name}</td><td class="num">${num(s.total_qty)}</td><td class="num">${peso(s.total_revenue)}</td></tr>`).join('');
+    const todayISO = toISO(today);
+    fetch(`/api/statements/balance?dateTo=${todayISO}`, { headers: { 'x-auth-token': authToken } })
+        .then(res => res.json())
+        .then(d => {
+            if (!d || d.error) return;
+            document.getElementById('cashOnHand').innerText = peso(d.cash);
+            document.getElementById('totalAssets').innerText = peso(d.totalAssets);
+            document.getElementById('totalLiabilities').innerText = peso(d.totalLiabilities);
+            document.getElementById('totalEquity').innerText = peso(d.totalEquity);
+        }).catch(() => {});
 
-            document.getElementById('recentOrdersTable').innerHTML = data.recentOrders.length === 0
-                ? '<tr><td colspan="5" class="empty-state">No orders yet</td></tr>'
-                : data.recentOrders.map(o => {
-                    const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
-                    const badge = o.payment_status === 'Paid' ? 'bg-success' : 'bg-warning text-dark';
-                    return `<tr><td>#${o.id}</td><td><small>${date}</small></td><td>${o.customer}</td><td class="num">${peso(o.total)}</td><td><span class="badge ${badge}">${o.payment_status}</span></td></tr>`;
-                }).join('');
-        })
-        .catch(() => {});
+    const monthStart = toISO(new Date(today.getFullYear(), today.getMonth(), 1));
+    const monthEnd = toISO(today);
+    fetch(`/api/statements/income?dateFrom=${monthStart}&dateTo=${monthEnd}`, { headers: { 'x-auth-token': authToken } })
+        .then(res => res.json())
+        .then(d => {
+            if (!d || d.error) return;
+            document.getElementById('monthRevenue').innerText = peso(d.revenue);
+            document.getElementById('monthExpenses').innerText = peso(d.cogs + d.totalOperatingExpenses + d.depreciation);
+            document.getElementById('monthProfit').innerText = peso(d.netProfit);
+            document.getElementById('monthMargin').innerText = d.netMargin.toFixed(1) + '%';
+            const card = document.getElementById('monthProfitCard');
+            card.className = 'kpi-card ' + (d.netProfit >= 0 ? 'green' : 'red');
+        }).catch(() => {});
 
-    function loadROI() {
-        fetch('/api/roi', { headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(d => {
-                if (!d || d.error) return;
-                document.getElementById('roiCapital').innerText = peso(d.totalCapital);
-                document.getElementById('roiAssets').innerText = peso(d.totalAssets);
-                document.getElementById('roiTotalInvest').innerText = peso(d.totalInvestment);
-                document.getElementById('roiDepr').innerText = peso(d.monthlyDepreciation);
-                document.getElementById('roiNetProfit').innerText = peso(d.netProfit);
-                document.getElementById('roiAssetsCount').innerText = num(d.assetCount) + ' asset' + (d.assetCount === 1 ? '' : 's');
-                document.getElementById('roiPercent').innerText = d.roi.toFixed(1) + '%';
-                document.getElementById('roiNetProfitSub').innerText = 'Net Profit: ' + peso(d.netProfit);
-
-                document.getElementById('roiBig').classList.toggle('recovered', d.netProfit >= d.totalInvestment);
-
-                const paybackBig = document.getElementById('paybackBig');
-                if (d.paybackRecovered) {
-                    paybackBig.classList.add('recovered');
-                    document.getElementById('paybackValue').innerText = '✅';
-                    document.getElementById('paybackSub').innerText = 'Investment recovered!';
-                } else if (d.paybackMonths > 0) {
-                    paybackBig.classList.remove('recovered');
-                    document.getElementById('paybackValue').innerText = Math.ceil(d.paybackMonths) + ' mo';
-                    document.getElementById('paybackSub').innerText = 'At current rate';
-                } else {
-                    document.getElementById('paybackValue').innerText = '—';
-                    document.getElementById('paybackSub').innerText = 'No profit yet';
-                }
-            })
-            .catch(() => {});
-    }
-
-    function loadAssets() {
-        fetch('/api/assets', { headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(assets => {
-                if (!Array.isArray(assets)) assets = [];
-                document.getElementById('assetBadge').innerText = num(assets.length);
-                const list = document.getElementById('assetsList');
-                if (assets.length === 0) {
-                    list.innerHTML = '<div class="empty-state">No assets yet.<br>Click <strong>+ Asset</strong> above.</div>';
-                    return;
-                }
-                list.innerHTML = assets.map(a => `
-                    <div class="list-row">
-                        <div>
-                            <div class="name">${a.name}</div>
-                            <div class="meta">${a.category} • ${new Date(a.purchase_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span class="amount">${peso(a.purchase_price)}</span>
-                            <div class="btns">
-                                <button onclick="editAsset(${a.id})">✏️</button>
-                                <button class="del" onclick="deleteAsset(${a.id}, '${a.name.replace(/'/g, "\\'")}')">🗑</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            })
-            .catch(() => {});
-    }
-
-    function loadCapital() {
-        fetch('/api/capital', { headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(items => {
-                if (!Array.isArray(items)) items = [];
-                document.getElementById('capitalBadge').innerText = num(items.length);
-                document.getElementById('roiCapitalCount').innerText = num(items.length) + ' entr' + (items.length === 1 ? 'y' : 'ies');
-                const list = document.getElementById('capitalList');
-                if (items.length === 0) {
-                    list.innerHTML = '<div class="empty-state">No capital entries yet.<br>Click <strong>+ Capital</strong> above.</div>';
-                    return;
-                }
-                list.innerHTML = items.map(c => `
-                    <div class="list-row">
-                        <div>
-                            <div class="name">${c.description}</div>
-                            <div class="meta">${c.category} • ${new Date(c.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
-                        </div>
-                        <div style="display:flex;align-items:center;gap:6px;">
-                            <span class="amount" style="color:#10b981;">${peso(c.amount)}</span>
-                            <div class="btns">
-                                <button onclick="editCapital(${c.id})">✏️</button>
-                                <button class="del" onclick="deleteCapital(${c.id}, '${c.description.replace(/'/g, "\\'")}')">🗑</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
-            })
-            .catch(() => {});
-    }
-
-    function openAssetModal() {
-        document.getElementById('assetModalTitle').innerText = 'Add Asset';
-        document.getElementById('assetId').value = '';
-        document.getElementById('aName').value = '';
-        document.getElementById('aCategory').value = 'Equipment';
-        document.getElementById('aPrice').value = '';
-        document.getElementById('aSalvage').value = '0';
-        document.getElementById('aDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('aLife').value = '60';
-        document.getElementById('aNotes').value = '';
-        new bootstrap.Modal(document.getElementById('assetModal')).show();
-    }
-
-    function editAsset(id) {
-        fetch('/api/assets', { headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(assets => {
-                const a = assets.find(x => x.id === id);
-                if (!a) return;
-                document.getElementById('assetModalTitle').innerText = 'Edit Asset';
-                document.getElementById('assetId').value = a.id;
-                document.getElementById('aName').value = a.name;
-                document.getElementById('aCategory').value = a.category || 'Equipment';
-                document.getElementById('aPrice').value = a.purchase_price;
-                document.getElementById('aSalvage').value = a.salvage_value || 0;
-                document.getElementById('aDate').value = a.purchase_date ? a.purchase_date.split('T')[0] : '';
-                document.getElementById('aLife').value = a.useful_life_months || 60;
-                document.getElementById('aNotes').value = a.notes || '';
-                new bootstrap.Modal(document.getElementById('assetModal')).show();
-            });
-    }
-
-    function saveAsset() {
-        const id = document.getElementById('assetId').value;
-        const data = {
-            name: document.getElementById('aName').value.trim(),
-            category: document.getElementById('aCategory').value,
-            purchase_price: document.getElementById('aPrice').value,
-            purchase_date: document.getElementById('aDate').value,
-            useful_life_months: document.getElementById('aLife').value,
-            salvage_value: document.getElementById('aSalvage').value,
-            notes: document.getElementById('aNotes').value.trim()
-        };
-        if (!data.name) return alert('Asset name is required');
-        if (!data.purchase_price || parseFloat(data.purchase_price) <= 0) return alert('Please enter a valid purchase price');
-        const url = id ? `/api/assets/${id}` : '/api/assets';
-        const method = id ? 'PUT' : 'POST';
-        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
-            .then(res => res.json())
-            .then(res => {
-                if (res.error) return alert('Error: ' + res.error);
-                bootstrap.Modal.getInstance(document.getElementById('assetModal')).hide();
-                loadAssets(); loadROI();
-            });
-    }
-
-    function deleteAsset(id, name) {
-        if (!confirm(`Delete asset "${name}"?`)) return;
-        fetch('/api/assets/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
-            .then(() => { loadAssets(); loadROI(); });
-    }
-
-    function openCapitalModal() {
-        document.getElementById('capitalModalTitle').innerText = 'Add Capital';
-        document.getElementById('capitalId').value = '';
-        document.getElementById('cDesc').value = '';
-        document.getElementById('cAmount').value = '';
-        document.getElementById('cCategory').value = 'Startup';
-        document.getElementById('cDate').value = new Date().toISOString().split('T')[0];
-        document.getElementById('cNotes').value = '';
-        new bootstrap.Modal(document.getElementById('capitalModal')).show();
-    }
-
-    function editCapital(id) {
-        fetch('/api/capital', { headers: { 'x-auth-token': authToken } })
-            .then(res => res.json())
-            .then(items => {
-                const c = items.find(x => x.id === id);
-                if (!c) return;
-                document.getElementById('capitalModalTitle').innerText = 'Edit Capital';
-                document.getElementById('capitalId').value = c.id;
-                document.getElementById('cDesc').value = c.description;
-                document.getElementById('cAmount').value = c.amount;
-                document.getElementById('cCategory').value = c.category || 'Startup';
-                document.getElementById('cDate').value = c.date ? c.date.split('T')[0] : '';
-                document.getElementById('cNotes').value = c.notes || '';
-                new bootstrap.Modal(document.getElementById('capitalModal')).show();
-            });
-    }
-
-    function saveCapital() {
-        const id = document.getElementById('capitalId').value;
-        const data = {
-            description: document.getElementById('cDesc').value.trim(),
-            amount: document.getElementById('cAmount').value,
-            category: document.getElementById('cCategory').value,
-            date: document.getElementById('cDate').value,
-            notes: document.getElementById('cNotes').value.trim()
-        };
-        if (!data.description) return alert('Description is required');
-        if (!data.amount || parseFloat(data.amount) <= 0) return alert('Please enter a valid amount');
-        const url = id ? `/api/capital/${id}` : '/api/capital';
-        const method = id ? 'PUT' : 'POST';
-        fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify(data) })
-            .then(res => res.json())
-            .then(res => {
-                if (res.error) return alert('Error: ' + res.error);
-                bootstrap.Modal.getInstance(document.getElementById('capitalModal')).hide();
-                loadCapital(); loadROI();
-            });
-    }
-
-    function deleteCapital(id, desc) {
-        if (!confirm(`Delete capital entry "${desc}"?`)) return;
-        fetch('/api/capital/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } })
-            .then(() => { loadCapital(); loadROI(); });
-    }
+    Promise.all([
+        fetch('/api/products/low-stock', { headers: { 'x-auth-token': authToken } }).then(r => r.json()),
+        fetch('/api/bookings?filter=pending', { headers: { 'x-auth-token': authToken } }).then(r => r.json())
+    ]).then(([lowStock, pendingBookings]) => {
+        const alertsBox = document.getElementById('alertsBox');
+        let html = '';
+        if (Array.isArray(lowStock) && lowStock.length > 0) {
+            document.getElementById('lowStockCount').innerText = lowStock.length;
+            html += `<div class="alert-card danger"><div class="icon">📦</div><div class="text"><strong>${lowStock.length} product${lowStock.length > 1 ? 's' : ''} low on stock:</strong> ${lowStock.slice(0, 3).map(p => p.name + ' (' + p.stock + ')').join(', ')}${lowStock.length > 3 ? ' and ' + (lowStock.length - 3) + ' more' : ''}. <a href="/replenishments.html">Replenish now →</a></div></div>`;
+        } else {
+            document.getElementById('lowStockCount').innerText = '0';
+        }
+        if (Array.isArray(pendingBookings)) {
+            document.getElementById('pendingBookings').innerText = pendingBookings.length;
+            if (pendingBookings.length > 0) {
+                html += `<div class="alert-card"><div class="icon">📅</div><div class="text"><strong>${pendingBookings.length} pending booking${pendingBookings.length > 1 ? 's' : ''}</strong> waiting for confirmation. <a href="/bookings.html">Review →</a></div></div>`;
+            }
+        }
+        alertsBox.innerHTML = html;
+    }).catch(() => {});
 
     function loadYears() {
         fetch('/api/dashboard/years', { headers: { 'x-auth-token': authToken } })
@@ -792,8 +277,7 @@
                 sel.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
                 sel.value = years[years.length - 1];
                 loadChart();
-            })
-            .catch(() => {});
+            });
     }
 
     function loadChart() {
@@ -804,26 +288,19 @@
             .then(res => res.json())
             .then(data => {
                 const chart = document.getElementById('weeklyChart');
-                if (!data || data.length === 0) {
-                    chart.innerHTML = '<div class="empty-state" style="width:100%;">📊 No sales for this period.</div>';
-                    return;
-                }
+                if (!data || data.length === 0) { chart.innerHTML = '<div style="width:100%;text-align:center;padding:40px;color:#94a3b8;font-size:13px;">📊 No sales for this period</div>'; return; }
                 const maxRev = Math.max(...data.map(d => parseFloat(d.revenue)), 1);
                 chart.innerHTML = data.map(d => {
                     const revenue = parseFloat(d.revenue);
-                    const height = (revenue / maxRev) * 160;
+                    const height = Math.max((revenue / maxRev) * 160, 6);
                     const dateObj = new Date(d.day);
                     const label = view === 'month' ? dateObj.toLocaleDateString('en-US', { month: 'short' }) : dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                    return `<div style="display:flex;flex-direction:column;align-items:center;min-width:70px;">
-                        <div style="font-size:10px;font-weight:700;color:#1e293b;margin-bottom:6px;white-space:nowrap;">${peso(revenue)}</div>
-                        <div style="width:38px;height:${Math.max(height,6)}px;background:linear-gradient(180deg,#3b82f6,#1e40af);border-radius:6px 6px 0 0;"></div>
-                        <div style="font-size:11px;font-weight:700;color:#0f172a;margin-top:8px;">${label}</div>
-                        <div style="font-size:10px;color:#64748b;">${num(d.order_count)} order${d.order_count === 1 ? '' : 's'}</div>
-                    </div>`;
+                    return `<div class="chart-bar-wrap"><div class="chart-label-top">${peso(revenue)}</div><div class="chart-bar" style="height:${height}px;"></div><div class="chart-label-bottom">${label}</div><div class="chart-label-sub">${num(d.order_count)} order${d.order_count === 1 ? '' : 's'}</div></div>`;
                 }).join('');
-            })
-            .catch(() => {});
+            }).catch(() => {});
     }
+
+    loadYears();
 
     function logout() {
         const token = localStorage.getItem('authToken');
@@ -833,15 +310,6 @@
         localStorage.removeItem('userRole');
         window.location.href = '/login.html';
     }
-
-    window.addEventListener('scroll', () => {
-        document.getElementById('backToTop').style.display = window.scrollY > 300 ? 'block' : 'none';
-    });
-
-    loadROI();
-    loadAssets();
-    loadCapital();
-    loadYears();
 </script>
 <script src="/role-guard.js"></script>
 <script src="/bookings-badge.js"></script>

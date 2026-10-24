@@ -15,24 +15,34 @@
     <style>
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; padding-top: 0; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', sans-serif; padding-bottom: 20px; }
         body.has-offline-banner { padding-top: 44px; }
 
+        /* ===== MOBILE TOPBAR ===== */
         .topbar { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
         .topbar .logo-img { height: 38px; width: auto; background: rgba(255,255,255,0.15); border-radius: 6px; padding: 4px; }
         .topbar .user-info { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
         .topbar .user-badge { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .topbar .icon-btn { background: rgba(255,255,255,0.15); border: none; color: white; padding: 8px 10px; border-radius: 8px; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; position: relative; }
-.topbar .icon-btn:hover { background: rgba(255,255,255,0.25); color: white; }
-.mobile-booking-badge { position: absolute; top: -4px; right: -4px; background: #10b981; color: white; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px rgba(30,58,138,0.9); animation: pulse-mobile-badge 1.5s infinite; }
-@keyframes pulse-mobile-badge { 0% { box-shadow: 0 0 0 2px rgba(30,58,138,0.9), 0 0 0 0 rgba(16,185,129,0.7); } 70% { box-shadow: 0 0 0 2px rgba(30,58,138,0.9), 0 0 0 6px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 2px rgba(30,58,138,0.9), 0 0 0 0 rgba(16,185,129,0); } }
+        .topbar .icon-btn:hover { background: rgba(255,255,255,0.25); color: white; }
+        .mobile-booking-badge { position: absolute; top: -4px; right: -4px; background: #10b981; color: white; font-size: 10px; font-weight: 800; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px rgba(30,58,138,0.9); animation: pulse-mobile-badge 1.5s infinite; }
+        @keyframes pulse-mobile-badge { 0% { box-shadow: 0 0 0 2px rgba(30,58,138,0.9), 0 0 0 0 rgba(16,185,129,0.7); } 70% { box-shadow: 0 0 0 2px rgba(30,58,138,0.9), 0 0 0 6px rgba(16,185,129,0); } 100% { box-shadow: 0 0 0 2px rgba(30,58,138,0.9), 0 0 0 0 rgba(16,185,129,0); } }
 
-        .sidebar { background-color: #1e293b; color: white; min-height: 100vh; padding-top: 20px; }
-        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px 20px; display: block; font-size: 14px; border-radius: 6px; margin: 2px 10px; }
-        .sidebar a:hover { background-color: rgba(59,130,246,0.15); color: white; }
-        .sidebar a.active { background-color: #3b82f6; color: white; }
+        /* ===== FIXED SIDEBAR ===== */
+        .sidebar { background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; position: fixed; top: 0; left: 0; width: 16.66667%; height: 100vh; padding: 20px 0; overflow-y: auto; z-index: 100; }
+        .sidebar::-webkit-scrollbar { width: 6px; }
+        .sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        .sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
+        .sidebar-brand { padding: 0 20px 16px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; }
+        .sidebar-brand img { max-width: 110px; height: auto; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 10px; color: #64748b; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 10px 20px; display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 500; transition: all 0.15s; border-left: 3px solid transparent; }
+        .sidebar a:hover { background: rgba(59,130,246,0.12); color: white; border-left-color: #3b82f6; }
+        .sidebar a.active { background: linear-gradient(90deg, #1e40af 0%, #3b82f6 100%); color: white; font-weight: 700; border-left-color: #fbbf24; }
 
-        .main-content { padding: 16px; }
+        /* ===== MAIN LAYOUT ===== */
+        .pos-area { margin-left: 16.66667%; padding: 20px; }
+        .pos-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
         .page-title { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 14px; }
         .section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; font-weight: 700; margin: 20px 0 10px 0; display: flex; align-items: center; gap: 8px; }
         .section-label::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
@@ -46,7 +56,6 @@
         .service-card.selected { outline: 4px solid #fbbf24; outline-offset: -4px; }
         .service-card .emoji { font-size: 60px; line-height: 1; display: block; margin-bottom: 10px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transition: transform 0.25s; }
         .service-card:hover .emoji { transform: scale(1.15); }
-        .service-card:active .emoji { transform: scale(1.05); }
         .service-card .name { font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; line-height: 1.2; }
         .service-card .price { font-weight: 700; font-size: 14px; opacity: 0.95; }
         .service-card .qty-badge { position: absolute; top: 8px; right: 8px; background: #fbbf24; color: #000; font-size: 13px; font-weight: 900; padding: 4px 10px; border-radius: 20px; display: none; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
@@ -74,7 +83,7 @@
         .addon-card .qty-badge { background: #10b981; color: white; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 20px; display: none; margin-top: 4px; }
         .addon-card.selected .qty-badge { display: inline-block; }
 
-        .cart-panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); margin-top: 8px; }
+        .cart-panel { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); }
         .cart-panel h5 { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
         .cart-empty { color: #94a3b8; text-align: center; font-size: 13px; padding: 12px 0; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
@@ -111,10 +120,9 @@
         .pickup-info.active { display: block; }
         .pickup-info .heading { display: flex; align-items: center; gap: 6px; color: #92400e; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
 
+        /* ===== DARK MODE ===== */
         [data-theme="dark"] body { background-color: #0f172a !important; color: #e2e8f0 !important; }
-        [data-theme="dark"] .sidebar { background-color: #020617 !important; }
-        [data-theme="dark"] .sidebar a { color: #94a3b8 !important; }
-        [data-theme="dark"] .sidebar a.active { background-color: #1e40af !important; color: white !important; }
+        [data-theme="dark"] .sidebar { background: linear-gradient(180deg, #020617 0%, #0f172a 100%) !important; }
         [data-theme="dark"] .cart-panel, [data-theme="dark"] .addon-card { background-color: #1e293b !important; color: #e2e8f0 !important; }
         [data-theme="dark"] .page-title, [data-theme="dark"] .addon-name, [data-theme="dark"] .cart-item-name { color: #e2e8f0 !important; }
         [data-theme="dark"] .form-control, [data-theme="dark"] .form-select, [data-theme="dark"] .search-input { background-color: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
@@ -127,17 +135,15 @@
         [data-theme="dark"] .order-type-toggle { background: #334155; border-color: #475569; }
         [data-theme="dark"] .order-type-toggle button { color: #94a3b8; }
         [data-theme="dark"] .pickup-info { background: #422006 !important; border-color: #f59e0b !important; }
-        [data-theme="dark"] .pickup-info .heading,
-        [data-theme="dark"] .pickup-info .form-label { color: #fbbf24 !important; }
+        [data-theme="dark"] .pickup-info .heading, [data-theme="dark"] .pickup-info .form-label { color: #fbbf24 !important; }
 
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 991px) {
+            .pos-grid { grid-template-columns: 1fr; }
+        }
         @media (max-width: 767px) {
-            .desktop-sidebar { display: none !important; }
-            html, body { height: auto !important; overflow-x: hidden !important; overflow-y: auto !important; }
-            .container-fluid, .row { overflow: visible !important; height: auto !important; }
-            .main-content { padding: 12px; }
-            .col-md-7, .col-md-3, .col-md-2 { width: 100% !important; max-width: 100% !important; flex: 0 0 100% !important; padding-left: 10px !important; padding-right: 10px !important; }
-            .desktop-cart-col { margin-top: 6px; }
-            .cart-panel { position: static !important; margin-top: 12px; }
+            .sidebar { display: none !important; }
+            .pos-area { margin-left: 0 !important; padding: 12px !important; }
             .service-card { padding: 18px 8px; border-radius: 14px; }
             .service-card .emoji { font-size: 52px; margin-bottom: 8px; }
             .service-card .name { font-size: 11px; }
@@ -150,14 +156,12 @@
         }
         @media (min-width: 768px) {
             .topbar { display: none; }
-            .desktop-sidebar { display: block; }
-            .main-content { padding: 24px; }
-            .desktop-cart-col .cart-panel { position: sticky; top: 20px; }
         }
     </style>
 </head>
 <body>
 
+<!-- MOBILE TOPBAR -->
 <div class="topbar d-md-none">
     <img src="/logo.png" alt="Hawi's Lovada" class="logo-img" onerror="this.style.display='none'">
     <div class="user-info">
@@ -168,27 +172,37 @@
     </div>
 </div>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-2 sidebar desktop-sidebar d-none d-md-block">
-            <div class="text-center mb-4">
-                <img src="/logo.png" alt="Hawi's Lovada" style="max-width: 130px; height: auto;" onerror="this.style.display='none'">
-            </div>
-            <a href="/" class="active">🧺 POS</a>
-            <a href="/dashboard.html">📊 Dashboard</a>
-            <a href="/audit.html">🔍 Audit Trail</a>
-            <a href="/services.html">🧴 Services</a>
-            <a href="/products.html">📦 Products</a>
-            <a href="/orders.html">📋 Orders</a>
-            <a href="/replenishments.html">📥 Replenishments</a>
-            <a href="/expenses.html">💰 Expenses</a>
-            <a href="/bookings.html">📅 Bookings</a>
-            <a href="/settings.html">⚙️ Settings</a>
-            <a href="#" class="theme-toggle">🌙 Dark Mode</a>
-            <a href="#" onclick="logout()">🚪 Logout</a>
-        </div>
+<!-- FIXED SIDEBAR -->
+<div class="sidebar d-none d-md-block">
+    <div class="sidebar-brand"><img src="/logo.png" alt="Hawi's Lovada"></div>
+    <div class="sidebar-section">Main</div>
+    <a href="/" class="active">🧺 POS</a>
+    <a href="/dashboard.html">📊 Dashboard</a>
+    <a href="/orders.html">📋 Orders</a>
+    <a href="/bookings.html">📅 Bookings</a>
+    <div class="sidebar-section">Catalog</div>
+    <a href="/services.html">🧴 Services</a>
+    <a href="/products.html">📦 Products</a>
+    <a href="/replenishments.html">📥 Replenishments</a>
+    <div class="sidebar-section">Finances</div>
+    <a href="/expenses.html">💸 Expenses</a>
+    <a href="/statements.html">📑 Statements</a>
+    <a href="/liabilities.html">💳 Liabilities</a>
+    <a href="/withdrawals.html">💸 Withdrawals</a>
+    <a href="/capital.html">💵 Capital</a>
+    <a href="/assets.html">🏗️ Assets</a>
+    <div class="sidebar-section">System</div>
+    <a href="/audit.html">🔍 Audit Trail</a>
+    <a href="/settings.html">⚙️ Settings</a>
+    <a href="#" class="theme-toggle">🌙 Dark Mode</a>
+    <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
 
-        <div class="col-md-7 main-content">
+<!-- MAIN POS AREA -->
+<div class="pos-area">
+    <div class="pos-grid">
+        <!-- LEFT: Services + Addons -->
+        <div>
             <div class="d-none d-md-flex justify-content-between align-items-center mb-3">
                 <h3 class="page-title mb-0">Point of Sale</h3>
                 <div style="background: #dbeafe; color: #1e40af; padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600;">
@@ -205,7 +219,8 @@
             <div class="row" id="addonsContainer"></div>
         </div>
 
-        <div class="col-md-3 main-content desktop-cart-col">
+        <!-- RIGHT: Cart -->
+        <div>
             <div class="cart-panel">
                 <h5>🛒 Cart <span id="cartCount" class="badge bg-secondary">0 items</span></h5>
                 <div id="cartItemsList" class="mb-3">
@@ -218,9 +233,7 @@
                 </div>
 
                 <div class="pickup-info" id="pickupInfo">
-                    <div class="heading">
-                        <span>🚚</span> Pickup &amp; Delivery Details
-                    </div>
+                    <div class="heading"><span>🚚</span> Pickup &amp; Delivery Details</div>
                     <div class="mb-2">
                         <label class="form-label">📱 Cellphone Number *</label>
                         <input type="tel" id="customerPhone" class="form-control" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" autocomplete="tel" oninput="validatePhone()">
@@ -270,7 +283,6 @@
     const isMobile = window.matchMedia('(max-width: 767px)').matches;
     const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // ===== MONEY FORMATTERS WITH COMMAS =====
     function peso(n) {
         return '₱' + parseFloat(n || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
@@ -635,10 +647,7 @@
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
         lines.push(doubleDividerLine(size));
-        if (offlineNote) {
-            lines.push(center(offlineNote, width));
-            lines.push(dividerLine(size));
-        }
+        if (offlineNote) { lines.push(center(offlineNote, width)); lines.push(dividerLine(size)); }
         lines.push('#' + orderId + ' - ' + shortDate);
         lines.push(customerFullName);
         lines.push(dividerLine(size));
@@ -656,11 +665,7 @@
         lines.push(padRight('TOTAL', width - totalValue.length) + totalValue);
         lines.push(dividerLine(size));
         lines.push(center(statusLabel, width));
-        if (order.pickupDelivery) {
-            lines.push(dividerLine(size));
-            lines.push('PICKUP & DELIVERY');
-            lines.push('Tel: ' + (order.customerPhone || ''));
-        }
+        if (order.pickupDelivery) { lines.push(dividerLine(size)); lines.push('PICKUP & DELIVERY'); lines.push('Tel: ' + (order.customerPhone || '')); }
         lines.push(dividerLine(size));
         lines.push('Track: laundry-pos-7lwy');
         lines.push('.onrender.com/login.html');
@@ -690,10 +695,7 @@
 
         lines.push(dividerLine(size));
         lines.push(center(statusLabel, width));
-        if (order.pickupDelivery) {
-            lines.push(dividerLine(size));
-            lines.push('Tel: ' + (order.customerPhone || ''));
-        }
+        if (order.pickupDelivery) { lines.push(dividerLine(size)); lines.push('Tel: ' + (order.customerPhone || '')); }
         lines.push(dividerLine(size));
         lines.push(center('Thank you!', width));
 
@@ -705,9 +707,8 @@
         if (isPhone) {
             const receiptText = buildReceiptText(size);
             const encoded = btoa(unescape(encodeURIComponent(receiptText)));
-            const rawbtUrl = 'rawbt:base64,' + encoded;
             const a = document.createElement('a');
-            a.href = rawbtUrl;
+            a.href = 'rawbt:base64,' + encoded;
             a.style.display = 'none';
             document.body.appendChild(a);
             a.click();
