@@ -55,6 +55,7 @@
         .btn-del { background: white; color: #dc2626; border-color: #fecaca; }
         .btn-archive { background: #f59e0b; color: white; border-color: #f59e0b; }
         .btn-retrieve { background: #10b981; color: white; border-color: #10b981; }
+        .btn-void { background: #7f1d1d; color: #fff; border-color: #7f1d1d; }
         .order-checkbox { cursor: pointer; transform: scale(1.5); }
         .row-selected td { background-color: #eff6ff !important; }
         .customer-name { font-weight: 700; color: #1e293b; font-size: 15px; }
@@ -63,6 +64,7 @@
         .total-cell { font-weight: 700; color: #1e293b; font-size: 15px; }
         .payment-badge { font-size: 13px; padding: 5px 12px; font-weight: 700; border-radius: 12px; }
         .pickup-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; background: #fef3c7; color: #92400e; font-weight: 700; margin-left: 4px; }
+        .void-badge { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: #7f1d1d; color: #fff; font-weight: 800; margin-left: 6px; letter-spacing: 0.5px; }
         .expiry-badge { font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 700; }
         .expiry-green { background: #dcfce7; color: #14532d; }
         .expiry-yellow { background: #fef3c7; color: #92400e; }
@@ -141,6 +143,7 @@
 
     <div class="order-tabs" id="orderTabs">
         <button id="tabActive" class="active" onclick="switchTab('active')">📥 Active <span id="activeCount">(0)</span></button>
+        <button id="tabVoided" onclick="switchTab('voided')">🚫 Voided <span id="voidedCount">(0)</span></button>
         <button id="tabArchive" onclick="switchTab('archive')">📦 Archive <span id="archiveCount">(0)</span></button>
     </div>
 
@@ -174,10 +177,36 @@
                             <th class="text-end" style="width: 110px;">Total</th>
                             <th style="width: 100px;">Payment</th>
                             <th style="width: 150px;">Status</th>
-                            <th class="text-end" style="width: 260px;">Actions</th>
+                            <th class="text-end" style="width: 300px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="ordersTable"><tr><td colspan="8" class="text-center text-muted py-4">Loading...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="voidedView" style="display: none;">
+        <div class="panel mb-3" style="background:#fef2f2;border-left:4px solid #dc2626;">
+            <div style="font-size:13px;color:#7f1d1d;">
+                🚫 <strong>Voided orders</strong> — these are preserved for audit trail and excluded from all reports, revenue, and cash calculations. Owner/admin can restore any voided order.
+            </div>
+        </div>
+        <div class="panel p-0">
+            <div class="orders-scroll-box">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">#</th>
+                            <th style="width: 130px;">Date</th>
+                            <th>Customer</th>
+                            <th class="text-end" style="width: 110px;">Total</th>
+                            <th>Void Reason</th>
+                            <th style="width: 130px;">Voided By</th>
+                            <th class="text-end" style="width: 200px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="voidedTable"><tr><td colspan="7" class="text-center text-muted py-4">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -226,11 +255,44 @@
     <button class="btn btn-sm btn-outline-light" onclick="clearSelection()">Clear</button>
 </div>
 
+<!-- VOID MODAL -->
+<div class="modal fade" id="voidModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="border:2px solid #dc2626;">
+            <div class="modal-header" style="background:#7f1d1d;color:white;">
+                <h5 class="modal-title">🚫 Void Order</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter:invert(1);"></button>
+            </div>
+            <div class="modal-body">
+                <div id="voidOrderInfo" style="background:#fef2f2;padding:12px;border-radius:8px;margin-bottom:16px;font-size:14px;border-left:4px solid #dc2626;"></div>
+                <div class="alert alert-warning" style="font-size:12px;">
+                    <strong>⚠️ This action will:</strong>
+                    <ul style="margin:8px 0 0 0;padding-left:20px;">
+                        <li>Mark the order as <strong>VOID</strong> (still visible, struck-through)</li>
+                        <li>Exclude it from revenue, reports, and dashboard totals</li>
+                        <li>Restore product inventory stock</li>
+                        <li>Be logged in the audit trail with your name</li>
+                    </ul>
+                </div>
+                <label class="form-label small" style="font-weight:700;">Reason for voiding *</label>
+                <textarea id="voidReason" class="form-control" rows="3" placeholder="e.g. Customer cancelled, wrong item entered, duplicate order..."></textarea>
+                <div id="voidError" class="text-danger small mt-2" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="voidConfirmBtn" onclick="submitVoid()" style="background:#7f1d1d;border-color:#7f1d1d;font-weight:700;">🚫 Confirm Void</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/role-guard.js"></script>
 <script src="/bookings-badge.js"></script>
 <script>
     const authToken = localStorage.getItem('authToken');
     const userRole = localStorage.getItem('userRole') || 'staff';
+    const userName = localStorage.getItem('userName') || 'Staff';
     const isPhone = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     if (!authToken) { window.location.href = '/login.html'; }
@@ -240,6 +302,7 @@
     let currentTab = 'active';
     let searchTimeout;
     let archiveTimeout;
+    let pendingVoidId = null;
 
     function toTitleCase(str) { return (str || '').trim().toLowerCase().replace(/\s+/g, ' ').split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1) : '').join(''); }
     function getFirstNameUpper(str) { const p = (str || '').trim().split(/\s+/); return p[0] ? p[0].toUpperCase() : ''; }
@@ -259,6 +322,7 @@
     }
 
     function nextStepButton(order) {
+        if (order.voided) return '';
         const flow = order.service_flow || ['Received'];
         const currentStep = order.current_step || 0;
         const nextStep = currentStep + 1;
@@ -284,11 +348,20 @@
     function switchTab(tab) {
         currentTab = tab;
         const tabActive = document.getElementById('tabActive');
+        const tabVoided = document.getElementById('tabVoided');
         const tabArchive = document.getElementById('tabArchive');
         const activeView = document.getElementById('activeFilters');
+        const voidedView = document.getElementById('voidedView');
         const archiveView = document.getElementById('archiveView');
-        if (tab === 'active') { tabActive.className = 'active'; tabArchive.className = ''; activeView.style.display = 'block'; archiveView.style.display = 'none'; loadOrders(); }
-        else { tabActive.className = ''; tabArchive.className = 'archive-active'; activeView.style.display = 'none'; archiveView.style.display = 'block'; loadArchive(); }
+
+        [tabActive, tabVoided, tabArchive].forEach(t => { t.className = ''; });
+        activeView.style.display = 'none';
+        voidedView.style.display = 'none';
+        archiveView.style.display = 'none';
+
+        if (tab === 'active') { tabActive.className = 'active'; activeView.style.display = 'block'; loadOrders(); }
+        else if (tab === 'voided') { tabVoided.className = 'active'; tabVoided.style.background = '#7f1d1d'; tabVoided.style.color = '#fff'; voidedView.style.display = 'block'; loadVoidedOrders(); }
+        else { tabArchive.className = 'archive-active'; archiveView.style.display = 'block'; loadArchive(); }
     }
 
     function debouncedLoad() { clearTimeout(searchTimeout); searchTimeout = setTimeout(() => loadOrders(), 300); }
@@ -349,11 +422,14 @@
                     const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
                     const isPaid = o.payment_status === 'Paid';
                     const payBadge = isPaid ? 'bg-success' : 'bg-warning text-dark';
-                    const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">Paid</button>`;
                     const status = o.status || 'Received';
+                    const payBtn = isPaid ? `<button class="action-btn btn-unpay" onclick="markUnpaid(${o.id})">Unpaid</button>` : `<button class="action-btn btn-pay" onclick="markPaid(${o.id})">Paid</button>`;
                     const deleteBtnHtml = userRole !== 'cashier' ? `<button class="action-btn btn-del" onclick="deleteOrder(${o.id})">Delete</button>` : '';
                     const archiveBtn = isFinalStatus(status) ? `<button class="action-btn btn-archive" onclick="archiveOrder(${o.id})">📦 Archive</button>` : '';
                     const pickupIcon = o.pickup_delivery ? `<span class="pickup-badge">🚚 Pickup</span>` : '';
+                    const voidBtn = (userRole === 'owner' || userRole === 'admin')
+                        ? `<button class="action-btn btn-void" onclick="openVoidModal(${o.id}, '${o.customer.replace(/'/g, "\\'")}', ${o.total})">🚫 Void</button>`
+                        : '';
                     return `<tr>
                         <td><input type="checkbox" class="order-checkbox-row order-checkbox" value="${o.id}" onchange="toggleRowCheckbox(this)"></td>
                         <td><span class="order-id">#${o.id}</span></td>
@@ -368,6 +444,7 @@
                                 ${nextStepButton(o)}
                                 ${archiveBtn}
                                 ${payBtn}
+                                ${voidBtn}
                                 ${deleteBtnHtml}
                             </div>
                         </td>
@@ -375,6 +452,35 @@
                 }).join('');
                 document.getElementById('selectAll').checked = false;
                 updateBatchBar();
+            }).catch(err => console.error(err));
+    }
+
+    function loadVoidedOrders() {
+        fetch('/api/orders?filter=voided', { headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(orders => {
+                if (!orders) return;
+                document.getElementById('voidedCount').innerText = '(' + orders.length + ')';
+                const table = document.getElementById('voidedTable');
+                if (orders.length === 0) { table.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No voided orders. 🎉</td></tr>'; return; }
+                table.innerHTML = orders.map(o => {
+                    const date = new Date(o.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+                    const voidedAt = o.voided_at ? new Date(o.voided_at).toLocaleString() : '—';
+                    return `<tr style="background:#fef2f2;">
+                        <td><span class="order-id" style="text-decoration:line-through;color:#991b1b;">#${o.id}</span></td>
+                        <td><span class="date-cell">${date}</span></td>
+                        <td><span class="customer-name" style="text-decoration:line-through;">${o.customer}</span><span class="void-badge">🚫 VOID</span></td>
+                        <td class="text-end"><span class="total-cell" style="text-decoration:line-through;color:#991b1b;">₱${parseFloat(o.total).toFixed(2)}</span></td>
+                        <td style="font-size:13px;color:#7f1d1d;"><strong>${o.void_reason || '—'}</strong></td>
+                        <td style="font-size:12px;color:#7f1d1d;">${o.voided_by || '—'}<br><small>${voidedAt}</small></td>
+                        <td class="text-end">
+                            <div class="d-inline-flex align-items-center gap-2">
+                                <button class="action-btn btn-print" onclick="reprintReceipt(${o.id}, '58')">🖨️ Print</button>
+                                ${(userRole === 'owner' || userRole === 'admin') ? `<button class="action-btn" style="background:#10b981;color:#fff;border-color:#10b981;" onclick="unvoidOrder(${o.id})">↩ Restore</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
             }).catch(err => console.error(err));
     }
 
@@ -416,6 +522,57 @@
             }).catch(err => console.error(err));
     }
 
+    // ===== VOID MODAL =====
+    function openVoidModal(id, customer, total) {
+        pendingVoidId = id;
+        document.getElementById('voidOrderInfo').innerHTML = `<strong>#${id}</strong> — ${customer} — ₱${parseFloat(total).toFixed(2)}`;
+        document.getElementById('voidReason').value = '';
+        document.getElementById('voidError').style.display = 'none';
+        new bootstrap.Modal(document.getElementById('voidModal')).show();
+        setTimeout(() => document.getElementById('voidReason').focus(), 300);
+    }
+
+    function submitVoid() {
+        const reason = document.getElementById('voidReason').value.trim();
+        const errBox = document.getElementById('voidError');
+        errBox.style.display = 'none';
+        if (!reason) { errBox.innerText = 'Please enter a reason for voiding.'; errBox.style.display = 'block'; return; }
+        if (reason.length < 5) { errBox.innerText = 'Reason must be at least 5 characters.'; errBox.style.display = 'block'; return; }
+        if (!confirm(`⚠️ VOID Order #${pendingVoidId}?\n\nThis will:\n• Mark the order as VOID\n• Exclude it from all revenue/reports\n• Restore inventory stock\n\nThis action is logged in the audit trail and can be undone by an owner/admin.`)) return;
+
+        const btn = document.getElementById('voidConfirmBtn');
+        btn.disabled = true; btn.innerText = 'Voiding...';
+
+        fetch(`/api/orders/${pendingVoidId}/void`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken },
+            body: JSON.stringify({ reason })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false; btn.innerText = '🚫 Confirm Void';
+            if (data.error) { errBox.innerText = data.error; errBox.style.display = 'block'; return; }
+            bootstrap.Modal.getInstance(document.getElementById('voidModal')).hide();
+            loadOrders();
+            loadVoidedOrders();
+        })
+        .catch(() => {
+            btn.disabled = false; btn.innerText = '🚫 Confirm Void';
+            errBox.innerText = 'Connection error. Please try again.'; errBox.style.display = 'block';
+        });
+    }
+
+    function unvoidOrder(id) {
+        if (!confirm(`↩ Restore Order #${id} from VOID?\n\nThis will re-include it in revenue and reports, and re-deduct inventory.`)) return;
+        fetch(`/api/orders/${id}/unvoid`, { method: 'POST', headers: { 'x-auth-token': authToken } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) return alert('Error: ' + data.error);
+                loadOrders();
+                loadVoidedOrders();
+            });
+    }
+
     function archiveOrder(id) { if (!confirm('Move order #' + id + ' to Archive?')) return; fetch('/api/orders/' + id + '/archive', { method: 'POST', headers: { 'x-auth-token': authToken } }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); }); }
     function retrieveOrder(id) { if (!confirm('Retrieve order #' + id + ' back to Active?')) return; fetch('/api/orders/' + id + '/restore', { method: 'POST', headers: { 'x-auth-token': authToken } }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadArchive(); }); }
     function batchArchive() { const ids = getSelectedIds(); if (ids.length === 0) return; if (!confirm(`Archive ${ids.length} order(s)?`)) return; fetch('/api/orders/batch/archive', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); clearSelection(); loadOrders(); }); }
@@ -424,7 +581,7 @@
     function advanceWithRider(id) { const rider = prompt('Rider name (optional):', ''); fetch('/api/orders/' + id + '/next-status', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ riderName: rider || null }) }).then(res => res.json()).then(data => { if (data.error) return alert('Error: ' + data.error); loadOrders(); }); }
     function markPaid(id) { fetch('/api/orders/' + id + '/pay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function markUnpaid(id) { fetch('/api/orders/' + id + '/unpay', { method: 'PUT', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
-    function deleteOrder(id) { if (userRole === 'cashier') return alert('Cashiers cannot delete orders.'); if (!confirm('Delete order #' + id + '?')) return; fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
+    function deleteOrder(id) { if (userRole === 'cashier') return alert('Cashiers cannot delete orders.'); if (!confirm('Delete order #' + id + '?\n\n⚠️ Tip: use VOID for mistakes — it preserves the audit trail.')) return; fetch('/api/orders/' + id, { method: 'DELETE', headers: { 'x-auth-token': authToken } }).then(() => loadOrders()); }
     function batchPay() { const ids = getSelectedIds(); if (ids.length === 0) return; fetch('/api/orders/batch/pay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(() => loadOrders()); }
     function batchUnpay() { const ids = getSelectedIds(); if (ids.length === 0) return; fetch('/api/orders/batch/unpay', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(() => loadOrders()); }
     function batchDelete() { if (userRole === 'cashier') return alert('Cashiers cannot delete orders.'); const ids = getSelectedIds(); if (ids.length === 0) return; if (!confirm(`DELETE ${ids.length} order(s)?`)) return; fetch('/api/orders/batch/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-auth-token': authToken }, body: JSON.stringify({ ids }) }).then(() => loadOrders()); }
@@ -460,6 +617,7 @@
         lines.push(center("HAWI'S LOVADA", width));
         lines.push(center("Clean. Fresh. Wash with Love.", width));
         lines.push(doubleDividerLine(size));
+        if (order.voided) { lines.push(center('*** VOIDED ***', width)); lines.push(dividerLine(size)); }
         lines.push('#' + order.id + ' - ' + shortDate);
         lines.push(customerFullName);
         lines.push(dividerLine(size));
@@ -528,6 +686,7 @@
         const fontSize = size === '58' ? 10 : 12;
         const pageWidth = size === '58' ? '58mm' : '80mm';
         const cur = 'P';
+        const voidNote = order.voided ? `<div class="status" style="background:#7f1d1d;color:#fff;">*** VOIDED ***</div>` : '';
         const itemsCustomerHtml = order.items.map(item => {
             const nameTrunc = item.service_name.length > (size === '58' ? 16 : 28) ? item.service_name.substring(0, size === '58' ? 15 : 27) + '.' : item.service_name;
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.quantity}</td><td style="text-align:right;">${cur}${(parseFloat(item.price) * item.quantity).toFixed(2)}</td></tr>`;
@@ -537,8 +696,8 @@
             return `<tr><td style="padding:2px 0;">${nameTrunc}</td><td style="text-align:center;">x${item.quantity}</td></tr>`;
         }).join('');
         const formattedDate = new Date(order.date).toLocaleString();
-        const customerCopyHtml = `<div class="receipt-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div><div class="info">#${order.id} - ${formattedDate}</div><div class="info">${customerFullName}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table><div class="divider"></div><table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${parseFloat(order.total).toFixed(2)}</td></tr></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider"></div><div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div><div class="divider-solid"></div><div class="footer">Thank you! Come again!</div><div class="center" style="margin-top: 12px;">-------- CUT HERE --------</div><div style="height: 30px;"></div></div>`;
-        const shopCopyHtml = `<div class="receipt-copy shop-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div><div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div><div class="info" style="text-align: left;">#${order.id} - ${formattedDate}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider-solid"></div><div class="footer">Thank you!</div></div>`;
+        const customerCopyHtml = `<div class="receipt-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div>${voidNote}<div class="info">#${order.id} - ${formattedDate}</div><div class="info">${customerFullName}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Amount</th></tr></thead><tbody>${itemsCustomerHtml}</tbody></table><div class="divider"></div><table><tr class="total-row"><td>TOTAL</td><td style="text-align:right;">${cur}${parseFloat(order.total).toFixed(2)}</td></tr></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider"></div><div class="center" style="font-size:${fontSize-1}px;">Track: ${window.location.origin}/login.html</div><div class="divider-solid"></div><div class="footer">Thank you! Come again!</div><div class="center" style="margin-top: 12px;">-------- CUT HERE --------</div><div style="height: 30px;"></div></div>`;
+        const shopCopyHtml = `<div class="receipt-copy shop-copy"><div class="center big bold">HAWI'S LOVADA</div><div class="center" style="font-size: ${fontSize - 1}px;">Clean. Fresh. Wash with Love.</div><div class="divider-solid"></div>${voidNote}<div class="center" style="font-size: ${size === '58' ? 18 : 22}px; font-weight: 900; padding: 6px 0;">${shopFirstName}</div><div class="info" style="text-align: left;">#${order.id} - ${formattedDate}</div><div class="divider"></div><table><thead><tr style="border-bottom: 1px solid #000;"><th style="text-align:left;">Item</th><th style="text-align:center;">Qty</th></tr></thead><tbody>${itemsShopHtml}</tbody></table><div class="divider"></div><div class="status">${statusLabel}</div><div class="divider-solid"></div><div class="footer">Thank you!</div></div>`;
         const receiptHtml = `<!DOCTYPE html><html><head><title>Receipt #${order.id}</title><style>@page { size: ${pageWidth} auto; margin: 0; } body { font-family: 'Courier New', monospace; font-size: ${fontSize}px; width: ${pageWidth}; max-width: ${pageWidth}; margin: 0 auto; padding: 5px; font-weight: 600; line-height: 1.3; color: #000; background: #fff; } .receipt-copy { padding-bottom: 10px; } .receipt-copy.shop-copy { border-top: 2px dashed #000; padding-top: 12px; margin-top: 10px; } .center { text-align: center; } .bold { font-weight: 900; } .big { font-size: ${size === '58' ? 14 : 16}px; } .divider { border-top: 1px dashed #000; margin: 4px 0; } .divider-solid { border-top: 2px solid #000; margin: 6px 0; } table { width: 100%; border-collapse: collapse; } .total-row { font-weight: 900; font-size: ${size === '58' ? 12 : 14}px; padding-top: 4px; } .status { text-align: center; font-weight: 900; padding: 4px; border: 2px solid #000; margin: 5px 0; color: #000; background: #fff; } .footer { text-align: center; font-size: ${fontSize - 1}px; margin-top: 8px; } .info { font-size: ${fontSize}px; margin: 2px 0; } .print-btn { display: block; margin: 15px auto; padding: 10px 20px; font-size: 14px; cursor: pointer; background: #000; color: white; border: none; border-radius: 5px; font-family: Arial, sans-serif; } @media print { .print-btn { display: none; } body { padding: 2mm; } * { color: #000 !important; background: #fff !important; } }</style></head><body>${customerCopyHtml}${shopCopyHtml}<br><br><br><button class="print-btn" onclick="window.print()">Print Both Copies</button></body></html>`;
         const w = window.open('', '_blank', 'width=400,height=700');
         w.document.write(receiptHtml); w.document.close();
@@ -557,8 +716,8 @@
     }
 
     loadOrders();
+    loadVoidedOrders();
 </script>
-<script src="/bookings-badge.js"></script>
 <script src="/theme.js"></script>
 </body>
 </html>

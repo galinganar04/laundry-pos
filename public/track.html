@@ -26,14 +26,12 @@
         .back-link { display: block; text-align: center; margin-top: 16px; color: #64748b; font-size: 13px; text-decoration: none; }
         .back-link:hover { color: #1e40af; text-decoration: underline; }
 
-        /* Result panel */
         #resultPanel { display: none; margin-top: 24px; }
         .info-card { background: #f8fafc; border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid #1e40af; }
         .info-row { display: flex; justify-content: space-between; font-size: 14px; padding: 4px 0; }
         .info-row .label { color: #64748b; font-weight: 600; }
         .info-row .value { color: #1e293b; font-weight: 700; }
 
-        /* Horizontal timeline */
         .timeline-wrap { overflow-x: auto; padding: 20px 0; -webkit-overflow-scrolling: touch; }
         .timeline-wrap::-webkit-scrollbar { height: 6px; }
         .timeline-wrap::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
@@ -104,9 +102,15 @@
             </form>
 
             <div id="resultPanel">
-                <div class="current-status-banner">
+                <div class="current-status-banner" id="statusBanner">
                     <div class="label">Current Status</div>
                     <div class="status" id="currentStatus">—</div>
+                </div>
+
+                <div id="voidBox" style="display:none; background:#fef2f2; border:2px solid #dc2626; border-radius:10px; padding:14px; margin-bottom:16px;">
+                    <div style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#991b1b;font-weight:800;margin-bottom:6px;">🚫 Order Voided</div>
+                    <div style="font-size:13px;color:#7f1d1d;" id="voidReasonText">—</div>
+                    <div style="font-size:11px;color:#991b1b;margin-top:8px;font-style:italic;">This order is not billable. Please contact the shop if you believe this is a mistake.</div>
                 </div>
 
                 <div class="info-card">
@@ -182,7 +186,20 @@
     }
 
     function renderResult(order) {
-        document.getElementById('currentStatus').innerText = order.status || 'Received';
+        const banner = document.getElementById('statusBanner');
+        const voidBox = document.getElementById('voidBox');
+
+        if (order.voided) {
+            document.getElementById('currentStatus').innerText = '🚫 VOIDED';
+            banner.style.background = 'linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%)';
+            voidBox.style.display = 'block';
+            document.getElementById('voidReasonText').innerHTML = `<strong>Reason:</strong> ${order.voidReason || '—'}${order.voidedAt ? `<br><small style="color:#991b1b;">Voided: ${new Date(order.voidedAt).toLocaleString()}</small>` : ''}`;
+        } else {
+            document.getElementById('currentStatus').innerText = order.status || 'Received';
+            banner.style.background = 'linear-gradient(135deg, #1e40af 0%, #3b82f6 100%)';
+            voidBox.style.display = 'none';
+        }
+
         document.getElementById('infoOrderId').innerText = '#' + order.orderId;
         document.getElementById('infoCustomer').innerText = order.customer || '—';
         document.getElementById('infoTotal').innerText = '₱' + parseFloat(order.total).toFixed(2);
@@ -195,7 +212,6 @@
             document.getElementById('infoPickupRow').style.display = 'none';
         }
 
-        // Timeline
         const timeline = document.getElementById('timeline');
         const flow = order.serviceFlow || ['Received'];
         const currentStep = order.currentStep || 0;
@@ -222,7 +238,6 @@
         });
         timeline.innerHTML = html;
 
-        // Items table
         const itemsTable = document.getElementById('itemsTable');
         const items = order.items || [];
         itemsTable.innerHTML = `

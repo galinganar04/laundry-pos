@@ -40,6 +40,7 @@
         .action-LOGIN { background: #fef3c7; color: #92400e; }
         .action-LOGOUT { background: #f1f5f9; color: #475569; }
         .action-ARCHIVE { background: #fde68a; color: #78350f; }
+        .action-VOID { background: #fee2e2; color: #7f1d1d; border: 1px solid #fca5a5; }
         .action-REPLENISH { background: #ede9fe; color: #5b21b6; }
         .action-EXPORT { background: #cffafe; color: #155e75; }
         .desc-text { color: #1e293b; font-weight: 600; }
@@ -157,6 +158,7 @@
                     <option value="LOGOUT">Logout</option>
                     <option value="ARCHIVE">Archive</option>
                     <option value="REPLENISH">Replenish</option>
+                    <option value="VOID">Void</option>
                 </select>
             </div>
             <div class="col-md-2"><input type="date" id="dateFrom" class="form-control" onchange="loadAudit(); loadFinancial(); loadCash();"></div>

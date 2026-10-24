@@ -28,7 +28,7 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS image_data TEXT;`);
         await pool.query(`ALTER TABLE services ADD COLUMN IF NOT EXISTS hidden BOOLEAN DEFAULT FALSE;`);
         await pool.query(`CREATE TABLE IF NOT EXISTS service_materials (id SERIAL PRIMARY KEY, service_id INTEGER REFERENCES services(id) ON DELETE CASCADE, product_id INTEGER REFERENCES products(id), quantity INTEGER DEFAULT 1, amount NUMERIC DEFAULT 0);`);
-        
+
         await pool.query(`CREATE TABLE IF NOT EXISTS audit_logs (
             id SERIAL PRIMARY KEY, user_id INTEGER, username TEXT, user_role TEXT,
             action TEXT NOT NULL, entity_type TEXT NOT NULL, entity_id INTEGER, description TEXT,
@@ -54,6 +54,12 @@ async function initDatabase() {
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_history JSONB DEFAULT '[]'::jsonb;`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_updated_at TIMESTAMPTZ DEFAULT NOW();`);
         await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS archived_at TIMESTAMPTZ;`);
+
+        // ===== VOID COLUMNS =====
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS voided BOOLEAN DEFAULT FALSE;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS void_reason TEXT;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS voided_by TEXT;`);
+        await pool.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS voided_at TIMESTAMPTZ;`);
 
         await pool.query(`CREATE TABLE IF NOT EXISTS service_flows (
             id SERIAL PRIMARY KEY, name TEXT NOT NULL, flow_key TEXT NOT NULL UNIQUE,
@@ -180,7 +186,7 @@ async function getFinancialAuditSummary(dateFrom, dateTo) {
     else if (dateFrom) { params.push(dateFrom); dateFilter = `AND date::timestamptz >= $1::timestamptz`; }
     else if (dateTo) { params.push(dateTo + ' 23:59:59'); dateFilter = `AND date::timestamptz <= $1::timestamptz`; }
 
-    const revRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS cnt FROM orders WHERE archived_at IS NULL ${dateFilter}`, params);
+    const revRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total, COUNT(*) AS cnt FROM orders WHERE archived_at IS NULL AND voided = FALSE ${dateFilter}`, params);
     const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
     const orderCount = parseInt(revRes.rows[0].cnt) || 0;
 
@@ -208,8 +214,8 @@ async function getCashOnHand(dateFrom, dateTo) {
     else if (dateFrom) { params.push(dateFrom); dateFilter = `AND date::timestamptz >= $1::timestamptz`; }
     else if (dateTo) { params.push(dateTo + ' 23:59:59'); dateFilter = `AND date::timestamptz <= $1::timestamptz`; }
 
-    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' ${dateFilter}`, params);
-    const unpaidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Pending' ${dateFilter}`, params);
+    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND voided = FALSE AND payment_status = 'Paid' ${dateFilter}`, params);
+    const unpaidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND voided = FALSE AND payment_status = 'Pending' ${dateFilter}`, params);
     const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE 1=1 ${dateFilter}`, params);
     const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE 1=1 ${dateFilter}`, params);
     const capRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE 1=1 ${dateFilter}`, params);
@@ -232,12 +238,12 @@ async function getIncomeStatement(dateFrom, dateTo) {
     const revByServiceRes = await pool.query(`
         SELECT oi.service_name, COALESCE(SUM(oi.quantity * oi.price), 0) AS revenue, COALESCE(SUM(oi.quantity), 0) AS total_qty
         FROM order_items oi JOIN orders o ON o.id = oi.order_id
-        WHERE o.archived_at IS NULL AND o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
+        WHERE o.archived_at IS NULL AND o.voided = FALSE AND o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
         GROUP BY oi.service_name ORDER BY revenue DESC`, params);
     const revenueByService = revByServiceRes.rows.map(r => ({ service: r.service_name, revenue: parseFloat(r.revenue) || 0, qty: parseFloat(r.total_qty) || 0 }));
     const revenue = revenueByService.reduce((s, r) => s + r.revenue, 0);
 
-    const orderCountRes = await pool.query(`SELECT COUNT(*) AS count FROM orders WHERE archived_at IS NULL AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const orderCountRes = await pool.query(`SELECT COUNT(*) AS count FROM orders WHERE archived_at IS NULL AND voided = FALSE AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
     const orderCount = parseInt(orderCountRes.rows[0].count) || 0;
 
     const cogsRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
@@ -269,7 +275,7 @@ async function getIncomeStatement(dateFrom, dateTo) {
 
 async function getBalanceSheet(dateTo) {
     const endDate = dateTo + ' 23:59:59';
-    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' AND date::timestamptz <= $1::timestamptz`, [endDate]);
+    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND voided = FALSE AND payment_status = 'Paid' AND date::timestamptz <= $1::timestamptz`, [endDate]);
     const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
     const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
     const capRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE date::timestamptz <= $1::timestamptz`, [endDate]);
@@ -297,7 +303,7 @@ async function getBalanceSheet(dateTo) {
     }
     const equipmentNet = equipmentCost - accDep;
 
-    const arRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Pending' AND date::timestamptz <= $1::timestamptz`, [endDate]);
+    const arRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND voided = FALSE AND payment_status = 'Pending' AND date::timestamptz <= $1::timestamptz`, [endDate]);
     const accountsReceivable = parseFloat(arRes.rows[0].total) || 0;
 
     const totalAssets = cash + inventory + equipmentNet + accountsReceivable;
@@ -316,7 +322,7 @@ async function getBalanceSheet(dateTo) {
 
 async function getCashFlowStatement(dateFrom, dateTo) {
     const params = [dateFrom, dateTo + ' 23:59:59'];
-    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
+    const paidRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND voided = FALSE AND payment_status = 'Paid' AND date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
     const repRes = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
     const expRes = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz`, params);
     const assetRes = await pool.query(`SELECT COALESCE(SUM(purchase_price), 0) AS total FROM assets WHERE purchase_date >= $1::date AND purchase_date <= $2::date`, [dateFrom, dateTo]);
@@ -339,7 +345,7 @@ async function getCashFlowStatement(dateFrom, dateTo) {
     const netFinancing = cashFromCapital + cashFromWithdrawals + cashFromLoans + cashPaidForLoans;
     const netCashChange = netOperating + netInvesting + netFinancing;
 
-    const bPaid = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND payment_status = 'Paid' AND date::timestamptz < $1::timestamptz`, [dateFrom]);
+    const bPaid = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND voided = FALSE AND payment_status = 'Paid' AND date::timestamptz < $1::timestamptz`, [dateFrom]);
     const bExp = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM expenses WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
     const bRep = await pool.query(`SELECT COALESCE(SUM(cost * quantity), 0) AS total FROM replenishments WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
     const bCap = await pool.query(`SELECT COALESCE(SUM(amount), 0) AS total FROM capital_investments WHERE date::timestamptz < $1::timestamptz`, [dateFrom]);
@@ -485,6 +491,8 @@ async function saveOrder(customer, total, cartItems, paymentStatus, cashierName,
 async function getOrders(filter, search, dateFrom, dateTo) {
     const conditions = ["archived_at IS NULL"];
     const params = [];
+    if (filter === 'voided') conditions.push("voided = TRUE");
+    else conditions.push("voided = FALSE");
     if (filter === 'paid') conditions.push("payment_status = 'Paid'");
     else if (filter === 'unpaid') conditions.push("payment_status = 'Pending'");
     else if (filter === 'received') conditions.push("status = 'Received'");
@@ -495,7 +503,7 @@ async function getOrders(filter, search, dateFrom, dateTo) {
     if (search) { params.push('%' + search + '%'); params.push(search); conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`); }
     if (dateFrom) { params.push(dateFrom); conditions.push(`date::timestamptz >= $${params.length}::timestamptz`); }
     if (dateTo) { params.push(dateTo + ' 23:59:59'); conditions.push(`date::timestamptz <= $${params.length}::timestamptz`); }
-    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at FROM orders";
+    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at, voided, void_reason, voided_by, voided_at FROM orders";
     query += " WHERE " + conditions.join(" AND ");
     query += " ORDER BY id DESC LIMIT 500";
     const result = await pool.query(query, params);
@@ -506,7 +514,7 @@ async function getArchivedOrders(filter, search) {
     const conditions = ["archived_at IS NOT NULL"];
     const params = [];
     if (search) { params.push('%' + search + '%'); params.push(search); conditions.push(`(customer ILIKE $${params.length - 1} OR CAST(id AS TEXT) = $${params.length})`); }
-    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at FROM orders";
+    let query = "SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, service_flow, current_step, pickup_delivery, customer_phone, rider_name, archived_at, voided, void_reason, voided_by, voided_at FROM orders";
     query += " WHERE " + conditions.join(" AND ");
     query += " ORDER BY archived_at DESC LIMIT 500";
     const result = await pool.query(query, params);
@@ -514,6 +522,64 @@ async function getArchivedOrders(filter, search) {
 }
 
 async function getOrderById(id) { const result = await pool.query("SELECT * FROM orders WHERE id = $1", [id]); return result.rows[0]; }
+
+// ===== VOID =====
+async function voidOrder(id, reason, voidedBy) {
+    const order = await getOrderById(id);
+    if (!order) throw new Error('Order not found');
+    if (order.voided) throw new Error('Order is already voided');
+    if (order.archived_at) throw new Error('Cannot void an archived order');
+
+    const items = await pool.query("SELECT service_name, quantity FROM order_items WHERE order_id = $1", [id]);
+
+    for (const item of items.rows) {
+        const prod = await pool.query("SELECT id FROM products WHERE name = $1", [item.service_name]);
+        if (prod.rows.length > 0) {
+            await pool.query("UPDATE products SET stock = stock + $1 WHERE id = $2", [item.quantity, prod.rows[0].id]);
+            continue;
+        }
+        const svc = await pool.query("SELECT id FROM services WHERE name = $1", [item.service_name]);
+        if (svc.rows.length > 0) {
+            const mats = await pool.query("SELECT product_id, quantity FROM service_materials WHERE service_id = $1", [svc.rows[0].id]);
+            for (const m of mats.rows) {
+                await pool.query("UPDATE products SET stock = stock + ($1 * $2) WHERE id = $3", [m.quantity, item.quantity, m.product_id]);
+            }
+        }
+    }
+
+    await pool.query(
+        `UPDATE orders SET voided = TRUE, void_reason = $1, voided_by = $2, voided_at = NOW() WHERE id = $3`,
+        [reason, voidedBy, id]
+    );
+    return { success: true };
+}
+
+async function unvoidOrder(id) {
+    const order = await getOrderById(id);
+    if (!order) throw new Error('Order not found');
+    if (!order.voided) throw new Error('Order is not voided');
+
+    const items = await pool.query("SELECT service_name, quantity FROM order_items WHERE order_id = $1", [id]);
+
+    for (const item of items.rows) {
+        const prod = await pool.query("SELECT id FROM products WHERE name = $1", [item.service_name]);
+        if (prod.rows.length > 0) {
+            await pool.query("UPDATE products SET stock = GREATEST(stock - $1, 0) WHERE id = $2", [item.quantity, prod.rows[0].id]);
+            continue;
+        }
+        const svc = await pool.query("SELECT id FROM services WHERE name = $1", [item.service_name]);
+        if (svc.rows.length > 0) {
+            const mats = await pool.query("SELECT product_id, quantity FROM service_materials WHERE service_id = $1", [svc.rows[0].id]);
+            for (const m of mats.rows) {
+                await pool.query("UPDATE products SET stock = GREATEST(stock - ($1 * $2), 0) WHERE id = $3", [m.quantity, item.quantity, m.product_id]);
+            }
+        }
+    }
+
+    await pool.query(`UPDATE orders SET voided = FALSE, void_reason = NULL, voided_by = NULL, voided_at = NULL WHERE id = $1`, [id]);
+    return { success: true };
+}
+
 async function archiveOrder(id) { await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = $1", [id]); }
 async function restoreOrder(id) { await pool.query("UPDATE orders SET archived_at = NULL WHERE id = $1", [id]); }
 async function archiveBatch(ids) { if (!ids || ids.length === 0) return 0; await pool.query("UPDATE orders SET archived_at = NOW() WHERE id = ANY($1::int[])", [ids]); return ids.length; }
@@ -557,7 +623,7 @@ async function addCustomer(name, phone, address, notes) {
 }
 async function updateCustomer(id, name, phone, address, notes) { await pool.query("UPDATE customers SET name = $1, phone = $2, address = $3, notes = $4 WHERE id = $5", [name, phone || null, address || null, notes || null, id]); }
 async function deleteCustomer(id) { await pool.query("DELETE FROM customers WHERE id = $1", [id]); }
-async function getCustomerOrders(name) { const result = await pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE customer = $1 ORDER BY id DESC LIMIT 50", [name]); return result.rows; }
+async function getCustomerOrders(name) { const result = await pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE customer = $1 AND voided = FALSE ORDER BY id DESC LIMIT 50", [name]); return result.rows; }
 
 // ===== REPORTS =====
 async function getReportSummary(dateFrom, dateTo) {
@@ -565,7 +631,7 @@ async function getReportSummary(dateFrom, dateTo) {
         SELECT COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_revenue, COALESCE(AVG(total), 0) AS avg_order_value,
             COALESCE(SUM(CASE WHEN payment_status = 'Pending' THEN total ELSE 0 END), 0) AS unpaid_revenue
         FROM (
-            SELECT total, payment_status FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            SELECT total, payment_status FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz AND voided = FALSE
             UNION ALL
             SELECT total, payment_status FROM archived_orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
         ) combined`, [dateFrom, dateTo + ' 23:59:59']);
@@ -576,7 +642,7 @@ async function getReportDaily(dateFrom, dateTo) {
     const result = await pool.query(`
         SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue, COALESCE(AVG(total), 0) AS avg_order
         FROM (
-            SELECT date, total FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            SELECT date, total FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz AND voided = FALSE
             UNION ALL
             SELECT date, total FROM archived_orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
         ) combined GROUP BY DATE(date::timestamptz) ORDER BY day ASC`, [dateFrom, dateTo + ' 23:59:59']);
@@ -587,7 +653,7 @@ async function getReportTopServices(dateFrom, dateTo) {
     const result = await pool.query(`
         SELECT service_name, SUM(quantity) AS total_qty, SUM(quantity * price) AS total_revenue
         FROM (
-            SELECT oi.service_name, oi.quantity, oi.price FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz
+            SELECT oi.service_name, oi.quantity, oi.price FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.date::timestamptz >= $1::timestamptz AND o.date::timestamptz <= $2::timestamptz AND o.voided = FALSE
             UNION ALL
             SELECT aoi.service_name, aoi.quantity, aoi.price FROM archived_order_items aoi JOIN archived_orders ao ON ao.id = aoi.archived_order_id WHERE ao.date::timestamptz >= $1::timestamptz AND ao.date::timestamptz <= $2::timestamptz
         ) combined GROUP BY service_name ORDER BY total_revenue DESC LIMIT 10`, [dateFrom, dateTo + ' 23:59:59']);
@@ -598,7 +664,7 @@ async function getReportTopCustomers(dateFrom, dateTo) {
     const result = await pool.query(`
         SELECT customer, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS total_spent
         FROM (
-            SELECT customer, total FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
+            SELECT customer, total FROM orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz AND voided = FALSE
             UNION ALL
             SELECT customer, total FROM archived_orders WHERE date::timestamptz >= $1::timestamptz AND date::timestamptz <= $2::timestamptz
         ) combined GROUP BY customer ORDER BY total_spent DESC LIMIT 10`, [dateFrom, dateTo + ' 23:59:59']);
@@ -755,7 +821,7 @@ async function getROIData() {
         const monthlyDep = totalDepreciation / lifeMonths;
         if (monthsOwned < lifeMonths) monthlyDepreciation += monthlyDep;
     }
-    const revRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL`);
+    const revRes = await pool.query(`SELECT COALESCE(SUM(total), 0) AS total FROM orders WHERE archived_at IS NULL AND voided = FALSE`);
     const totalRevenue = parseFloat(revRes.rows[0].total) || 0;
     const expRes = await pool.query("SELECT COALESCE(SUM(amount), 0) AS total FROM expenses");
     const totalExpenses = parseFloat(expRes.rows[0].total) || 0;
@@ -774,7 +840,7 @@ async function getROIData() {
     }
     const netProfit = totalRevenue - totalExpenses - totalReplenish - totalDepreciationToDate;
     const roi = totalInvestment > 0 ? (netProfit / totalInvestment) * 100 : 0;
-    const monthsActive = await pool.query(`SELECT EXTRACT(EPOCH FROM (NOW() - MIN(date::timestamptz)))/2629800 AS months FROM orders`);
+    const monthsActive = await pool.query(`SELECT EXTRACT(EPOCH FROM (NOW() - MIN(date::timestamptz)))/2629800 AS months FROM orders WHERE voided = FALSE`);
     const activeMonths = Math.max(1, parseFloat(monthsActive.rows[0].months) || 1);
     const avgMonthlyProfit = netProfit / activeMonths;
     const paybackMonths = avgMonthlyProfit > 0 ? totalInvestment / avgMonthlyProfit : 0;
@@ -832,6 +898,7 @@ module.exports = {
     getAllServiceFlows, addServiceFlow, updateServiceFlow, deleteServiceFlow, getServiceFlowByKey,
     saveOrder, getOrders, getArchivedOrders, getOrderById, archiveOrder, restoreOrder, archiveBatch, cleanupOldArchive,
     markAsPaid, markAsUnpaid, deleteOrder, updateOrderStatus,
+    voidOrder, unvoidOrder,
     getCustomers, getCustomer, addCustomer, updateCustomer, deleteCustomer, getCustomerOrders,
     getReportSummary, getReportDaily, getReportTopServices, getReportTopCustomers,
     getAllSettings, updateSettings,

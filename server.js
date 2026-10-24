@@ -557,13 +557,72 @@ app.post('/api/orders/archive/cleanup', requireAuth, async (req, res) => {
 
 app.get('/api/orders/:id/details', requireAuth, async (req, res) => {
     try {
-        const orderResult = await db.pool.query("SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name FROM orders WHERE id = $1", [req.params.id]);
+        const orderResult = await db.pool.query("SELECT id, date, customer, total, payment_status, COALESCE(status, 'Received') AS status, cashier_name, voided, void_reason, voided_by, voided_at FROM orders WHERE id = $1", [req.params.id]);
         if (orderResult.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
         const itemsResult = await db.pool.query("SELECT service_name, quantity, price FROM order_items WHERE order_id = $1", [req.params.id]);
         const order = orderResult.rows[0];
         order.items = itemsResult.rows;
         res.json(order);
     } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ===== VOID ORDER =====
+app.post('/api/orders/:id/void', requireAuth, async (req, res) => {
+    try {
+        const token = req.headers['x-auth-token'];
+        const session = sessions.get(token);
+        if (!session) return res.status(401).json({ error: 'Not authenticated' });
+
+        if (session.role !== 'owner' && session.role !== 'admin') {
+            return res.status(403).json({ error: 'Only owner or admin can void orders' });
+        }
+
+        const { reason } = req.body;
+        if (!reason || !reason.trim()) {
+            return res.status(400).json({ error: 'Void reason is required' });
+        }
+
+        const order = await db.getOrderById(req.params.id);
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+        if (order.voided) return res.status(400).json({ error: 'Order is already voided' });
+        if (order.archived_at) return res.status(400).json({ error: 'Cannot void an archived order' });
+
+        await db.voidOrder(req.params.id, reason.trim(), session.username);
+
+        await audit(req, 'VOID', 'order', req.params.id,
+            `Order #${req.params.id} VOIDED — ${reason.trim()}`,
+            { voided: false }, { voided: true, reason: reason.trim(), voided_by: session.username });
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ===== UN-VOID (restore) ORDER =====
+app.post('/api/orders/:id/unvoid', requireAuth, async (req, res) => {
+    try {
+        const token = req.headers['x-auth-token'];
+        const session = sessions.get(token);
+        if (!session) return res.status(401).json({ error: 'Not authenticated' });
+        if (session.role !== 'owner' && session.role !== 'admin') {
+            return res.status(403).json({ error: 'Only owner or admin can restore orders' });
+        }
+
+        const order = await db.getOrderById(req.params.id);
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+        if (!order.voided) return res.status(400).json({ error: 'Order is not voided' });
+
+        await db.unvoidOrder(req.params.id);
+
+        await audit(req, 'UPDATE', 'order', req.params.id,
+            `Order #${req.params.id} UN-VOIDED (restored)`,
+            { voided: true }, { voided: false });
+
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.put('/api/orders/:id/pay', requireAuth, async (req, res) => {
@@ -618,6 +677,7 @@ app.post('/api/orders/:id/next-status', requireAuth, async (req, res) => {
         const { riderName } = req.body;
         const order = await db.getOrderById(req.params.id);
         if (!order) return res.status(404).json({ error: 'Order not found' });
+        if (order.voided) return res.status(400).json({ error: 'Cannot advance a voided order' });
         const flow = order.service_flow || ['Received'];
         const nextStep = (order.current_step || 0) + 1;
         if (nextStep >= flow.length) return res.status(400).json({ error: 'Order is already at final status' });
@@ -639,7 +699,10 @@ app.get('/api/track/:orderId', async (req, res) => {
             status: order.status, serviceFlow: order.service_flow || [], currentStep: order.current_step || 0,
             statusHistory: order.status_history || [], pickupDelivery: order.pickup_delivery,
             customerPhone: order.customer_phone, riderName: order.rider_name,
-            createdAt: order.date, paymentStatus: order.payment_status, items: itemsResult.rows
+            createdAt: order.date, paymentStatus: order.payment_status, items: itemsResult.rows,
+            voided: order.voided || false,
+            voidReason: order.void_reason || null,
+            voidedAt: order.voided_at || null
         });
     } catch (err) { res.status(500).json({ error: err.message }); }
 });
@@ -863,11 +926,11 @@ app.delete('/api/bookings/:id', requireAuth, async (req, res) => {
 app.get('/api/dashboard', requireAuth, async (req, res) => {
     try {
         const today = new Date().toISOString().split('T')[0];
-        const todayOrders = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE date LIKE $1 AND archived_at IS NULL", [today + '%']);
-        const allTime = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE archived_at IS NULL");
-        const pending = await db.pool.query("SELECT COUNT(*) AS count FROM orders WHERE payment_status = 'Pending' AND archived_at IS NULL");
-        const topServices = await db.pool.query("SELECT service_name, SUM(quantity) AS total_qty, SUM(quantity * price) AS total_revenue FROM order_items GROUP BY service_name ORDER BY total_qty DESC LIMIT 5");
-        const recentOrders = await db.pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE archived_at IS NULL ORDER BY id DESC LIMIT 10");
+        const todayOrders = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE date LIKE $1 AND archived_at IS NULL AND voided = FALSE", [today + '%']);
+        const allTime = await db.pool.query("SELECT COUNT(*) AS count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE archived_at IS NULL AND voided = FALSE");
+        const pending = await db.pool.query("SELECT COUNT(*) AS count FROM orders WHERE payment_status = 'Pending' AND archived_at IS NULL AND voided = FALSE");
+        const topServices = await db.pool.query("SELECT oi.service_name, SUM(oi.quantity) AS total_qty, SUM(oi.quantity * oi.price) AS total_revenue FROM order_items oi JOIN orders o ON o.id = oi.order_id WHERE o.voided = FALSE AND o.archived_at IS NULL GROUP BY oi.service_name ORDER BY total_qty DESC LIMIT 5");
+        const recentOrders = await db.pool.query("SELECT id, date, customer, total, payment_status FROM orders WHERE archived_at IS NULL AND voided = FALSE ORDER BY id DESC LIMIT 10");
         res.json({
             today: { orders: parseInt(todayOrders.rows[0].count), revenue: parseFloat(todayOrders.rows[0].revenue) },
             allTime: { orders: parseInt(allTime.rows[0].count), revenue: parseFloat(allTime.rows[0].revenue) },
@@ -879,7 +942,7 @@ app.get('/api/dashboard', requireAuth, async (req, res) => {
 
 app.get('/api/dashboard/years', requireAuth, async (req, res) => {
     try {
-        const result = await db.pool.query("SELECT DISTINCT EXTRACT(YEAR FROM date::timestamptz) AS y FROM orders WHERE archived_at IS NULL ORDER BY y ASC");
+        const result = await db.pool.query("SELECT DISTINCT EXTRACT(YEAR FROM date::timestamptz) AS y FROM orders WHERE archived_at IS NULL AND voided = FALSE ORDER BY y ASC");
         const years = result.rows.map(r => parseInt(r.y));
         const currentYear = new Date().getFullYear();
         if (!years.includes(currentYear)) years.push(currentYear);
@@ -895,10 +958,10 @@ app.get('/api/dashboard/chart', requireAuth, async (req, res) => {
         const view = req.query.view || 'month';
         let query, params;
         if (view === 'month' || month === 'all') {
-            query = `SELECT DATE_TRUNC('month', date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 AND archived_at IS NULL GROUP BY DATE_TRUNC('month', date::timestamptz) ORDER BY day ASC`;
+            query = `SELECT DATE_TRUNC('month', date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 AND archived_at IS NULL AND voided = FALSE GROUP BY DATE_TRUNC('month', date::timestamptz) ORDER BY day ASC`;
             params = [year];
         } else {
-            query = `SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 AND EXTRACT(MONTH FROM date::timestamptz) = $2 AND archived_at IS NULL GROUP BY DATE(date::timestamptz) ORDER BY day ASC`;
+            query = `SELECT DATE(date::timestamptz) AS day, COUNT(*) AS order_count, COALESCE(SUM(total), 0) AS revenue FROM orders WHERE EXTRACT(YEAR FROM date::timestamptz) = $1 AND EXTRACT(MONTH FROM date::timestamptz) = $2 AND archived_at IS NULL AND voided = FALSE GROUP BY DATE(date::timestamptz) ORDER BY day ASC`;
             params = [year, parseInt(month)];
         }
         const result = await db.pool.query(query, params);
